@@ -147,10 +147,52 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
     product_id: item?.product_id ?? "",
   });
 
+  const getCalculatedName = () => {
+    if (form.kind === "produto_fisico") {
+      const p = products?.find((x) => x.id === form.product_id);
+      return p?.name || "Nenhum produto selecionado";
+    }
+    if (form.kind === "voucher_valor") {
+      return `Vale R$ ${form.voucher_value.toFixed(2).replace(".", ",")} de desconto`;
+    }
+    if (form.kind === "voucher_percent") {
+      return `Desconto de ${form.voucher_percent}%`;
+    }
+    if (form.kind === "voucher_frete") {
+      return "Frete grátis";
+    }
+    return "";
+  };
+
+  const isValid = (() => {
+    if (form.kind === "produto_fisico") return !!form.product_id;
+    if (form.kind === "voucher_valor") return form.voucher_value > 0;
+    if (form.kind === "voucher_percent") return form.voucher_percent > 0;
+    return true; // voucher_frete
+  })();
+
   const save = useMutation({
     mutationFn: async () => {
+      const calculatedName = (() => {
+        if (form.kind === "produto_fisico") {
+          const p = products?.find((x) => x.id === form.product_id);
+          return p?.name || "";
+        }
+        if (form.kind === "voucher_valor") {
+          return `Vale R$ ${form.voucher_value.toFixed(2).replace(".", ",")} de desconto`;
+        }
+        if (form.kind === "voucher_percent") {
+          return `Desconto de ${form.voucher_percent}%`;
+        }
+        if (form.kind === "voucher_frete") {
+          return "Frete grátis";
+        }
+        return "";
+      })();
+
       const payload: Record<string, unknown> = {
-        name: form.name, description: form.description || null,
+        name: calculatedName,
+        description: form.description || null,
         kind: form.kind, points_cost: form.points_cost, stock: form.stock,
         images: form.image_url ? [form.image_url] : [],
         expires_at: form.expires_at || null,
@@ -182,6 +224,19 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
         </div>
         
         <div className="max-h-[65vh] space-y-4 overflow-y-auto pr-1 text-sm">
+          {/* Card de Nome Auto-Gerado / Preview da Recompensa */}
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between shadow-sm animate-fade-in">
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">Nome da Recompensa</span>
+              <span className="font-display text-base font-bold text-foreground mt-0.5 block truncate leading-tight">
+                {getCalculatedName()}
+              </span>
+            </div>
+            <div className="h-9 w-9 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-primary ml-3 shadow-inner">
+              {form.kind === "produto_fisico" ? <Gift className="h-4.5 w-4.5" /> : <Ticket className="h-4.5 w-4.5" />}
+            </div>
+          </div>
+
           {/* 1. SE FOR PRODUTO FÍSICO: Produto Vinculado no topo absoluto! */}
           {form.kind === "produto_fisico" && (
             <div className="space-y-3">
@@ -238,19 +293,14 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
             </div>
           )}
 
-          {/* 2. SE FOR VOUCHER: Nome, Descrição e URL de Imagem no topo */}
+          {/* 2. SE FOR VOUCHER: Tipo de Voucher e Descrição no topo */}
           {form.kind !== "produto_fisico" && (
             <>
-              {/* Nome e Descrição */}
-              <div className="space-y-3">
-                <input 
-                  placeholder="Nome da recompensa (Ex: R$ 50 Off)" 
-                  value={form.name} 
-                  onChange={(e) => setForm({ ...form, name: e.target.value })} 
-                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
-                />
+              {/* Descrição */}
+              <div className="space-y-1.5">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Descrição Detalhada</span>
                 <textarea 
-                  placeholder="Descrição detalhada" 
+                  placeholder="Ex: R$ 50 de desconto para compras acima de R$ 300" 
                   value={form.description} 
                   onChange={(e) => setForm({ ...form, description: e.target.value })} 
                   className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all min-h-20 max-h-40 placeholder:text-muted-foreground/60" 
@@ -283,12 +333,15 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
               </div>
 
               {/* URL da Imagem */}
-              <input 
-                placeholder="URL da imagem (opcional)" 
-                value={form.image_url} 
-                onChange={(e) => setForm({ ...form, image_url: e.target.value })} 
-                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
-              />
+              <div className="space-y-1.5">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Imagem do Voucher (Opcional)</span>
+                <input 
+                  placeholder="URL da imagem (opcional)" 
+                  value={form.image_url} 
+                  onChange={(e) => setForm({ ...form, image_url: e.target.value })} 
+                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
+                />
+              </div>
             </>
           )}
 
@@ -372,7 +425,7 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
           </button>
           <button 
             type="button"
-            disabled={save.isPending || !form.name} 
+            disabled={save.isPending || !isValid} 
             onClick={() => save.mutate()} 
             className="min-h-11 flex-1 rounded-full bg-primary text-primary-foreground hover:bg-primary/95 text-sm font-semibold shadow-md transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
           >
