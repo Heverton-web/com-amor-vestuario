@@ -39,5 +39,5 @@ RUN npm install wrangler@3.57.1 --omit=dev --no-audit --no-fund
 # Expõe a porta configurada
 EXPOSE 3000
 
-# Executa o wrangler dev apontando para o bundle de servidor gerado
-CMD ["npx", "wrangler", "dev", "dist/server/index.js", "--port", "3000", "--ip", "0.0.0.0", "--live-reload", "false"]
+# Executa o wrangler dev forçando a compatibilidade com Node.js para habilitar o módulo node:async_hooks
+CMD ["npx", "wrangler", "dev", "dist/server/index.js", "--port", "3000", "--ip", "0.0.0.0", "--compatibility-date=2025-09-24", "--compatibility-flag=nodejs_compat", "--live-reload", "false"]
