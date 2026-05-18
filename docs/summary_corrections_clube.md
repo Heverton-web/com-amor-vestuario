@@ -122,10 +122,7 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
     * `+ 3 Dias` | `+ 7 Dias` | `+ 15 Dias` | `+ 30 Dias` | `+ 90 Dias` | `Sem expiração (Vitalício)`.
   * **Data Customizada**: Disponibiliza também um input de `datetime-local` no rodapé da Dialog para que o admin defina uma data/hora milimétrica personalizada se preferir, salvando instantaneamente no banco de dados e atualizando o feed em tempo real com feedbacks visuais de sucesso.
 * **Barra de Filtros de Resgates Ultra-Premium (Local Indicado pelo Admin)**:
-  * Posicionamos no topo da aba de **Resgates** uma elegante barra de filtros horizontais segmentada em 3 colunas responsivas:
-    * **Filtro por Cliente**: Input interativo que pesquisa em tempo real pelo **Nome** ou **Código** do cliente (com suporte a botão rápido para limpar).
-    * **Filtro por Recompensa**: Input de texto reativo para filtrar instantaneamente pelo nome da recompensa ou produto físico.
-    * **Filtro por Data de Resgate**: Seletor de data (`type="date"`) nativo e estilizado para localizar resgates efetuados em uma data específica.
+  * Posicionamos no topo da aba de **Resgates** uma elegante barra de filtros horizontais segmentada em 3 colunas responsivas, onde os filtros de **Cliente** e **Recompensa** utilizam elementos `<select>` nativos que mapeiam dinamicamente os registros reais do banco, garantindo alta usabilidade e precisão sem necessidade de digitação.
   * **Feedback de Resultados Inexistentes**: Caso nenhum resgate atenda aos filtros selecionados, exibe-se um card explicativo indicando `"Nenhum resgate encontrado com os filtros selecionados"` com design coerente ao restante do projeto.
 * **Painel de Análises Inteligente (Aba "Análises")**:
   * Adicionamos a aba **"Análises"** na navegação principal do CRM do Clube Com Amor.
@@ -135,13 +132,18 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
     * *Distribuição de Resgates*: Gráfico de barra de equilíbrio dinâmico e bilíngue (Produto Físico vs. Cupom/Voucher) com cálculo percentual em tempo real.
   * **Barra de Filtros Multidimensional**:
     * Inputs de *Data Inicial* e *Data Final* permitindo filtrar as análises por qualquer período customizado.
-    * Pesquisa instantânea por *Cliente* e por *Recompensa* (produto ou cupom).
+    * Filtros inteligentes baseados em `<select>` dropdowns dinâmicos para seleção estrita de *Cliente* e de *Recompensa*, otimizando a experiência em telas de todos os tamanhos.
     * Botão geral de *Limpar Todos os Filtros* quando aplicados.
   * **Rankings de Alta Performance (Top 5)**:
-    * *Top Clientes que mais Resgatam*: Lista ordenada com pódios estilizados (ouro, prata, bronze), quantidade de trocas e total de pontos investidos.
-    * *Recompensas Mais Resgatadas*: Lista de itens físicos ou digitais que lideram a preferência de troca no clube de fidelidade.
+    * *Top Clientes que mais Resgatam*: Lista ordenada com pódios estilizados, quantidade de trocas e total de pontos investidos (livre de emojis).
+    * *Recompensas Mais Resgatadas*: Lista de itens físicos ou digitais que lideram a preferência de troca no clube de fidelidade (livre de emojis).
 
 ---
 
-## 11. Validação de Integridade
+## 11. Diretriz de Ausência de Emojis (Visual Premium Clean)
+* **Zero Emojis**: Em conformidade com a identidade visual sóbria, elegante e de alto padrão, removemos todos os caracteres emojis (incluindo pódios, chamas e fogos) do painel de análises administrativo e demais componentes visuais, substituindo-os por ícones vetoriais modernos (`User`, `Gift`, `Ticket`, `Clock`, etc.) que complementam a tipografia de grife.
+
+---
+
+## 12. Validação de Integridade
 * **Tipagem Estrita**: Executamos o compilador TypeScript `npx tsc --noEmit` e validamos que a aplicação compila com **zero erros** de tipos.

@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { AdminShell } from "@/features/core/components/AdminShell";
-import { Plus, Trash2, Gift, X, Send, Pencil, Eye, EyeOff, Ticket, Calendar, Copy, ArrowUpRight, ArrowDownLeft, CheckCircle2, User, KeyRound, Upload, Check, Clock } from "lucide-react";
+import { Plus, Trash2, Gift, X, Send, Pencil, Eye, EyeOff, Ticket, Calendar, Copy, ArrowUpRight, ArrowDownLeft, CheckCircle2, User, KeyRound, Upload, Check, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { NumInput } from "@/features/core/components/num-input";
 import { kindLabel, type RewardItem, type RewardKind, type Redemption, type LedgerEntry } from "@/features/fidelidade/services/rewards";
@@ -16,7 +16,86 @@ export const Route = createFileRoute("/_authenticated/admin/recompensas")({
   component: RewardsAdmin,
 });
 
-type Tab = "catalogo" | "resgates" | "pontos" | "analises";
+// ─── Componentes reutilizáveis de filtro ────────────────────────────────────
+
+type FilterSelectProps = {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  placeholder: string;
+};
+
+function FilterSelect({ label, value, onChange, options, placeholder }: FilterSelectProps) {
+  const isActive = !!value;
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between min-h-[18px]">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{label}</label>
+        {isActive && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="inline-flex items-center gap-0.5 text-[10px] font-bold text-primary hover:text-primary/80 cursor-pointer transition-colors"
+          >
+            <X className="h-2.5 w-2.5" /> Limpar
+          </button>
+        )}
+      </div>
+      <div className={`relative rounded-xl border transition-all ${isActive ? "border-primary ring-1 ring-primary/20" : "border-border"}`}>
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full h-10 rounded-xl bg-background px-3.5 text-xs outline-none cursor-pointer font-medium appearance-none"
+        >
+          <option value="">{placeholder}</option>
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        <ChevronRight className={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rotate-90 transition-colors ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+      </div>
+    </div>
+  );
+}
+
+type FilterDateProps = {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+};
+
+function FilterDate({ label, value, onChange }: FilterDateProps) {
+  const isActive = !!value;
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between min-h-[18px]">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{label}</label>
+        {isActive && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="inline-flex items-center gap-0.5 text-[10px] font-bold text-primary hover:text-primary/80 cursor-pointer transition-colors"
+          >
+            <X className="h-2.5 w-2.5" /> Limpar
+          </button>
+        )}
+      </div>
+      <div className={`relative rounded-xl border transition-all ${isActive ? "border-primary ring-1 ring-primary/20" : "border-border"}`}>
+        <input
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full h-10 rounded-xl bg-background px-3.5 text-xs outline-none cursor-pointer font-medium"
+        />
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+
+type Tab = "catalogo" | "resgates" | "historico" | "acessos" | "analises";
 
 function RewardsAdmin() {
   const [tab, setTab] = useState<Tab>("catalogo");
@@ -26,7 +105,8 @@ function RewardsAdmin() {
         {[
           { k: "catalogo", l: "Catálogo" },
           { k: "resgates", l: "Resgates" },
-          { k: "pontos", l: "Pontos" },
+          { k: "historico", l: "Histórico" },
+          { k: "acessos", l: "Acessos" },
           { k: "analises", l: "Análises" },
         ].map((t) => (
           <button
@@ -37,7 +117,8 @@ function RewardsAdmin() {
       </nav>
       {tab === "catalogo" && <Catalogo />}
       {tab === "resgates" && <Resgates />}
-      {tab === "pontos" && <Pontos />}
+      {tab === "historico" && <Historico />}
+      {tab === "acessos" && <Acessos />}
       {tab === "analises" && <Analises />}
     </AdminShell>
   );
@@ -685,6 +766,27 @@ function Resgates() {
       return (data ?? []) as unknown as (Redemption & { reward: { name: string; kind: string }; customer: { name: string; code: string } })[];
     },
   });
+
+  const uniqueCustomers = useMemo<{ name: string; code: string }[]>(() => {
+    const map = new Map<string, { name: string; code: string }>();
+    (data ?? []).forEach((r) => {
+      if (r.customer?.name) {
+        map.set(r.customer.name, { name: r.customer.name, code: r.customer.code });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [data]);
+
+  const uniqueRewards = useMemo<string[]>(() => {
+    const set = new Set<string>();
+    (data ?? []).forEach((r) => {
+      if (r.reward?.name) {
+        set.add(r.reward.name);
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [data]);
+
   const update = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       await supabase.from("redemptions" as never).update({ status, used_at: status === "utilizado" ? new Date().toISOString() : null } as never).eq("id", id);
@@ -693,20 +795,11 @@ function Resgates() {
   });
 
   const filtered = (data ?? []).filter((r) => {
-    if (searchClient) {
-      const clientName = r.customer?.name?.toLowerCase() || "";
-      const clientCode = r.customer?.code?.toLowerCase() || "";
-      const query = searchClient.toLowerCase();
-      if (!clientName.includes(query) && !clientCode.includes(query)) {
-        return false;
-      }
+    if (searchClient && r.customer?.name !== searchClient) {
+      return false;
     }
-    if (searchProduct) {
-      const rewardName = r.reward?.name?.toLowerCase() || "";
-      const query = searchProduct.toLowerCase();
-      if (!rewardName.includes(query)) {
-        return false;
-      }
+    if (searchProduct && r.reward?.name !== searchProduct) {
+      return false;
     }
     if (filterDate) {
       const redemptionDate = r.created_at ? r.created_at.slice(0, 10) : "";
@@ -734,74 +827,28 @@ function Resgates() {
   return (
     <div className="space-y-4">
       {/* Barra de Filtros Ultra-Premium (Cliente, Produto e Data) */}
-      <div className="grid gap-3.5 sm:grid-cols-3 bg-secondary/20 border border-border p-3.5 rounded-2xl animate-fade-in">
-        {/* Filtro Cliente */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Filtrar por Cliente</label>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Nome ou código do cliente..."
-              value={searchClient}
-              onChange={(e) => setSearchClient(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
-            />
-            {searchClient && (
-              <button 
-                type="button" 
-                onClick={() => setSearchClient("")} 
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer"
-              >
-                Limpar
-              </button>
-            )}
-          </div>
-        </div>
+      <div className="grid gap-3.5 sm:grid-cols-3 bg-secondary/20 border border-border p-3.5 rounded-2xl animate-fade-in font-sans">
+        <FilterSelect
+          label="Cliente"
+          value={searchClient}
+          onChange={setSearchClient}
+          placeholder="Todos os clientes"
+          options={uniqueCustomers.map((c) => ({ value: c.name, label: `${c.name} (${c.code})` }))}
+        />
 
-        {/* Filtro Produto/Recompensa */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Filtrar por Recompensa</label>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Nome do produto ou voucher..."
-              value={searchProduct}
-              onChange={(e) => setSearchProduct(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
-            />
-            {searchProduct && (
-              <button 
-                type="button" 
-                onClick={() => setSearchProduct("")} 
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer"
-              >
-                Limpar
-              </button>
-            )}
-          </div>
-        </div>
+        <FilterSelect
+          label="Recompensa"
+          value={searchProduct}
+          onChange={setSearchProduct}
+          placeholder="Todas as recompensas"
+          options={uniqueRewards.map((name) => ({ value: name, label: name }))}
+        />
 
-        {/* Filtro Data de Resgate */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Filtrar por Data de Resgate</label>
-          <div className="relative">
-            <input
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all cursor-pointer font-medium"
-            />
-            {filterDate && (
-              <button 
-                type="button" 
-                onClick={() => setFilterDate("")} 
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer"
-              >
-                Limpar
-              </button>
-            )}
-          </div>
-        </div>
+        <FilterDate
+          label="Data de Resgate"
+          value={filterDate}
+          onChange={setFilterDate}
+        />
       </div>
 
       {/* Listagem de Resgates */}
@@ -886,17 +933,165 @@ function Resgates() {
   );
 }
 
-function Pontos() {
+const HISTORICO_PAGE_SIZE = 20;
+
+function Historico() {
+  const [page, setPage] = useState(1);
+  const [filterType, setFilterType] = useState<"" | "produto" | "voucher">("");
+
   const { data } = useQuery({
     queryKey: ["ledger-admin"],
     queryFn: async () => {
       const { data } = await supabase.from("points_ledger" as never)
         .select("*, customer:customers(name,code)")
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(500);
       return (data ?? []) as unknown as (LedgerEntry & { customer: { name: string; code: string } })[];
     },
   });
+
+  const all = useMemo<(LedgerEntry & { customer: { name: string; code: string } })[]>(() => {
+    const raw = data ?? [];
+    if (!filterType) return raw;
+    if (filterType === "produto") {
+      return raw.filter((l) => l.reason === "resgate" && l.description?.toLowerCase().includes("(resgate)"));
+    }
+    // voucher: resgates que nao sao produto fisico
+    if (filterType === "voucher") {
+      return raw.filter((l) => l.reason === "resgate" && !l.description?.toLowerCase().includes("(resgate)"));
+    }
+    return raw;
+  }, [data, filterType]);
+
+  const totalPages = Math.max(1, Math.ceil(all.length / HISTORICO_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = all.slice((currentPage - 1) * HISTORICO_PAGE_SIZE, currentPage * HISTORICO_PAGE_SIZE);
+
+  return (
+    <div className="space-y-4">
+      {/* Barra de filtros e cabecalho */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Historico de pontos</h3>
+          {/* Toggle de tipo */}
+          <div className="inline-flex rounded-xl border border-border bg-secondary/30 p-0.5 gap-0.5">
+            {([
+              { v: "", l: "Todos" },
+              { v: "produto", l: "Produto" },
+              { v: "voucher", l: "Voucher" },
+            ] as { v: "" | "produto" | "voucher"; l: string }[]).map((opt) => (
+              <button
+                key={opt.v}
+                type="button"
+                onClick={() => { setFilterType(opt.v); setPage(1); }}
+                className={`h-7 rounded-lg px-3 text-[11px] font-semibold transition-all cursor-pointer ${
+                  filterType === opt.v
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`}
+              >
+                {opt.l}
+              </button>
+            ))}
+          </div>
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {all.length} registros · pagina {currentPage} de {totalPages}
+        </span>
+      </div>
+
+      {/* Lista paginada */}
+      <div className="space-y-2">
+        {paginated.map((l) => {
+          const isPositive = l.delta > 0;
+          return (
+            <div key={l.id} className="flex items-center gap-3.5 rounded-2xl border border-border bg-card p-3.5 transition-all hover:shadow-sm">
+              {/* Badge de direcao */}
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+                isPositive
+                  ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                  : "bg-rose-50 text-rose-600 border-rose-100"
+              }`}>
+                {isPositive ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownLeft className="h-5 w-5" />}
+              </div>
+
+              {/* Informacoes */}
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {dateTimeBR(l.created_at)}</span>
+                </div>
+                <div className="font-semibold text-foreground truncate">{l.customer?.name || "Cliente sem nome"}</div>
+                <div className="text-xs text-muted-foreground truncate">{l.description || l.reason}</div>
+              </div>
+
+              {/* Delta de pontos */}
+              <div className={`font-display text-lg font-bold shrink-0 px-2 py-0.5 rounded ${
+                isPositive ? "text-emerald-600" : "text-rose-600"
+              }`}>
+                {isPositive ? "+" : ""}{l.delta}
+              </div>
+            </div>
+          );
+        })}
+        {!all.length && (
+          <div className="rounded-2xl border border-dashed border-border bg-card p-14 text-center text-muted-foreground">
+            Nenhum lancamento de pontos registrado ainda.
+          </div>
+        )}
+      </div>
+
+      {/* Controles de paginacao */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-border pt-4">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" /> Anterior
+          </button>
+
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+              .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((item, idx) =>
+                item === "..." ? (
+                  <span key={`ellipsis-${idx}`} className="px-1 text-xs text-muted-foreground">...</span>
+                ) : (
+                  <button
+                    key={item}
+                    onClick={() => setPage(item as number)}
+                    className={`h-7 w-7 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      page === item
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border bg-card text-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                )
+              )}
+          </div>
+
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Proximo <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Acessos() {
   const { data: balances } = useQuery({
     queryKey: ["balances-admin"],
     queryFn: async () => {
@@ -933,128 +1128,78 @@ function Pontos() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-      {/* Left Column: Recent Ledger Entries */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Lançamentos recentes</h3>
-          <span className="text-xs text-muted-foreground">Exibindo os últimos 200</span>
-        </div>
-        
-        <div className="space-y-2">
-          {(data ?? []).map((l) => {
-            const isPositive = l.delta > 0;
-            return (
-              <div key={l.id} className="flex items-center gap-3.5 rounded-2xl border border-border bg-card p-3.5 transition-all hover:shadow-sm">
-                {/* Visual Direction badge */}
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
-                  isPositive 
-                    ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
-                    : "bg-rose-50 text-rose-600 border-rose-100"
-                }`}>
-                  {isPositive ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownLeft className="h-5 w-5" />}
-                </div>
+    <div className="space-y-4">
+      <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Saldos · acesso ao portal</h3>
 
-                {/* Info and Metadata */}
+      <div className="space-y-2.5">
+        {(balances ?? []).map((b) => {
+          const c = customersMap?.[b.customer_id];
+          const hasAccess = !!c?.user_id;
+          return (
+            <div key={b.customer_id} className="rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-sm">
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 space-y-0.5">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {dateTimeBR(l.created_at)}</span>
+                  <div className="truncate font-semibold text-foreground flex items-center gap-1.5">
+                    <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate">{c?.name ?? b.customer_id.slice(0, 8)}</span>
                   </div>
-                  <div className="font-semibold text-foreground truncate">{l.customer?.name || "Cliente sem nome"}</div>
-                  <div className="text-xs text-muted-foreground truncate">{l.description || l.reason}</div>
+                  <div className="truncate text-xs text-muted-foreground">{c?.email ?? "Sem e-mail cadastrado"}</div>
                 </div>
+                <div className="shrink-0 bg-primary/5 border border-primary/10 rounded-xl px-3 py-1 text-right">
+                  <strong className="text-primary font-display text-base font-semibold">{b.balance} pts</strong>
+                </div>
+              </div>
 
-                {/* Point delta display */}
-                <div className={`font-display text-lg font-bold shrink-0 px-2 py-0.5 rounded ${
-                  isPositive ? "text-emerald-600" : "text-rose-600"
+              <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between gap-2">
+                {/* Status Indicator */}
+                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                  hasAccess
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                    : "bg-secondary text-muted-foreground border-border"
                 }`}>
-                  {isPositive ? "+" : ""}{l.delta}
-                </div>
-              </div>
-            );
-          })}
-          {!data?.length && (
-            <div className="rounded-2xl border border-dashed border-border bg-card p-14 text-center text-muted-foreground">
-              Nenhum lançamento de pontos registrado ainda.
-            </div>
-          )}
-        </div>
-      </div>
+                  {hasAccess ? (
+                    <>
+                      <CheckCircle2 className="h-3 w-3 shrink-0" />
+                      <span>Acesso ativo</span>
+                    </>
+                  ) : (
+                    <span>Sem acesso</span>
+                  )}
+                </span>
 
-      {/* Right Column: Point Balances & Access Invitation Controls */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Saldos · acesso ao portal</h3>
-        
-        <div className="space-y-2.5">
-          {(balances ?? []).map((b) => {
-            const c = customersMap?.[b.customer_id];
-            const hasAccess = !!c?.user_id;
-            return (
-              <div key={b.customer_id} className="rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1 space-y-0.5">
-                    <div className="truncate font-semibold text-foreground flex items-center gap-1.5">
-                      <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <span className="truncate">{c?.name ?? b.customer_id.slice(0, 8)}</span>
-                    </div>
-                    <div className="truncate text-xs text-muted-foreground">{c?.email ?? "Sem e-mail cadastrado"}</div>
-                  </div>
-                  <div className="shrink-0 bg-primary/5 border border-primary/10 rounded-xl px-3 py-1 text-right">
-                    <strong className="text-primary font-display text-base font-semibold">{b.balance} pts</strong>
-                  </div>
-                </div>
-                
-                <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between gap-2">
-                  {/* Status Indicator */}
-                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
-                    hasAccess 
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
-                      : "bg-secondary text-muted-foreground border-border"
-                  }`}>
-                    {hasAccess ? (
-                      <>
-                        <CheckCircle2 className="h-3 w-3 shrink-0" />
-                        <span>Acesso ativo</span>
-                      </>
-                    ) : (
-                      <span>Sem acesso</span>
-                    )}
-                  </span>
-
-                  {/* Actions Button */}
-                  <button
-                    disabled={!c?.email || inviting === b.customer_id}
-                    onClick={() => handleInvite(b.customer_id)}
-                    className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition-all cursor-pointer ${
-                      hasAccess
-                        ? "bg-secondary hover:bg-secondary/80 border-border text-foreground"
-                        : "bg-primary text-primary-foreground border-primary hover:opacity-90"
-                    } disabled:opacity-50`}
-                  >
-                    {inviting === b.customer_id ? (
-                      <span>Processando...</span>
-                    ) : hasAccess ? (
-                      <>
-                        <KeyRound className="h-3 w-3 shrink-0" />
-                        <span>Resetar senha</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-3 w-3 shrink-0" />
-                        <span>Convidar</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+                {/* Actions Button */}
+                <button
+                  disabled={!c?.email || inviting === b.customer_id}
+                  onClick={() => handleInvite(b.customer_id)}
+                  className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition-all cursor-pointer ${
+                    hasAccess
+                      ? "bg-secondary hover:bg-secondary/80 border-border text-foreground"
+                      : "bg-primary text-primary-foreground border-primary hover:opacity-90"
+                  } disabled:opacity-50`}
+                >
+                  {inviting === b.customer_id ? (
+                    <span>Processando...</span>
+                  ) : hasAccess ? (
+                    <>
+                      <KeyRound className="h-3 w-3 shrink-0" />
+                      <span>Resetar senha</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-3 w-3 shrink-0" />
+                      <span>Convidar</span>
+                    </>
+                  )}
+                </button>
               </div>
-            );
-          })}
-          {!balances?.length && (
-            <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground text-sm">
-              Nenhum saldo computado.
             </div>
-          )}
-        </div>
+          );
+        })}
+        {!balances?.length && (
+          <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground text-sm">
+            Nenhum saldo computado.
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1064,7 +1209,6 @@ function Analises() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [searchProduct, setSearchProduct] = useState("");
-  const [searchVoucher, setSearchVoucher] = useState("");
   const [searchCustomer, setSearchCustomer] = useState("");
 
   const { data, isLoading } = useQuery({
@@ -1076,6 +1220,26 @@ function Analises() {
       return (data ?? []) as unknown as (Redemption & { reward: { name: string; kind: string }; customer: { name: string; code: string } })[];
     },
   });
+
+  const uniqueCustomers = useMemo<{ name: string; code: string }[]>(() => {
+    const map = new Map<string, { name: string; code: string }>();
+    (data ?? []).forEach((r) => {
+      if (r.customer?.name) {
+        map.set(r.customer.name, { name: r.customer.name, code: r.customer.code });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [data]);
+
+  const uniqueRewards = useMemo<string[]>(() => {
+    const set = new Set<string>();
+    (data ?? []).forEach((r) => {
+      if (r.reward?.name) {
+        set.add(r.reward.name);
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [data]);
 
   if (isLoading) {
     return (
@@ -1089,25 +1253,14 @@ function Analises() {
   // Filtragem reativa em tempo real
   const filtered = (data ?? []).filter((r) => {
     // 1. Filtro de Cliente
-    if (searchCustomer) {
-      const name = r.customer?.name?.toLowerCase() || "";
-      const code = r.customer?.code?.toLowerCase() || "";
-      const query = searchCustomer.toLowerCase();
-      if (!name.includes(query) && !code.includes(query)) return false;
+    if (searchCustomer && r.customer?.name !== searchCustomer) {
+      return false;
     }
-    // 2. Filtro de Produto
-    if (searchProduct) {
-      const name = r.reward?.name?.toLowerCase() || "";
-      const isProduct = r.reward?.kind === "produto_fisico";
-      if (!isProduct || !name.includes(searchProduct.toLowerCase())) return false;
+    // 2. Filtro de Recompensa
+    if (searchProduct && r.reward?.name !== searchProduct) {
+      return false;
     }
-    // 3. Filtro de Voucher
-    if (searchVoucher) {
-      const name = r.reward?.name?.toLowerCase() || "";
-      const isVoucher = r.reward?.kind !== "produto_fisico";
-      if (!isVoucher || !name.includes(searchVoucher.toLowerCase())) return false;
-    }
-    // 4. Filtro de Data
+    // 3. Filtro de Data
     if (startDate) {
       const rDate = r.created_at ? r.created_at.slice(0, 10) : "";
       if (rDate < startDate) return false;
@@ -1215,68 +1368,26 @@ function Analises() {
         <span className="text-xs font-bold text-foreground uppercase tracking-wider block">Filtros de Pesquisa Avançados</span>
         
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Período: Início */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Data Inicial</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-medium cursor-pointer"
-            />
-          </div>
-
-          {/* Período: Fim */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Data Final</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-medium cursor-pointer"
-            />
-          </div>
-
-          {/* Filtro: Cliente */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Cliente</label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Nome ou código..."
-                value={searchCustomer}
-                onChange={(e) => setSearchCustomer(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
-              />
-              {searchCustomer && (
-                <button type="button" onClick={() => setSearchCustomer("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer">Limpar</button>
-              )}
-            </div>
-          </div>
-
-          {/* Filtro: Recompensa (Produto ou Voucher) */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Recompensa</label>
-            <div className="relative flex gap-1.5">
-              <input
-                type="text"
-                placeholder="Pesquisar..."
-                value={searchProduct || searchVoucher}
-                onChange={(e) => {
-                  setSearchProduct(e.target.value);
-                  setSearchVoucher(e.target.value);
-                }}
-                className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
-              />
-              {(searchProduct || searchVoucher) && (
-                <button type="button" onClick={() => { setSearchProduct(""); setSearchVoucher(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer">Limpar</button>
-              )}
-            </div>
-          </div>
+          <FilterDate label="Data Inicial" value={startDate} onChange={setStartDate} />
+          <FilterDate label="Data Final" value={endDate} onChange={setEndDate} />
+          <FilterSelect
+            label="Cliente"
+            value={searchCustomer}
+            onChange={setSearchCustomer}
+            placeholder="Todos os clientes"
+            options={uniqueCustomers.map((c) => ({ value: c.name, label: `${c.name} (${c.code})` }))}
+          />
+          <FilterSelect
+            label="Recompensa"
+            value={searchProduct}
+            onChange={setSearchProduct}
+            placeholder="Todas as recompensas"
+            options={uniqueRewards.map((name) => ({ value: name, label: name }))}
+          />
         </div>
 
         {/* Linha de Status de Limpeza */}
-        {(startDate || endDate || searchCustomer || searchProduct || searchVoucher) && (
+        {(startDate || endDate || searchCustomer || searchProduct) && (
           <div className="flex justify-end pt-1">
             <button
               onClick={() => {
@@ -1284,7 +1395,6 @@ function Analises() {
                 setEndDate("");
                 setSearchCustomer("");
                 setSearchProduct("");
-                setSearchVoucher("");
               }}
               className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center gap-1"
             >
@@ -1302,7 +1412,7 @@ function Analises() {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <User className="h-4 w-4" />
             </div>
-            <h3 className="font-display font-semibold text-foreground text-sm uppercase tracking-wider">🏆 Top Clientes que mais Resgatam</h3>
+            <h3 className="font-display font-semibold text-foreground text-sm uppercase tracking-wider">Top Clientes que mais Resgatam</h3>
           </div>
 
           <div className="space-y-2.5">
@@ -1340,7 +1450,7 @@ function Analises() {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Gift className="h-4 w-4" />
             </div>
-            <h3 className="font-display font-semibold text-foreground text-sm uppercase tracking-wider">🔥 Recompensas Mais Resgatadas</h3>
+            <h3 className="font-display font-semibold text-foreground text-sm uppercase tracking-wider">Recompensas Mais Resgatadas</h3>
           </div>
 
           <div className="space-y-2.5">
