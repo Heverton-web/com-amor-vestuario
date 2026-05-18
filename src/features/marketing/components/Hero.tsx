@@ -1,5 +1,5 @@
 import heroImg from "@/assets/hero-clothing.jpg";
-import { ArrowRight, Heart } from "lucide-react";
+import { ArrowRight, Heart, Sparkles } from "lucide-react";
 import { useBranding } from "@/features/core/services/branding";
 
 export function Hero({ onContact }: { onContact: () => void }) {
@@ -42,15 +42,23 @@ export function Hero({ onContact }: { onContact: () => void }) {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 md:mt-10">
               <a
                 href={branding.cta_shop_url}
-                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:translate-y-[-1px]"
+                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:translate-y-[-1px] cursor-pointer"
                 style={{ backgroundColor: branding.primary_color }}
               >
                 {branding.cta_shop_label}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </a>
+              <a
+                href="/recompensas"
+                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-6 py-3.5 text-base font-medium transition-all hover:bg-primary/10 hover:translate-y-[-1px] cursor-pointer animate-pulse-subtle"
+                style={{ borderColor: `${branding.primary_color}40`, color: branding.primary_color }}
+              >
+                <Sparkles className="h-4 w-4 text-primary" style={{ color: branding.primary_color }} />
+                Clube Com Amor
+              </a>
               <button
                 onClick={onContact}
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-card px-6 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-muted"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-card px-6 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-muted cursor-pointer"
               >
                 {branding.cta_contact_label}
               </button>

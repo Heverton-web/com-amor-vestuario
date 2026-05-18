@@ -117,7 +117,7 @@ export const DEFAULT_BRANDING: Branding = {
   signature_url: null,
   points_per_real: 10,
   redemption_days_default: 30,
-  rewards_label: "Loja de Recompensas",
+  rewards_label: "Clube Com Amor",
   n8n_rewards_webhook: "",
   custom_palettes: [],
   gallery_items: [

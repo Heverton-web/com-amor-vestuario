@@ -144,12 +144,20 @@ function LoginPage() {
               setLoading(true);
               try {
                 const creds = await ensureDemoAdmin();
-                const res = await signIn(creds.email, creds.password);
+                let res = await signIn(creds.email, creds.password);
+                if (res.error) {
+                  // Fallback: tenta cadastrar o usuário administrador caso ele não exista no Auth
+                  const up = await signUp(creds.email, creds.password, "Demo Administrador");
+                  if (up.error && !/already/i.test(up.error)) {
+                    throw new Error(up.error);
+                  }
+                  res = await signIn(creds.email, creds.password);
+                }
                 if (res.error) throw new Error(res.error);
                 toast.success("Acesso admin demo liberado!");
                 navigate({ to: "/admin" });
               } catch (e: any) {
-                toast.error(e?.message ?? "Falha ao criar admin demo");
+                toast.error(e?.message ?? "Falha ao liberar admin demo");
               } finally {
                 setLoading(false);
               }

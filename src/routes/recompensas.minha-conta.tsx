@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Heart, LogOut, Copy, TrendingUp, TrendingDown, Ticket, Calendar } from "lucide-react";
+import { Heart, LogOut, Copy, TrendingUp, TrendingDown, Ticket, Calendar, ShoppingBag } from "lucide-react";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { useAuth } from "@/features/core/integrations/auth";
 import { fetchMyCustomer, kindLabel, rewardSummary, type LedgerEntry, type Redemption, type RewardItem } from "@/features/fidelidade/services/rewards";
@@ -77,20 +77,7 @@ function MyAccountPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 md:px-6">
-          <Link to="/recompensas" className="flex items-baseline gap-2">
-            <Heart className="h-4 w-4 fill-primary stroke-primary" />
-            <span className="font-display text-lg">Minha conta</span>
-          </Link>
-          <button
-            onClick={async () => { await signOut(); nav({ to: "/recompensas" }); }}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm hover:bg-secondary"
-          ><LogOut className="h-4 w-4" /> Sair</button>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-background animate-fade-in">
       <section className="mx-auto max-w-5xl px-4 py-8 md:px-6">
         <h1 className="font-display text-3xl">Olá, {customer.name}!</h1>
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -197,8 +184,14 @@ function MyAccountPage() {
                   {r.valid_until && <div className="mt-2 text-xs text-muted-foreground">Válido até {dateBR(r.valid_until)}</div>}
                   <button
                     onClick={() => { navigator.clipboard.writeText(r.voucher_code!); toast.success("Código copiado"); }}
-                    className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-full bg-primary text-xs font-medium text-primary-foreground"
+                    className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-full bg-primary text-xs font-medium text-primary-foreground transition-all hover:opacity-90"
                   ><Copy className="h-3 w-3" /> Copiar código</button>
+                  <Link
+                    to="/loja"
+                    className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-card hover:bg-secondary text-xs font-semibold text-primary transition-all cursor-pointer"
+                  >
+                    <ShoppingBag className="h-3.5 w-3.5" /> Usar na loja
+                  </Link>
                 </li>
               ))}
               {!activeVouchers.length && (

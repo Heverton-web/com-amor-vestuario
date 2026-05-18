@@ -92,8 +92,8 @@ export const ensurePortalAccount = createServerFn({ method: "POST" })
       channel: data.channel,
       status: "mock",
       payload: {
-        email_body: `Olá ${customer.name}, sua conta na Loja de Recompensas está pronta!\nE-mail: ${customer.email}\nSenha temporária: ${tempPassword}\nAcesse: ${loginUrl}`,
-        whatsapp_text: `Olá ${customer.name}! 🎁 Sua loja de recompensas:\n${loginUrl}\nLogin: ${customer.email}\nSenha: ${tempPassword}`,
+        email_body: `Olá ${customer.name}, sua conta no Clube Com Amor está pronta!\nE-mail: ${customer.email}\nSenha temporária: ${tempPassword}\nAcesse: ${loginUrl}`,
+        whatsapp_text: `Olá ${customer.name}! 🎁 Seu Clube Com Amor:\n${loginUrl}\nLogin: ${customer.email}\nSenha: ${tempPassword}`,
         created,
       },
     } as never);

@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as RecompensasIndexRouteImport } from './routes/recompensas.index'
 import { Route as RecompensasMinhaContaRouteImport } from './routes/recompensas.minha-conta'
 import { Route as RecompensasLoginRouteImport } from './routes/recompensas.login'
+import { Route as RecompensasComoFuncionaRouteImport } from './routes/recompensas.como-funciona'
 import { Route as ReciboTokenRouteImport } from './routes/recibo.$token'
 import { Route as FaturaTokenRouteImport } from './routes/fatura.$token'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -78,6 +79,11 @@ const RecompensasMinhaContaRoute = RecompensasMinhaContaRouteImport.update({
 const RecompensasLoginRoute = RecompensasLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => RecompensasRoute,
+} as any)
+const RecompensasComoFuncionaRoute = RecompensasComoFuncionaRouteImport.update({
+  id: '/como-funciona',
+  path: '/como-funciona',
   getParentRoute: () => RecompensasRoute,
 } as any)
 const ReciboTokenRoute = ReciboTokenRouteImport.update({
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/recompensas': typeof RecompensasRouteWithChildren
   '/fatura/$token': typeof FaturaTokenRoute
   '/recibo/$token': typeof ReciboTokenRoute
+  '/recompensas/como-funciona': typeof RecompensasComoFuncionaRoute
   '/recompensas/login': typeof RecompensasLoginRoute
   '/recompensas/minha-conta': typeof RecompensasMinhaContaRoute
   '/recompensas/': typeof RecompensasIndexRoute
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/loja': typeof LojaRoute
   '/fatura/$token': typeof FaturaTokenRoute
   '/recibo/$token': typeof ReciboTokenRoute
+  '/recompensas/como-funciona': typeof RecompensasComoFuncionaRoute
   '/recompensas/login': typeof RecompensasLoginRoute
   '/recompensas/minha-conta': typeof RecompensasMinhaContaRoute
   '/recompensas': typeof RecompensasIndexRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/recompensas': typeof RecompensasRouteWithChildren
   '/fatura/$token': typeof FaturaTokenRoute
   '/recibo/$token': typeof ReciboTokenRoute
+  '/recompensas/como-funciona': typeof RecompensasComoFuncionaRoute
   '/recompensas/login': typeof RecompensasLoginRoute
   '/recompensas/minha-conta': typeof RecompensasMinhaContaRoute
   '/recompensas/': typeof RecompensasIndexRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/recompensas'
     | '/fatura/$token'
     | '/recibo/$token'
+    | '/recompensas/como-funciona'
     | '/recompensas/login'
     | '/recompensas/minha-conta'
     | '/recompensas/'
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/loja'
     | '/fatura/$token'
     | '/recibo/$token'
+    | '/recompensas/como-funciona'
     | '/recompensas/login'
     | '/recompensas/minha-conta'
     | '/recompensas'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/recompensas'
     | '/fatura/$token'
     | '/recibo/$token'
+    | '/recompensas/como-funciona'
     | '/recompensas/login'
     | '/recompensas/minha-conta'
     | '/recompensas/'
@@ -417,6 +429,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/recompensas/login'
       preLoaderRoute: typeof RecompensasLoginRouteImport
+      parentRoute: typeof RecompensasRoute
+    }
+    '/recompensas/como-funciona': {
+      id: '/recompensas/como-funciona'
+      path: '/como-funciona'
+      fullPath: '/recompensas/como-funciona'
+      preLoaderRoute: typeof RecompensasComoFuncionaRouteImport
       parentRoute: typeof RecompensasRoute
     }
     '/recibo/$token': {
@@ -582,12 +601,14 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface RecompensasRouteChildren {
+  RecompensasComoFuncionaRoute: typeof RecompensasComoFuncionaRoute
   RecompensasLoginRoute: typeof RecompensasLoginRoute
   RecompensasMinhaContaRoute: typeof RecompensasMinhaContaRoute
   RecompensasIndexRoute: typeof RecompensasIndexRoute
 }
 
 const RecompensasRouteChildren: RecompensasRouteChildren = {
+  RecompensasComoFuncionaRoute: RecompensasComoFuncionaRoute,
   RecompensasLoginRoute: RecompensasLoginRoute,
   RecompensasMinhaContaRoute: RecompensasMinhaContaRoute,
   RecompensasIndexRoute: RecompensasIndexRoute,

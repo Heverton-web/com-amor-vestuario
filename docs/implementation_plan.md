@@ -1,75 +1,82 @@
-# Plano de Implementação: Modularização por Features
+# Plano de Implementação — Clube Com Amor
 
-De acordo com o documento `docs/proposta_modularizacao.md`, realizaremos a transição da arquitetura monolítica atual (agrupada por tipo técnico) para uma **Arquitetura Baseada em Recursos (Feature-Based Architecture)**.
+Este documento descreve o plano detalhado para rebrandear a antiga "Loja de Recompensas" para o novo **Clube Com Amor**, criar uma página informativa detalhada, integrar botões inteligentes de lead com redirecionamento ao WhatsApp, introduzir um pipeline Kanban exclusivo de CRM e refinar o cabeçalho e formulário de contato da Landing Page.
 
-## User Review Required
+---
 
-> [!WARNING]
-> Como sugerido na proposta, esta é uma refatoração "Big Bang". Vamos mover dezenas de arquivos de `src/components`, `src/lib`, `src/hooks` e `src/integrations` para o novo diretório `src/features/`.
-> 
-> Durante este processo, a aplicação local ficará temporariamente com quebras de compilação até que todos os caminhos de *imports* sejam ajustados.
-> 
-> O `tsconfig.json` e `vite.config.ts` já possuem o path alias `@/` apontando para `src/`, portanto essa etapa (Passo 1 do documento) está coberta.
-
-## Open Questions
+## Revisão Necessária do Usuário
 
 > [!IMPORTANT]
-> 1. Posso prosseguir criando toda a árvore de diretórios vazia (Passo 1)?
-> 2. Após a criação da estrutura, prefere que eu faça o "Lift & Shift" (Passo 2) de todos os módulos de uma vez, ou foco em um módulo por vez para garantir que não nos percamos nos ajustes de imports? (Minha recomendação é fazer a movimentação completa primeiro para depois usar o `tsc` como guia para corrigir imports no Passo 3).
-
-## Proposed Changes
-
-Abaixo está o resumo das operações de movimentação propostas:
-
-### 1. Esqueleto Base (Módulos Iniciais)
-Criaremos a estrutura de pastas em `src/features/`:
-- `core/`
-- `fidelidade/`
-- `vendas/`
-- `catalogo/`
-- `crm/`
-- `financeiro/`
-- `marketing/`
-- `acessos/`
-- E as respectivas subpastas `components/`, `hooks/`, `services/`, `index.ts`, e `types.ts` dentro de cada.
+> * **Automação de Captura de Leads**: O botão **"Quero Fazer Parte"** abrirá uma micro-janela suspensa elegante solicitando apenas **Nome** e **WhatsApp** antes do redirecionamento. Isso garante que a empresa capture o contato do lead de forma 100% automatizada e o insira diretamente no CRM Kanban administrativo.
+> * **Enum de Banco de Dados**: A inclusão da opção "Clube Com Amor" no formulário de contato requer uma atualização no tipo ENUM `lead_reason` do Postgres. Criaremos um script de migração DDL limpo para o banco de dados.
 
 ---
 
-### Módulo: `core`
-#### [NEW] `src/features/core/components/` (Move componentes UI base)
-#### [NEW] `src/features/core/utils/` (Move formatadores: `format.ts`, `utils.ts`, `num-to-words.ts`, etc.)
-#### [NEW] `src/features/core/integrations/` (Move a configuração do Supabase e PDFs base)
-#### [NEW] `src/features/core/index.ts`
+## Proposta de Alterações
+
+### 1. Banco de Dados (Schema & Migrações)
+
+#### [NEW] [20260518011000_clube_com_amor.sql](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/supabase/migrations/20260518011000_clube_com_amor.sql)
+* Criação de script DDL contendo:
+  1. Alteração do tipo ENUM `public.lead_reason` para adicionar o valor `'clube'`.
+  2. Atualização da função de trigger `public.lead_to_kanban()` para direcionar os leads com razão `'clube'` automaticamente para o novo quadro `'clube'` do Kanban, no estágio inicial `'novo'`.
 
 ---
 
-### Módulo: `fidelidade`
-#### [NEW] `src/features/fidelidade/components/` (Move componentes de recompensa)
-#### [NEW] `src/features/fidelidade/services/` (Move `rewards.ts` e lógica de voucher)
-#### [NEW] `src/features/fidelidade/index.ts`
+### 2. Landing Page & Cabeçalho
+
+#### [MODIFY] [Header.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/features/marketing/components/Header.tsx)
+* Adicionar a opção `"Clube Com Amor"` na lista de links com destino à rota `/recompensas`.
+* Interceptador de clique: no loop de renderização do menu desktop e mobile, se o link for `#contato`, disparar a propriedade `onContact()` em vez do scroll de âncora padrão.
+
+#### [MODIFY] [Hero.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/features/marketing/components/Hero.tsx)
+* Inserir um terceiro botão de ação elegante com fundo semitransparente (`bg-primary/5`) e bordas personalizadas na cor da marca, exibindo um ícone de estrela brilhante (`Sparkles`) e a legenda `"Clube Com Amor"`, direcionando para `/recompensas`.
+
+#### [MODIFY] [ContactDialog.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/features/marketing/components/ContactDialog.tsx)
+* Adicionar a opção `{ id: "clube", label: "Clube Com Amor" }` na grade de motivos de contato.
 
 ---
 
-### Módulo: `vendas`
-#### [NEW] `src/features/vendas/components/` (Move `CartDrawer`, `ProductGrid`, etc.)
-#### [NEW] `src/features/vendas/services/` (Move `cart.ts`, `pricing.ts`, `freight.ts`, `viacep.ts`)
-#### [NEW] `src/features/vendas/index.ts`
+### 3. Programa de Fidelidade & Recompensas
+
+#### [MODIFY] [recompensas.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/recompensas.tsx)
+* Rebrandear a tag do cabeçalho da área logada de *"recompensas"* para *"Clube Com Amor"*.
+
+#### [MODIFY] [recompensas.index.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/recompensas.index.tsx)
+* Rebrandear todos os títulos e descrições para destacar o **Clube Com Amor**.
+* Inserir um botão de destaque ao lado do saldo de pontos: *"Como funciona o Clube?"* direcionando para a nova rota `/recompensas/como-funciona`.
+
+#### [NEW] [recompensas.como-funciona.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/recompensas.como-funciona.tsx)
+* Nova rota pública `/recompensas/como-funciona` com layout editorial premium descrevendo o passo a passo de acúmulo de pontos e vantagens.
+* **Fluxo "Quero Fazer Parte"**:
+  * Ao clicar no botão, abre um mini modal solicitando Nome e WhatsApp.
+  * Ao salvar, insere o registro na tabela `kanban_cards` (board: `'clube'`, stage: `'novo'`).
+  * Em seguida, abre a aba do WhatsApp (`https://wa.me/` oficial) com texto predefinido profissional.
 
 ---
 
-### Demais Módulos (`catalogo`, `crm`, `financeiro`, `marketing`, `acessos`)
-Realizaremos a mesma movimentação lógica mapeada na sua proposta. Toda a lógica específica de negócio (e.g. `admin-team.functions.ts`, `portal.functions.ts` de acessos) irá para a pasta `services/` da sua feature apropriada.
+### 4. CRM Administrativo (Kanban)
+
+#### [MODIFY] [admin.kanban.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/_authenticated/admin.kanban.tsx)
+* Adicionar o quadro `'clube'` no dicionário `BOARDS`:
+  ```typescript
+  clube: {
+    label: "Clube Com Amor",
+    stages: [
+      { key: "novo", label: "Interessados" },
+      { key: "contatado", label: "Contatados" },
+      { key: "membro", label: "Membros" },
+      { key: "inativo", label: "Inativos" },
+    ],
+  }
+  ```
 
 ---
 
-### Roteamento e Views
-#### [MODIFY] `src/routes/*`
-As rotas serão enxutas. Toda a UI e lógicas complexas atualmente dentro das rotas serão extraídas para componentes de página como `src/features/*/components/*Page.tsx`.
+## Plano de Verificação
 
-## Verification Plan
-
-### Automated Tests
-- Usarei o comando `npx tsc --noEmit` repetidamente. Ele guiará a correção de todos os *imports* e garantirá que nenhuma referência cíclica ou caminho "fantasma" permaneça no código após a mudança.
-
-### Manual Verification
-- Assim que o compilador do Vite acusar sucesso sem erros na interface, poderemos reabrir a aplicação (Login, Kanban, Vitrine e Acessos) e testar a navegação do fluxo principal.
+### Testes de Fluxo Visual & Compilação
+- Executar `npx tsc --noEmit` para validação estrita.
+- Executar `npm run build` para garantir que o empacotamento SPA e SSR ocorra sem problemas.
+- Testar a responsividade do cabeçalho móvel clicando nos novos links e no gatilho de modal de contato.
+- Submeter o formulário com a opção "Clube Com Amor" e verificar se o card cai no pipeline correto no painel administrativo `/admin/kanban`.

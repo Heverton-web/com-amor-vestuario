@@ -5,7 +5,7 @@ import { supabase } from "@/features/core/integrations/supabase/client";
 import { useCart } from "@/features/vendas/services/cart";
 import { brl } from "@/features/core/utils/format";
 import { priceFor, priceTier, WHOLESALE_THRESHOLD } from "@/features/vendas/services/pricing";
-import { ShoppingBag, Heart, Filter, X, Plus, Minus, Trash2, ArrowLeft, ArrowRight } from "lucide-react";
+import { ShoppingBag, Heart, Filter, X, Plus, Minus, Trash2, ArrowLeft, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/features/core/components/sheet";
 import { toast } from "sonner";
 
@@ -29,6 +29,10 @@ function ShopPage() {
   const [filterColor, setFilterColor] = useState<string>("");
   const [filterSize, setFilterSize] = useState<string>("");
 
+  const [showPrice, setShowPrice] = useState(true);
+  const [showColor, setShowColor] = useState(true);
+  const [showSize, setShowSize] = useState(true);
+
   const { data: products } = useQuery({
     queryKey: ["shop-products"],
     queryFn: async () => (await supabase.from("products").select("*").eq("active", true).order("created_at", { ascending: false })).data ?? [],
@@ -48,33 +52,114 @@ function ShopPage() {
   const allSizes = [...new Set((products ?? []).flatMap((p: any) => p.sizes ?? []))];
 
   const FiltersBody = (
-    <div className="space-y-6">
-      <div>
-        <label className="text-sm font-medium">Faixa de preço (R$)</label>
-        <div className="mt-2 flex gap-2">
-          <input inputMode="numeric" type="number" value={filterPrice[0]} onChange={(e) => setFilterPrice([+e.target.value, filterPrice[1]])} className="w-full rounded-lg border border-border bg-card px-2 py-2 text-sm" />
-          <input inputMode="numeric" type="number" value={filterPrice[1]} onChange={(e) => setFilterPrice([filterPrice[0], +e.target.value])} className="w-full rounded-lg border border-border bg-card px-2 py-2 text-sm" />
-        </div>
+    <div className="space-y-4">
+      {/* Faixa de preço */}
+      <div className="border-b border-border pb-4">
+        <button
+          onClick={() => setShowPrice(!showPrice)}
+          className="flex w-full items-center justify-between py-1.5 text-sm font-medium text-foreground transition-colors hover:text-primary"
+        >
+          <span>Faixa de preço (R$)</span>
+          {showPrice ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+        </button>
+        {showPrice && (
+          <div className="mt-2.5 flex gap-2">
+            <input
+              inputMode="numeric"
+              type="number"
+              value={filterPrice[0]}
+              onChange={(e) => setFilterPrice([+e.target.value, filterPrice[1]])}
+              className="w-full rounded-lg border border-border bg-card px-2.5 py-2 text-sm"
+              placeholder="Mín"
+            />
+            <input
+              inputMode="numeric"
+              type="number"
+              value={filterPrice[1]}
+              onChange={(e) => setFilterPrice([filterPrice[0], +e.target.value])}
+              className="w-full rounded-lg border border-border bg-card px-2.5 py-2 text-sm"
+              placeholder="Máx"
+            />
+          </div>
+        )}
       </div>
-      <div>
-        <label className="text-sm font-medium">Cor</label>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          <button onClick={() => setFilterColor("")} className={`min-h-9 rounded-full border px-3 py-1.5 text-xs ${!filterColor ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>Todas</button>
-          {allColors.map((c) => <button key={c as string} onClick={() => setFilterColor(c as string)} className={`min-h-9 rounded-full border px-3 py-1.5 text-xs ${filterColor === c ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{c as string}</button>)}
-        </div>
+
+      {/* Cor */}
+      <div className="border-b border-border pb-4">
+        <button
+          onClick={() => setShowColor(!showColor)}
+          className="flex w-full items-center justify-between py-1.5 text-sm font-medium text-foreground transition-colors hover:text-primary"
+        >
+          <span>Cor</span>
+          {showColor ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+        </button>
+        {showColor && (
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            <button
+              onClick={() => setFilterColor("")}
+              className={`min-h-9 rounded-full border px-3 py-1.5 text-xs transition-all ${
+                !filterColor ? "border-primary bg-primary text-primary-foreground font-semibold" : "border-border bg-card text-foreground hover:bg-secondary"
+              }`}
+            >
+              Todas
+            </button>
+            {allColors.map((c) => (
+              <button
+                key={c as string}
+                onClick={() => setFilterColor(c as string)}
+                className={`min-h-9 rounded-full border px-3 py-1.5 text-xs transition-all ${
+                  filterColor === c ? "border-primary bg-primary text-primary-foreground font-semibold" : "border-border bg-card text-foreground hover:bg-secondary"
+                }`}
+              >
+                {c as string}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      <div>
-        <label className="text-sm font-medium">Tamanho</label>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          <button onClick={() => setFilterSize("")} className={`min-h-9 rounded-full border px-3 py-1.5 text-xs ${!filterSize ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>Todos</button>
-          {allSizes.map((s) => <button key={s as string} onClick={() => setFilterSize(s as string)} className={`min-h-9 rounded-full border px-3 py-1.5 text-xs ${filterSize === s ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{s as string}</button>)}
-        </div>
+
+      {/* Tamanho */}
+      <div className="border-b border-border pb-4">
+        <button
+          onClick={() => setShowSize(!showSize)}
+          className="flex w-full items-center justify-between py-1.5 text-sm font-medium text-foreground transition-colors hover:text-primary"
+        >
+          <span>Tamanho</span>
+          {showSize ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+        </button>
+        {showSize && (
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            <button
+              onClick={() => setFilterSize("")}
+              className={`min-h-9 rounded-full border px-3 py-1.5 text-xs transition-all ${
+                !filterSize ? "border-primary bg-primary text-primary-foreground font-semibold" : "border-border bg-card text-foreground hover:bg-secondary"
+              }`}
+            >
+              Todos
+            </button>
+            {allSizes.map((s) => (
+              <button
+                key={s as string}
+                onClick={() => setFilterSize(s as string)}
+                className={`min-h-9 rounded-full border px-3 py-1.5 text-xs transition-all ${
+                  filterSize === s ? "border-primary bg-primary text-primary-foreground font-semibold" : "border-border bg-card text-foreground hover:bg-secondary"
+                }`}
+              >
+                {s as string}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      <div className="rounded-2xl border border-border bg-card p-4 text-xs">
+
+      {/* Tabela de preços info */}
+      <div className="rounded-2xl border border-border bg-card p-4 text-xs shadow-sm">
         <p className="text-muted-foreground">Aplicando tabela:</p>
-        <p className="mt-1 font-display text-lg">{tier === "atacado" ? "🏷️ Atacado" : "Varejo"}</p>
+        <p className="mt-1 font-display text-lg font-medium">{tier === "atacado" ? "🏷️ Atacado" : "Varejo"}</p>
         {tier === "varejo" && totalQty > 0 && (
-          <p className="mt-1 text-muted-foreground">Faltam <strong>{WHOLESALE_THRESHOLD - totalQty}</strong> peças para o atacado.</p>
+          <p className="mt-1 text-muted-foreground">
+            Faltam <strong>{WHOLESALE_THRESHOLD - totalQty}</strong> peças para o atacado.
+          </p>
         )}
       </div>
     </div>
@@ -102,7 +187,7 @@ function ShopPage() {
       </header>
 
       {/* HERO */}
-      <section className="border-b border-border bg-accent/30">
+      <section className="border-b border-border bg-accent/10">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-14">
           <span className="text-[10px] uppercase tracking-[0.25em] text-primary sm:text-xs">coleção atual</span>
           <h1 className="mt-2 font-display font-medium leading-tight text-[clamp(1.75rem,7vw,3rem)] md:text-6xl">Peças autorais, prontas para você.</h1>
@@ -115,7 +200,7 @@ function ShopPage() {
       {/* FILTROS + GRID */}
       <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
         <div className="grid gap-8 md:grid-cols-[240px_1fr]">
-          <aside className="hidden space-y-6 md:block">
+          <aside className="sticky top-20 hidden h-fit self-start space-y-6 md:block">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-primary"><Filter className="h-4 w-4" /> Filtros</h3>
             {FiltersBody}
           </aside>

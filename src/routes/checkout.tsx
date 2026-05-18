@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useCart } from "@/features/vendas/services/cart";
 import { brl } from "@/features/core/utils/format";
 import { priceFor } from "@/features/vendas/services/pricing";
@@ -8,7 +8,8 @@ import { lookupCep } from "@/features/vendas/services/viacep";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, Search, CreditCard, Check, Ticket, X as XIcon } from "lucide-react";
-import { evaluateVoucher, markVoucherUsed, type VoucherEval } from "@/features/fidelidade/services/rewards";
+import { evaluateVoucher, markVoucherUsed, type VoucherEval, type RewardItem, type Redemption } from "@/features/fidelidade/services/rewards";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -30,6 +31,62 @@ function CheckoutPage() {
   const [voucher, setVoucher] = useState<VoucherEval | null>(null);
   const [applying, setApplying] = useState(false);
 
+  // Carregar dados de autenticação, perfil de cliente e cupons ativos
+  const { data: userData } = useQuery({
+    queryKey: ["auth-user"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    }
+  });
+
+  const { data: customer } = useQuery({
+    queryKey: ["checkout-customer", userData?.id],
+    queryFn: async () => {
+      if (!userData?.id) return null;
+      const { data } = await supabase.from("customers").select("*").eq("user_id", userData.id).maybeSingle();
+      return data;
+    },
+    enabled: !!userData?.id,
+  });
+
+  const { data: activeVouchers } = useQuery({
+    queryKey: ["checkout-vouchers", customer?.id],
+    queryFn: async () => {
+      if (!customer?.id) return [];
+      const { data } = await supabase
+        .from("redemptions" as never)
+        .select("*, reward:reward_items(*)")
+        .eq("customer_id", customer.id)
+        .eq("status", "resgatado")
+        .order("created_at", { ascending: false });
+      
+      return ((data ?? []) as unknown as (Redemption & { reward: RewardItem })[]).filter(
+        (r) => r.voucher_code && (!r.valid_until || new Date(r.valid_until) >= new Date())
+      );
+    },
+    enabled: !!customer?.id,
+  });
+
+  // Auto preencher o formulário quando carregar os dados do cliente logado
+  useEffect(() => {
+    if (customer) {
+      setForm({
+        name: customer.name || "",
+        email: customer.email || "",
+        phone: customer.phone || "",
+        cep: customer.cep || "",
+        street: customer.street || "",
+        number: customer.number || "",
+        city: customer.city || "",
+        state: customer.state || "",
+      });
+      if (customer.cep) {
+        calcShipping(customer.cep, totalQty).then(setShipping);
+      }
+    }
+  }, [customer, totalQty]);
+
   const effectiveShipping = voucher?.freeShipping ? 0 : shipping;
   const discount = voucher?.discount && !voucher.freeShipping ? voucher.discount : 0;
   const total = Math.max(0, subtotal + effectiveShipping - discount);
@@ -39,8 +96,8 @@ function CheckoutPage() {
   async function applyVoucher() {
     if (!voucherCode.trim()) return;
     setApplying(true);
-    // Sem customer_id ainda no checkout público; valida apenas regras gerais
-    const res = await evaluateVoucher(voucherCode, null, subtotal, shipping);
+    // Passa o ID do cliente autenticado logado para avaliar de forma precisa
+    const res = await evaluateVoucher(voucherCode, customer?.id || null, subtotal, shipping);
     setApplying(false);
     if (!res.ok) { toast.error(res.error || "Voucher inválido"); return; }
     setVoucher(res);
@@ -182,9 +239,63 @@ function CheckoutPage() {
                   <button onClick={removeVoucher} aria-label="Remover voucher" className="rounded-full p-1 hover:bg-background"><XIcon className="h-4 w-4" /></button>
                 </div>
               ) : (
-                <div className="flex gap-2">
-                  <input value={voucherCode} onChange={(e) => setVoucherCode(e.target.value.toUpperCase())} placeholder="CUPOM" className="input flex-1 uppercase" />
-                  <button onClick={applyVoucher} disabled={applying || !voucherCode.trim()} className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-border px-3 text-sm disabled:opacity-50"><Ticket className="h-4 w-4" /> Aplicar</button>
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <input value={voucherCode} onChange={(e) => setVoucherCode(e.target.value.toUpperCase())} placeholder="CUPOM" className="input flex-1 uppercase" />
+                    <button onClick={applyVoucher} disabled={applying || !voucherCode.trim()} className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-border px-3 text-sm disabled:opacity-50"><Ticket className="h-4 w-4" /> Aplicar</button>
+                  </div>
+
+                  {/* Seus Cupons Ativos (Lista de Cupons do Usuário) */}
+                  {activeVouchers && activeVouchers.length > 0 && (
+                    <div className="border-t border-border/60 pt-3 animate-fade-in">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+                        <Ticket className="h-3.5 w-3.5" />
+                        <span>Seus Cupons Disponíveis</span>
+                      </div>
+                      <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                        {activeVouchers.map((v) => {
+                          const isVoucherPercent = v.reward?.kind === "voucher_percent";
+                          const isVoucherValue = v.reward?.kind === "voucher_valor";
+                          const isFreeShipping = v.reward?.kind === "voucher_frete";
+                          
+                          let benefitText = "";
+                          if (isVoucherPercent) benefitText = `${v.reward?.voucher_percent}% OFF`;
+                          else if (isVoucherValue) benefitText = `${brl(v.reward?.voucher_value ?? 0)} OFF`;
+                          else if (isFreeShipping) benefitText = "Frete Grátis";
+                          else benefitText = "Brinde";
+
+                          return (
+                            <button
+                              key={v.id}
+                              onClick={() => {
+                                setVoucherCode(v.voucher_code || "");
+                                // Auto-aplicar cupom
+                                setApplying(true);
+                                evaluateVoucher(v.voucher_code || "", customer?.id || null, subtotal, shipping).then((res) => {
+                                  setApplying(false);
+                                  if (res.ok) {
+                                    setVoucher(res);
+                                    toast.success("Cupom do Clube aplicado!");
+                                  } else {
+                                    toast.error(res.error || "Erro ao aplicar cupom");
+                                  }
+                                });
+                              }}
+                              className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-background hover:bg-secondary/40 p-2.5 text-left text-xs transition-all active:scale-[0.98] cursor-pointer"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="font-mono font-bold text-foreground">{v.voucher_code}</div>
+                                <div className="text-[10px] text-muted-foreground truncate">{v.reward?.name}</div>
+                              </div>
+                              <span className="shrink-0 bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded text-[10px]">
+                                {benefitText}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

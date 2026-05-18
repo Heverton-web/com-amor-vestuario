@@ -7,6 +7,14 @@ const DEMO_ADMIN_PASSWORD = "admin1234";
 
 export const ensureDemoAdmin = createServerFn({ method: "POST" }).handler(
   async () => {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn("SUPABASE_SERVICE_ROLE_KEY missing. Skipping demo admin provisioning.");
+      return {
+        email: DEMO_ADMIN_EMAIL,
+        password: DEMO_ADMIN_PASSWORD,
+      };
+    }
+
     const { data: list } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 200,

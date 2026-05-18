@@ -32,6 +32,15 @@ const BOARDS: Record<string, { label: string; stages: { key: string; label: stri
       { key: "perdido", label: "Perdido" },
     ],
   },
+  clube: {
+    label: "Clube Com Amor",
+    stages: [
+      { key: "novo", label: "Interessados" },
+      { key: "contatado", label: "Contatados" },
+      { key: "membro", label: "Membros" },
+      { key: "inativo", label: "Inativos" },
+    ],
+  },
   duvidas: {
     label: "Dúvidas",
     stages: [

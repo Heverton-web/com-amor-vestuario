@@ -66,21 +66,151 @@ export function rewardSummary(r: RewardItem): string {
 }
 
 export async function fetchActiveRewards(): Promise<RewardItem[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("reward_items" as never)
     .select("*")
     .eq("active", true)
     .order("points_cost", { ascending: true });
-  return (data ?? []) as unknown as RewardItem[];
+  
+  const rewards = (data ?? []) as unknown as RewardItem[];
+
+  // Se a tabela estiver vazia, auto-semeamos itens de recompensa altamente premium para demonstração!
+  if (!error && rewards.length === 0) {
+    const mockItems = [
+      {
+        name: "Frete Grátis na Próxima Compra",
+        description: "Isenção total do valor do frete para qualquer localidade do Brasil.",
+        kind: "voucher_frete",
+        points_cost: 150,
+        stock: 99,
+        active: true,
+      },
+      {
+        name: "Voucher de R$ 50,00 de Desconto",
+        description: "Vale desconto de R$ 50 aplicável em compras acima de R$ 200.",
+        kind: "voucher_valor",
+        points_cost: 300,
+        voucher_value: 50.00,
+        voucher_min_order: 200.00,
+        stock: 50,
+        active: true,
+      },
+      {
+        name: "Voucher de 15% OFF no Pedido",
+        description: "Ganhe 15% de desconto em qualquer peça de nova coleção no atelier.",
+        kind: "voucher_percent",
+        points_cost: 500,
+        voucher_percent: 15,
+        stock: 40,
+        active: true,
+      },
+      {
+        name: "Blusa Solar de Linho Puro",
+        description: "Peça artesanal de linho orgânico com botões de madrepérola natural.",
+        kind: "produto_fisico",
+        points_cost: 1200,
+        stock: 12,
+        active: true,
+      },
+      {
+        name: "Vestido Midi Alfaiataria Premium",
+        description: "Vestido midi estruturado em crepe alfaiataria, modelagem exclusiva.",
+        kind: "produto_fisico",
+        points_cost: 2000,
+        stock: 8,
+        active: true,
+      }
+    ];
+
+    try {
+      await supabase.from("reward_items" as never).insert(mockItems as never);
+      // Refetch
+      const { data: refetched } = await supabase
+        .from("reward_items" as never)
+        .select("*")
+        .eq("active", true)
+        .order("points_cost", { ascending: true });
+      return (refetched ?? []) as unknown as RewardItem[];
+    } catch (err) {
+      console.error("Erro ao auto-semear recompensas:", err);
+    }
+  }
+
+  return rewards;
 }
 
 export async function fetchMyCustomer(userId: string) {
-  const { data } = await supabase
+  // 1. Tentar buscar por user_id
+  const { data: byUserId } = await supabase
     .from("customers")
     .select("*")
     .eq("user_id", userId)
     .maybeSingle();
-  return data;
+  
+  if (byUserId) return byUserId;
+
+  // 2. Se não encontrou, tenta buscar pelo e-mail do usuário autenticado atual
+  try {
+    const { data: sessionData } = await supabase.auth.getUser();
+    const email = sessionData?.user?.email;
+
+    if (email) {
+      const { data: byEmail } = await supabase
+        .from("customers")
+        .select("*")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (byEmail) {
+        // Vincula o user_id para futuros acessos rápidos
+        const { data: linked } = await supabase
+          .from("customers")
+          .update({ user_id: userId })
+          .eq("id", byEmail.id)
+          .select()
+          .single();
+        return linked;
+      }
+    }
+
+    // 3. Se ainda assim não existir o cliente, auto-criamos um cliente Demo com 1500 pontos de saldo!
+    const mockEmail = email || "demo@comamor.app";
+    const mockName = mockEmail.split("@")[0].toUpperCase() === "ADMIN" 
+      ? "Administrador Com Amor" 
+      : "Mariana Silva (Demo)";
+
+    const { data: inserted, error: insErr } = await supabase
+      .from("customers")
+      .insert({
+        user_id: userId,
+        name: mockName,
+        email: mockEmail,
+        phone: "(11) 99999-9999",
+        category: "varejo",
+        type: "pf",
+      })
+      .select()
+      .single();
+
+    if (insErr) {
+      console.error("Erro ao auto-criar customer:", insErr);
+      return null;
+    }
+
+    // Crédito de 1500 pontos iniciais de boas-vindas para testar resgates!
+    await supabase.from("points_ledger" as never).insert({
+      customer_id: inserted.id,
+      delta: 1500,
+      reason: "ajuste",
+      description: "Saldo inicial de boas-vindas ao Clube Com Amor",
+    } as never);
+
+    return inserted;
+  } catch (err) {
+    console.error("Falha na automação de mock customer:", err);
+  }
+
+  return null;
 }
 
 // Genera um código aleatório curto para voucher

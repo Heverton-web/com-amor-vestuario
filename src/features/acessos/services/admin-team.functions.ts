@@ -19,6 +19,11 @@ async function assertSuperadmin(userId: string) {
 // Idempotent: ensure the superadmin user exists with the correct password.
 export const ensureSuperAdmin = createServerFn({ method: "POST" }).handler(
   async () => {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn("SUPABASE_SERVICE_ROLE_KEY missing. Skipping superadmin provisioning.");
+      return { email: SUPERADMIN_EMAIL };
+    }
+
     const { data: list } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 200,

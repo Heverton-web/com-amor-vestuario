@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { AdminShell } from "@/features/core/components/AdminShell";
-import { Plus, Trash2, Gift, X, Send, Pencil, Eye, EyeOff } from "lucide-react";
+import { Plus, Trash2, Gift, X, Send, Pencil, Eye, EyeOff, Ticket, Calendar, Copy, ArrowUpRight, ArrowDownLeft, CheckCircle2, User, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { NumInput } from "@/features/core/components/num-input";
 import { kindLabel, type RewardItem, type RewardKind, type Redemption, type LedgerEntry } from "@/features/fidelidade/services/rewards";
@@ -239,24 +239,100 @@ function Resgates() {
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["redemptions-admin"] }); toast.success("Atualizado"); },
   });
+
+  function getStatusStyle(status: string) {
+    switch (status) {
+      case "resgatado":
+        return "border-green-200 bg-green-50 text-green-700 focus:ring-green-400";
+      case "utilizado":
+        return "border-blue-200 bg-blue-50 text-blue-700 focus:ring-blue-400";
+      case "expirado":
+        return "border-rose-200 bg-rose-50 text-rose-700 focus:ring-rose-400";
+      case "cancelado":
+      default:
+        return "border-border bg-secondary text-muted-foreground focus:ring-border";
+    }
+  }
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {(data ?? []).map((r) => (
-        <div key={r.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3 text-sm">
-          <div className="min-w-0 flex-1">
-            <div className="text-xs text-muted-foreground">{r.code} · {dateTimeBR(r.created_at)}</div>
-            <div className="font-medium">{r.reward?.name} → {r.customer?.name}</div>
-            <div className="text-xs text-muted-foreground">{r.points_spent} pts · {r.voucher_code || "produto"} {r.valid_until && `· vence ${dateBR(r.valid_until)}`}</div>
+        <div key={r.id} className="flex flex-col md:flex-row md:items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-sm">
+          {/* Left Icon Badge */}
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/5 text-primary border border-primary/10">
+            {r.reward?.kind === "produto_fisico" ? <Gift className="h-5 w-5" /> : <Ticket className="h-5 w-5" />}
           </div>
-          <select value={r.status} onChange={(e) => update.mutate({ id: r.id, status: e.target.value })} className="min-h-10 rounded-full border border-border bg-background px-3 text-xs">
-            <option value="resgatado">Resgatado</option>
-            <option value="utilizado">Utilizado</option>
-            <option value="expirado">Expirado</option>
-            <option value="cancelado">Cancelado</option>
-          </select>
+
+          {/* Middle Content area */}
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span className="font-mono font-bold text-foreground bg-secondary px-2 py-0.5 rounded">{r.code}</span>
+              <span>•</span>
+              <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {dateTimeBR(r.created_at)}</span>
+            </div>
+            
+            <div className="text-base font-medium text-foreground">
+              {r.reward?.name} 
+              <span className="text-muted-foreground font-normal"> para </span>
+              <span className="inline-block bg-primary/5 text-primary text-xs font-semibold px-2 py-0.5 rounded-full border border-primary/10">
+                {r.customer?.name || "Cliente Desconhecido"}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 mt-1.5">
+              {/* Spent points badge */}
+              <span className="inline-flex items-center rounded-full bg-rose-50 border border-rose-100 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+                -{r.points_spent} pts
+              </span>
+
+              {/* Code Capsule */}
+              {r.voucher_code ? (
+                <div className="inline-flex items-center gap-1 rounded-md bg-secondary border border-border px-2 py-0.5 font-mono text-xs font-semibold text-foreground">
+                  <span>{r.voucher_code}</span>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(r.voucher_code!); toast.success("Código copiado"); }}
+                    className="hover:text-primary p-0.5 transition-colors cursor-pointer"
+                    title="Copiar código"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <span className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground border border-border">
+                  Produto físico
+                </span>
+              )}
+
+              {/* Expire check */}
+              {r.valid_until && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1 bg-secondary/50 px-2 py-0.5 rounded border border-border/50">
+                  Vence {dateBR(r.valid_until)}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Right side interactive Select */}
+          <div className="flex items-center gap-2 justify-end self-start md:self-center">
+            <select
+              value={r.status}
+              onChange={(e) => update.mutate({ id: r.id, status: e.target.value })}
+              className={`min-h-10 rounded-full border px-4 text-xs font-semibold shadow-sm transition-all focus:outline-none focus:ring-1 cursor-pointer ${getStatusStyle(r.status)}`}
+            >
+              <option value="resgatado">Resgatado</option>
+              <option value="utilizado">Utilizado</option>
+              <option value="expirado">Expirado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
         </div>
       ))}
-      {!data?.length && <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">Nenhum resgate ainda.</div>}
+      {!data?.length && (
+        <div className="rounded-2xl border border-dashed border-border bg-card p-14 text-center text-muted-foreground">
+          <Gift className="mx-auto h-8 w-8 text-muted-foreground opacity-50 mb-3" />
+          <p className="text-sm font-medium">Nenhum resgate registrado ainda.</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -308,49 +384,128 @@ function Pontos() {
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Lançamentos recentes</h3>
-        {(data ?? []).map((l) => (
-          <div key={l.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-sm">
-            <div className="min-w-0 flex-1">
-              <div className="text-xs text-muted-foreground">{dateTimeBR(l.created_at)}</div>
-              <div className="font-medium">{l.customer?.name}</div>
-              <div className="text-xs text-muted-foreground">{l.description || l.reason}</div>
-            </div>
-            <div className={`font-display text-lg ${l.delta > 0 ? "text-green-600" : "text-rose-600"}`}>{l.delta > 0 ? "+" : ""}{l.delta}</div>
-          </div>
-        ))}
-      </div>
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Saldos · acesso ao portal</h3>
-        {(balances ?? []).map((b) => {
-          const c = customersMap?.[b.customer_id];
-          const hasAccess = !!c?.user_id;
-          return (
-            <div key={b.customer_id} className="rounded-xl border border-border bg-card p-3 text-sm">
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium">{c?.name ?? b.customer_id.slice(0, 8)}</div>
-                  <div className="truncate text-xs text-muted-foreground">{c?.email ?? "sem e-mail"}</div>
+    <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      {/* Left Column: Recent Ledger Entries */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Lançamentos recentes</h3>
+          <span className="text-xs text-muted-foreground">Exibindo os últimos 200</span>
+        </div>
+        
+        <div className="space-y-2">
+          {(data ?? []).map((l) => {
+            const isPositive = l.delta > 0;
+            return (
+              <div key={l.id} className="flex items-center gap-3.5 rounded-2xl border border-border bg-card p-3.5 transition-all hover:shadow-sm">
+                {/* Visual Direction badge */}
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+                  isPositive 
+                    ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                    : "bg-rose-50 text-rose-600 border-rose-100"
+                }`}>
+                  {isPositive ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownLeft className="h-5 w-5" />}
                 </div>
-                <strong className="shrink-0 text-primary">{b.balance} pts</strong>
+
+                {/* Info and Metadata */}
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {dateTimeBR(l.created_at)}</span>
+                  </div>
+                  <div className="font-semibold text-foreground truncate">{l.customer?.name || "Cliente sem nome"}</div>
+                  <div className="text-xs text-muted-foreground truncate">{l.description || l.reason}</div>
+                </div>
+
+                {/* Point delta display */}
+                <div className={`font-display text-lg font-bold shrink-0 px-2 py-0.5 rounded ${
+                  isPositive ? "text-emerald-600" : "text-rose-600"
+                }`}>
+                  {isPositive ? "+" : ""}{l.delta}
+                </div>
               </div>
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <span className={`text-[11px] ${hasAccess ? "text-green-600" : "text-muted-foreground"}`}>
-                  {hasAccess ? "✓ acesso ativo" : "sem acesso"}
-                </span>
-                <button
-                  disabled={!c?.email || inviting === b.customer_id}
-                  onClick={() => handleInvite(b.customer_id)}
-                  className="inline-flex min-h-8 items-center gap-1 rounded-full border border-border bg-background px-3 text-[11px] disabled:opacity-50"
-                >
-                  <Send className="h-3 w-3" /> {inviting === b.customer_id ? "Enviando..." : hasAccess ? "Resetar senha" : "Convidar"}
-                </button>
-              </div>
+            );
+          })}
+          {!data?.length && (
+            <div className="rounded-2xl border border-dashed border-border bg-card p-14 text-center text-muted-foreground">
+              Nenhum lançamento de pontos registrado ainda.
             </div>
-          );
-        })}
+          )}
+        </div>
+      </div>
+
+      {/* Right Column: Point Balances & Access Invitation Controls */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Saldos · acesso ao portal</h3>
+        
+        <div className="space-y-2.5">
+          {(balances ?? []).map((b) => {
+            const c = customersMap?.[b.customer_id];
+            const hasAccess = !!c?.user_id;
+            return (
+              <div key={b.customer_id} className="rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className="truncate font-semibold text-foreground flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="truncate">{c?.name ?? b.customer_id.slice(0, 8)}</span>
+                    </div>
+                    <div className="truncate text-xs text-muted-foreground">{c?.email ?? "Sem e-mail cadastrado"}</div>
+                  </div>
+                  <div className="shrink-0 bg-primary/5 border border-primary/10 rounded-xl px-3 py-1 text-right">
+                    <strong className="text-primary font-display text-base font-semibold">{b.balance} pts</strong>
+                  </div>
+                </div>
+                
+                <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between gap-2">
+                  {/* Status Indicator */}
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                    hasAccess 
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
+                      : "bg-secondary text-muted-foreground border-border"
+                  }`}>
+                    {hasAccess ? (
+                      <>
+                        <CheckCircle2 className="h-3 w-3 shrink-0" />
+                        <span>Acesso ativo</span>
+                      </>
+                    ) : (
+                      <span>Sem acesso</span>
+                    )}
+                  </span>
+
+                  {/* Actions Button */}
+                  <button
+                    disabled={!c?.email || inviting === b.customer_id}
+                    onClick={() => handleInvite(b.customer_id)}
+                    className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition-all cursor-pointer ${
+                      hasAccess
+                        ? "bg-secondary hover:bg-secondary/80 border-border text-foreground"
+                        : "bg-primary text-primary-foreground border-primary hover:opacity-90"
+                    } disabled:opacity-50`}
+                  >
+                    {inviting === b.customer_id ? (
+                      <span>Processando...</span>
+                    ) : hasAccess ? (
+                      <>
+                        <KeyRound className="h-3 w-3 shrink-0" />
+                        <span>Resetar senha</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-3 w-3 shrink-0" />
+                        <span>Convidar</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          {!balances?.length && (
+            <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground text-sm">
+              Nenhum saldo computado.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

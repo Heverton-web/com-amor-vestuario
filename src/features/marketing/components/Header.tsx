@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sparkles } from "lucide-react";
 import { useBranding } from "@/features/core/services/branding";
 
 const links = [
@@ -7,7 +7,6 @@ const links = [
   { href: "#galeria", label: "Galeria" },
   { href: "#depoimentos", label: "Depoimentos" },
   { href: "#horarios", label: "Horários" },
-  { href: "#contato", label: "Contato" },
 ];
 
 export function Header({ onContact }: { onContact: () => void }) {
@@ -31,30 +30,47 @@ export function Header({ onContact }: { onContact: () => void }) {
           )}
         </a>
 
+        {/* Links centrais simplificados (removido Clube e Contato) */}
         <nav className="hidden items-center gap-8 md:flex">
           {links.map((l) => (
             <a
               key={l.href}
               href={l.href}
-              className="text-sm text-foreground/70 transition-colors hover:text-primary"
+              className="text-sm font-medium text-foreground/75 transition-colors hover:text-primary"
+              style={{ transitionProperty: "color" }}
             >
               {l.label}
             </a>
           ))}
         </nav>
 
+        {/* Os 3 Botões Premium alinhados no canto direito (Desktop) */}
         <div className="hidden items-center gap-3 md:flex">
+          {/* Botão 1: Fale conosco (Outline) */}
           <button
             onClick={onContact}
-            className="text-sm font-medium text-foreground/80 hover:text-primary"
+            className="inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground/90 transition-colors hover:bg-muted cursor-pointer shadow-sm"
           >
             {branding.cta_contact_label}
           </button>
+          
+          {/* Botão 2: Compre aqui (Sólido) */}
           <a
             href={branding.cta_shop_url}
-            className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:opacity-90"
+            className="inline-flex min-h-10 items-center justify-center rounded-full px-5 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-95 cursor-pointer"
+            style={{ backgroundColor: branding.primary_color }}
           >
             {branding.cta_shop_label}
+          </a>
+
+          {/* Botão 3: Clube Com Amor (Pill com Sparkles e texto "Clube") */}
+          <a
+            href="/recompensas"
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-semibold text-primary transition-all hover:bg-primary/10 hover:scale-[1.02] cursor-pointer shadow-sm"
+            style={{ borderColor: `${branding.primary_color}40`, color: branding.primary_color }}
+          >
+            <Sparkles className="h-3.5 w-3.5 animate-pulse-subtle" />
+            <span>Clube</span>
           </a>
         </div>
 
@@ -67,6 +83,7 @@ export function Header({ onContact }: { onContact: () => void }) {
         </button>
       </div>
 
+      {/* Menu Mobile */}
       {open && (
         <div className="border-t border-border/60 bg-background md:hidden">
           <div className="space-y-4 px-6 py-6">
@@ -75,19 +92,33 @@ export function Header({ onContact }: { onContact: () => void }) {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="block text-base text-foreground/80"
+                className="block text-base font-medium text-foreground/80"
               >
                 {l.label}
               </a>
             ))}
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-col gap-3 pt-2">
+              <a
+                href="/recompensas"
+                onClick={() => setOpen(false)}
+                className="flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary"
+                style={{ borderColor: `${branding.primary_color}40`, color: branding.primary_color }}
+              >
+                <Sparkles className="h-4 w-4" />
+                Clube Com Amor
+              </a>
               <button
                 onClick={() => { setOpen(false); onContact(); }}
-                className="flex-1 rounded-full border border-border px-4 py-2 text-sm"
+                className="flex min-h-11 items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground/90"
               >
                 {branding.cta_contact_label}
               </button>
-              <a href={branding.cta_shop_url} className="flex-1 rounded-full bg-primary px-4 py-2 text-center text-sm text-primary-foreground">
+              <a
+                href={branding.cta_shop_url}
+                onClick={() => setOpen(false)}
+                className="flex min-h-11 items-center justify-center rounded-full bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground"
+                style={{ backgroundColor: branding.primary_color }}
+              >
                 {branding.cta_shop_label}
               </a>
             </div>

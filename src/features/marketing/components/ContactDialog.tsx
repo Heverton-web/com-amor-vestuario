@@ -6,6 +6,7 @@ import { toast } from "sonner";
 const reasons = [
   { id: "orcamento", label: "Orçamento" },
   { id: "fardamento", label: "Fardamento" },
+  { id: "clube", label: "Clube Com Amor" },
   { id: "produto", label: "Dúvida sobre produto" },
   { id: "preco", label: "Dúvida sobre preço" },
   { id: "pagamento", label: "Forma de pagamento" },
