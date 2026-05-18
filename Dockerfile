@@ -1,7 +1,7 @@
 # ==========================================
-# ESTÁGIO ÚNICO DE DIAGNÓSTICO
+# 1. ESTÁGIO DE BUILD (builder)
 # ==========================================
-FROM node:20
+FROM node:20 AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,21 @@ RUN npm install --legacy-peer-deps
 COPY . .
 RUN npm run build
 
-# Mostra onde o build gerou os arquivos
-RUN echo "=== RAIZ ===" && ls -la && echo "=== DIST ===" && ls -la dist/ 2>/dev/null || echo "sem dist/" && echo "=== .OUTPUT ===" && ls -la .output/ 2>/dev/null || echo "sem .output/" && echo "=== .OUTPUT/SERVER ===" && ls -la .output/server/ 2>/dev/null || echo "sem .output/server/" && echo "=== DIST/SERVER ===" && ls -la dist/server/ 2>/dev/null || echo "sem dist/server/" && echo "=== DIST/CLIENT ===" && ls -la dist/client/ 2>/dev/null || echo "sem dist/client/"
+# ==========================================
+# 2. ESTÁGIO DE PRODUÇÃO (runner)
+# ==========================================
+FROM node:20-slim AS runner
 
-CMD ["echo", "diagnostico concluido"]
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Copia o build gerado e o adaptador Node.js
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node-adapter.js ./node-adapter.js
+
+EXPOSE 3000
+
+# Roda o servidor Node.js puro — sem Wrangler, sem workerd, sem Cloudflare
+CMD ["node", "node-adapter.js"]
