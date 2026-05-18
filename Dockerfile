@@ -1,10 +1,7 @@
 # ==========================================
 # 1. ESTÁGIO DE BUILD (builder)
 # ==========================================
-FROM node:20-alpine AS builder
-
-# Instala ferramentas adicionais que podem ser necessárias para dependências nativas
-RUN apk add --no-cache libc6-compat
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -13,7 +10,6 @@ COPY package.json package-lock.json* ./
 
 # Instala todas as dependências (tolerando conflitos de peer-dependencies do React 19)
 RUN npm install --legacy-peer-deps
-
 
 # Copia todo o código-fonte
 COPY . .
@@ -24,9 +20,8 @@ RUN npm run build
 # ==========================================
 # 2. ESTÁGIO DE PRODUÇÃO (runner)
 # ==========================================
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
-# Instala o wrangler localmente para rodar o simulador de worker no container de forma leve
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -45,6 +40,4 @@ RUN npm install wrangler@3.57.1 --omit=dev --no-audit --no-fund
 EXPOSE 3000
 
 # Executa o wrangler dev apontando para o bundle de servidor gerado
-# O Miniflare vai iniciar o servidor HTTP escutando em todas as interfaces (0.0.0.0) na porta 3000,
-# mapeando automaticamente os recursos estáticos compilados em dist/client.
 CMD ["npx", "wrangler", "dev", "dist/server/index.js", "--port", "3000", "--ip", "0.0.0.0", "--live-reload", "false"]
