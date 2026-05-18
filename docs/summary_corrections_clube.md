@@ -74,5 +74,15 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
 
 ---
 
-## 9. Validação de Integridade
+## 9. Redesenho Visual Ultra-Premium do Modal de Recompensas
+* **Remoção de Campos Redundantes**: Removemos o antigo dropdown de seleção nativa de tipo de recompensa (`kind`) ao criar ou editar produtos físicos. Como o tipo já é determinado pela intenção do botão clicado, o campo foi completamente ocultado ("Não precisa ter"), limpando a interface.
+* **Segmentador de Abas de Alta Fidelidade**: Para vouchers, substituímos o seletor nativo por um controle segmentado de abas horizontais premium (`Valor (R$)` | `Percentual (%)` | `Frete grátis`) com transições suaves, sombras sutis e estados ativos impecáveis.
+* **Refinamento Estético Global**:
+  * **Efeito de Fundo Imersivo**: Adicionamos sobreposição escura com desfoque de fundo (`backdrop-blur-sm bg-black/60`) e animações de escala suave ao abrir o modal.
+  * **Tipografia e Campos Elegantes**: Inputs estilizados com bordas sutis e fundo translúcido, agrupados de forma inteligente em grids de colunas responsivas para maior aproveitamento de espaço.
+  * **Botões de Ação Redondos**: Cancelar e Criar/Salvar remodelados com pílulas arredondadas de alta fidelidade e micro-interações de clique.
+
+---
+
+## 10. Validação de Integridade
 * **Tipagem Estrita**: Executamos o compilador TypeScript `npx tsc --noEmit` e validamos que a aplicação compila com **zero erros** de tipos.
