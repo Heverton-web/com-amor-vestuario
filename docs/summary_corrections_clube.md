@@ -103,17 +103,24 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
   * **Tipografia e Campos Elegantes**: Inputs estilizados com bordas sutis e fundo translúcido, agrupados de forma inteligente em grids de colunas responsivas para maior aproveitamento de espaço.
   * **Botões de Ação Redondos**: Cancelar e Criar/Salvar remodelados com pílulas arredondadas de alta fidelidade e micro-interações de clique.
 
-## 10. Saída Automática de Recompensas Encerradas com Reativação pelo Admin
+## 10. Saída Automática de Recompensas Encerradas com Reativação e Prorrogação pelo Admin
 * **Saída Automática do Clube (Fidelidade do Cliente)**:
   * Integramos um filtro reativo em tempo real no carregamento de recompensas públicas (`fetchActiveRewards`).
   * Recompensas cuja validade expirou (`expires_at` no passado) **saem automaticamente e imediatamente** da vitrine do clube de fidelidade do cliente, garantindo um feed limpo, moderno e livre de itens indisponíveis.
-* **Destaque Visual e Controle no Painel do Admin**:
+* **Destaque Visual e Indicadores Dinâmicos de Tempo Restante**:
   * O administrador retém visibilidade completa de todas as recompensas (ativas, inativas ou expiradas).
   * Criamos um **layout exclusivo de alta fidelidade** para recompensas especiais no painel administrativo:
     * **Recompensas Expiradas (Encerradas)**: Exibem bordas avermelhadas estilizadas (`border-rose-200 dark:border-rose-950/60 bg-rose-50/5`), indicador animado vermelho de `"Encerrado"`, e texto realçado.
     * **Recompensas Inativas**: Exibem badge amarelo `"Inativo"` com opacidade reduzida.
-* **Reativação Simplificada**:
-  * O botão **"Editar / Reativar"** abre o modal de edição imediatamente, permitindo que o administrador estenda o prazo de expiração para o futuro. Ao salvar, a recompensa **volta instantaneamente para o clube de fidelidade do cliente**.
+  * **Visualizadores de Tempo Restante**: Adicionamos badges coloridos inteligentes em cada card no painel do administrador calculando o prazo dinamicamente:
+    * Se expirado: Badge vermelho `"Encerrado"`.
+    * Se expira em 2 dias ou menos: Badge amarelo pulsante de atenção (`"Falta 1d 5h"`, `"Falta 23h 10m"`).
+    * Se expira no futuro distante: Badge verde de status saudável (`"Falta 15d 3h"`, etc.).
+* **Fluxo de Prorrogação Ultra-Rápido**:
+  * **Botão "Prorrogar" Direto**: Adicionamos um botão de atalho `Prorrogar` com ícone `Clock` ao lado de cada card no painel.
+  * **Diálogo de Prazos Rápidos**: Ao clicar, abre-se uma linda Dialog modal contendo botões de prorrogação rápida em lote:
+    * `+ 3 Dias` | `+ 7 Dias` | `+ 15 Dias` | `+ 30 Dias` | `+ 90 Dias` | `Sem expiração (Vitalício)`.
+  * **Data Customizada**: Disponibiliza também um input de `datetime-local` no rodapé da Dialog para que o admin defina uma data/hora milimétrica personalizada se preferir, salvando instantaneamente no banco de dados e atualizando o feed em tempo real com feedbacks visuais de sucesso.
 
 ---
 
