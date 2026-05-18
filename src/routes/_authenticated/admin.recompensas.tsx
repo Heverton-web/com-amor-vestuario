@@ -94,29 +94,53 @@ function Catalogo() {
         </button>
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {(items ?? []).map((r) => (
-          <div key={r.id} className={`flex gap-3 rounded-2xl border border-border bg-card p-4 ${!r.active ? "opacity-60" : ""}`}>
-            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-secondary">
-              {r.images[0] ? <img src={r.images[0]} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center"><Gift className="h-6 w-6 text-muted-foreground" /></div>}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-xs text-muted-foreground">{r.code} · {kindLabel(r.kind)}{!r.active && " · inativo"}</div>
-              <div className="truncate font-medium">{r.name}</div>
-              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                <span><strong className="text-primary">{r.points_cost}</strong> pts</span>
-                <span>{r.stock} em estoque</span>
-                {r.expires_at && <span>Expira {dateTimeBR(r.expires_at)}</span>}
+        {(items ?? []).map((r) => {
+          const isExpired = r.expires_at ? new Date(r.expires_at).getTime() <= Date.now() : false;
+          return (
+            <div 
+              key={r.id} 
+              className={`flex gap-3 rounded-2xl border bg-card p-4 transition-all duration-200 ${
+                !r.active 
+                  ? "border-border/60 opacity-60 bg-secondary/5" 
+                  : isExpired 
+                    ? "border-rose-200 dark:border-rose-950/60 bg-rose-50/5 dark:bg-rose-950/5 shadow-sm" 
+                    : "border-border"
+              }`}
+            >
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-secondary border border-border">
+                {r.images[0] ? (
+                  <img src={r.images[0]} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full items-center justify-center"><Gift className="h-6 w-6 text-muted-foreground" /></div>
+                )}
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <button onClick={() => { setEditing(r); setOpen(true); }} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs"><Pencil className="h-3 w-3" /> Editar</button>
-                <button onClick={() => toggleActive.mutate(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs">
-                  {r.active ? <><EyeOff className="h-3 w-3" /> Desativar</> : <><Eye className="h-3 w-3" /> Ativar</>}
-                </button>
-                <button onClick={() => { if (confirm(`Excluir "${r.name}"?`)) del.mutate(r.id); }} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs text-rose-600"><Trash2 className="h-3 w-3" /> Excluir</button>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs text-muted-foreground">
+                  {r.code} · {kindLabel(r.kind)}
+                  {!r.active && <span className="text-amber-600 font-semibold uppercase tracking-wider text-[9px] bg-amber-500/10 px-1.5 py-0.5 rounded-full ml-1">Inativo</span>}
+                  {isExpired && <span className="text-rose-600 font-semibold uppercase tracking-wider text-[9px] bg-rose-500/10 px-1.5 py-0.5 rounded-full ml-1 animate-pulse">Encerrado</span>}
+                </div>
+                <div className="truncate font-medium mt-1">{r.name}</div>
+                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                  <span><strong className="text-primary">{r.points_cost}</strong> pts</span>
+                  <span>{r.stock} em estoque</span>
+                  {r.expires_at && (
+                    <span className={isExpired ? "text-rose-600 font-medium" : ""}>
+                      Expira {dateTimeBR(r.expires_at)}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button onClick={() => { setEditing(r); setOpen(true); }} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-background hover:bg-secondary px-3 text-xs cursor-pointer"><Pencil className="h-3 w-3" /> Editar / Reativar</button>
+                  <button onClick={() => toggleActive.mutate(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-background hover:bg-secondary px-3 text-xs cursor-pointer">
+                    {r.active ? <><EyeOff className="h-3 w-3" /> Desativar</> : <><Eye className="h-3 w-3" /> Ativar</>}
+                  </button>
+                  <button onClick={() => { if (confirm(`Excluir "${r.name}"?`)) del.mutate(r.id); }} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-background hover:bg-rose-50 dark:hover:bg-rose-950/20 px-3 text-xs text-rose-600 cursor-pointer"><Trash2 className="h-3 w-3" /> Excluir</button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {!items?.length && <div className="col-span-full rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">Nenhuma recompensa criada ainda.</div>}
       </div>
       {open && <RewardModal item={editing} initialKind={initialKind} onClose={() => { setOpen(false); setEditing(null); }} />}

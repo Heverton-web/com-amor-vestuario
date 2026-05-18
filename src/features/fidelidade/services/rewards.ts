@@ -72,7 +72,13 @@ export async function fetchActiveRewards(): Promise<RewardItem[]> {
     .eq("active", true)
     .order("points_cost", { ascending: true });
   
-  const rewards = (data ?? []) as unknown as RewardItem[];
+  const rawRewards = (data ?? []) as unknown as RewardItem[];
+  const rewards = rawRewards.filter((r) => {
+    if (r.expires_at && new Date(r.expires_at).getTime() <= Date.now()) {
+      return false;
+    }
+    return true;
+  });
 
   // Se a tabela estiver vazia, auto-semeamos itens de recompensa altamente premium para demonstração!
   if (!error && rewards.length === 0) {
