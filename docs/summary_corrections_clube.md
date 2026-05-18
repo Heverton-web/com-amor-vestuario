@@ -103,7 +103,19 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
   * **Tipografia e Campos Elegantes**: Inputs estilizados com bordas sutis e fundo translúcido, agrupados de forma inteligente em grids de colunas responsivas para maior aproveitamento de espaço.
   * **Botões de Ação Redondos**: Cancelar e Criar/Salvar remodelados com pílulas arredondadas de alta fidelidade e micro-interações de clique.
 
+## 10. Saída Automática de Recompensas Encerradas com Reativação pelo Admin
+* **Saída Automática do Clube (Fidelidade do Cliente)**:
+  * Integramos um filtro reativo em tempo real no carregamento de recompensas públicas (`fetchActiveRewards`).
+  * Recompensas cuja validade expirou (`expires_at` no passado) **saem automaticamente e imediatamente** da vitrine do clube de fidelidade do cliente, garantindo um feed limpo, moderno e livre de itens indisponíveis.
+* **Destaque Visual e Controle no Painel do Admin**:
+  * O administrador retém visibilidade completa de todas as recompensas (ativas, inativas ou expiradas).
+  * Criamos um **layout exclusivo de alta fidelidade** para recompensas especiais no painel administrativo:
+    * **Recompensas Expiradas (Encerradas)**: Exibem bordas avermelhadas estilizadas (`border-rose-200 dark:border-rose-950/60 bg-rose-50/5`), indicador animado vermelho de `"Encerrado"`, e texto realçado.
+    * **Recompensas Inativas**: Exibem badge amarelo `"Inativo"` com opacidade reduzida.
+* **Reativação Simplificada**:
+  * O botão **"Editar / Reativar"** abre o modal de edição imediatamente, permitindo que o administrador estenda o prazo de expiração para o futuro. Ao salvar, a recompensa **volta instantaneamente para o clube de fidelidade do cliente**.
+
 ---
 
-## 10. Validação de Integridade
+## 11. Validação de Integridade
 * **Tipagem Estrita**: Executamos o compilador TypeScript `npx tsc --noEmit` e validamos que a aplicação compila com **zero erros** de tipos.
