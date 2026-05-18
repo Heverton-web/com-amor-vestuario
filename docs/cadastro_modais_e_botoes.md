@@ -61,3 +61,26 @@ Os modais atuam de forma totalmente sincronizada com o estado reativo (`draft` e
    * `draft.testimonials`
 4. A lista principal e o simulador interativo multi-ambiente reagem **imediatamente**, atualizando o mockup visual em tempo real.
 5. O usuário consolida todas as mudanças clicando em **Salvar Tudo** no cabeçalho administrativo, persistindo as informações com 100% de integridade no banco de dados.
+
+---
+
+## 4. Carrosséis Dinâmicos de Alta Fidelidade (Gallery & Testimonials)
+
+Para enriquecer a experiência do cliente final (Landing Page) e dar vida ao conteúdo dinâmico editado, transformamos a listagem estática em carrosséis automáticos fluidos e elegantes:
+
+### 4.1 Carrossel da Galeria de Fotos (`Gallery.tsx`)
+* **Auto-Play Inteligente**: Avanço automático a cada $3.5$ segundos com efeito de transição suave e acelerado por hardware (`ease-in-out duration-1000`).
+* **Controle por Hover**: Pausa o carrossel temporariamente quando o cursor está posicionado sobre as fotos (`onMouseEnter`/`onMouseLeave`).
+* **Visualização Responsiva Dinâmica**:
+  * **Celulares**: $1$ foto visível por slide.
+  * **Tablets**: $2$ fotos visíveis por slide.
+  * **Desktops**: $4$ fotos visíveis por slide.
+* **Dots de Navegação**: Indicadores arredondados na parte inferior, onde o slide ativo assume formato expandido (*Pill styling* `w-6 bg-primary`), entregando uma estética premium contemporânea.
+
+### 4.2 Carrossel de Depoimentos (`Testimonials.tsx`)
+* **Auto-Play Inteligente**: Avanço automático a cada $4.5$ segundos, permitindo tempo de leitura ideal de forma tranquila e harmoniosa.
+* **Layout Fluido**:
+  * **Celulares**: $1$ depoimento por slide.
+  * **Tablets**: $2$ depoimentos por slide.
+  * **Desktops**: $3$ depoimentos por slide.
+* **Estilização Refinada**: Cards com desfoque de fundo e bordas translúcidas de alta costura e dots dinâmicos brancos (`primary-foreground`).
