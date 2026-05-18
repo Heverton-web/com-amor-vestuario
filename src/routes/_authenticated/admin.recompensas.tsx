@@ -172,27 +172,71 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 md:items-center md:p-4">
-      <div className="w-full max-w-lg rounded-t-3xl bg-card p-5 md:rounded-3xl md:p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-xl">
-            {isEdit ? "Editar recompensa" : form.kind === "produto_fisico" ? "Novo produto" : "Novo voucher"}
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-0 md:items-center md:p-4 animate-fade-in">
+      <div className="w-full max-w-lg rounded-t-3xl border border-border/80 bg-card p-6 shadow-2xl md:rounded-3xl md:p-7 animate-scale-up">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="font-display text-xl font-semibold tracking-tight">
+            {isEdit ? "Editar Recompensa" : form.kind === "produto_fisico" ? "Novo Produto" : "Novo Voucher"}
           </h2>
-          <button onClick={onClose} className="rounded-full p-2 hover:bg-secondary"><X className="h-4 w-4" /></button>
+          <button onClick={onClose} aria-label="Fechar modal" className="rounded-full p-2 hover:bg-secondary transition-colors cursor-pointer"><X className="h-4 w-4" /></button>
         </div>
-        <div className="max-h-[70vh] space-y-3 overflow-y-auto text-sm">
-          <input placeholder="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="min-h-11 w-full rounded-xl border border-border bg-background px-3" />
-          <textarea placeholder="Descrição" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="min-h-20 w-full rounded-xl border border-border bg-background px-3 py-2" />
-          <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as RewardKind })} className="min-h-11 w-full rounded-xl border border-border bg-background px-3">
-            <option value="produto_fisico">Produto físico</option>
-            <option value="voucher_valor">Voucher R$</option>
-            <option value="voucher_percent">Voucher %</option>
-            <option value="voucher_frete">Frete grátis</option>
-          </select>
-          <input placeholder="URL da imagem" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} className="min-h-11 w-full rounded-xl border border-border bg-background px-3" />
+        
+        <div className="max-h-[65vh] space-y-4 overflow-y-auto pr-1 text-sm">
+          {/* Nome e Descrição */}
+          <div className="space-y-3">
+            <input 
+              placeholder="Nome da recompensa" 
+              value={form.name} 
+              onChange={(e) => setForm({ ...form, name: e.target.value })} 
+              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
+            />
+            <textarea 
+              placeholder="Descrição detalhada" 
+              value={form.description} 
+              onChange={(e) => setForm({ ...form, description: e.target.value })} 
+              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all min-h-20 max-h-40 placeholder:text-muted-foreground/60" 
+            />
+          </div>
+
+          {/* Seletor Segmentado de Tipo de Voucher (Somente se não for produto físico) */}
+          {form.kind !== "produto_fisico" ? (
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tipo de Voucher</span>
+              <div className="flex rounded-xl bg-secondary p-1 border border-border/60">
+                {[
+                  { k: "voucher_valor", l: "Valor (R$)" },
+                  { k: "voucher_percent", l: "Percentual (%)" },
+                  { k: "voucher_frete", l: "Frete grátis" }
+                ].map((opt) => (
+                  <button
+                    key={opt.k}
+                    type="button"
+                    onClick={() => setForm({ ...form, kind: opt.k as RewardKind })}
+                    className={`flex-1 min-h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      form.kind === opt.k
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {opt.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* URL da Imagem */}
+          <input 
+            placeholder="URL da imagem (opcional)" 
+            value={form.image_url} 
+            onChange={(e) => setForm({ ...form, image_url: e.target.value })} 
+            className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
+          />
           
+          {/* Produto Vinculado (Se for produto físico) */}
           {form.kind === "produto_fisico" && (
-            <label className="block"><span className="text-xs text-muted-foreground">Produto Vinculado</span>
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Produto Vinculado</span>
               <select
                 value={form.product_id}
                 onChange={(e) => {
@@ -205,40 +249,104 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
                     stock: p?.stock ?? 0,
                   });
                 }}
-                className="min-h-11 w-full rounded-xl border border-border bg-background px-3"
+                className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
               >
-                <option value="">Selecione um produto...</option>
+                <option value="">Selecione um produto cadastrado...</option>
                 {products?.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.code} · {p.name} (Estoque: {p.stock})
                   </option>
                 ))}
               </select>
-            </label>
+            </div>
           )}
 
-          <div className="grid grid-cols-2 gap-2">
-            <label className="block"><span className="text-xs text-muted-foreground">Custo (pts)</span>
-              <NumInput value={form.points_cost} onValueChange={(v) => setForm({ ...form, points_cost: v ?? 0 })} className="min-h-11 w-full rounded-xl border border-border bg-background px-3" /></label>
-            <label className="block"><span className="text-xs text-muted-foreground">Estoque {form.kind === "produto_fisico" && "(Sincronizado)"}</span>
-              <NumInput disabled={form.kind === "produto_fisico"} value={form.stock} onValueChange={(v) => setForm({ ...form, stock: v ?? 0 })} className="min-h-11 w-full rounded-xl border border-border bg-background px-3 disabled:opacity-60" /></label>
+          {/* Custo em Pontos e Estoque */}
+          <div className="grid grid-cols-2 gap-3.5">
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Custo (Pontos)</span>
+              <NumInput 
+                value={form.points_cost} 
+                onValueChange={(v) => setForm({ ...form, points_cost: v ?? 0 })} 
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" 
+              />
+            </div>
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                {form.kind === "produto_fisico" ? "Estoque (Sincronizado)" : "Estoque"}
+              </span>
+              <NumInput 
+                disabled={form.kind === "produto_fisico"} 
+                value={form.stock} 
+                onValueChange={(v) => setForm({ ...form, stock: v ?? 0 })} 
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all disabled:opacity-60 disabled:bg-secondary/40" 
+              />
+            </div>
           </div>
+
+          {/* Valor de Desconto Fixo */}
           {form.kind === "voucher_valor" && (
-            <label className="block"><span className="text-xs text-muted-foreground">Valor do desconto (R$)</span>
-              <NumInput value={form.voucher_value} onValueChange={(v) => setForm({ ...form, voucher_value: v ?? 0 })} className="min-h-11 w-full rounded-xl border border-border bg-background px-3" /></label>
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Valor do Desconto (R$)</span>
+              <NumInput 
+                value={form.voucher_value} 
+                onValueChange={(v) => setForm({ ...form, voucher_value: v ?? 0 })} 
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" 
+              />
+            </div>
           )}
+
+          {/* Valor de Desconto Percentual */}
           {form.kind === "voucher_percent" && (
-            <label className="block"><span className="text-xs text-muted-foreground">Percentual (%)</span>
-              <NumInput value={form.voucher_percent} onValueChange={(v) => setForm({ ...form, voucher_percent: v ?? 0 })} className="min-h-11 w-full rounded-xl border border-border bg-background px-3" /></label>
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Percentual de Desconto (%)</span>
+              <NumInput 
+                value={form.voucher_percent} 
+                onValueChange={(v) => setForm({ ...form, voucher_percent: v ?? 0 })} 
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" 
+              />
+            </div>
           )}
-          <label className="block"><span className="text-xs text-muted-foreground">Pedido mínimo (R$)</span>
-            <NumInput value={form.voucher_min_order} onValueChange={(v) => setForm({ ...form, voucher_min_order: v ?? 0 })} className="min-h-11 w-full rounded-xl border border-border bg-background px-3" /></label>
-          <label className="block"><span className="text-xs text-muted-foreground">Data de expiração (opcional)</span>
-            <input type="date" value={form.expires_at} onChange={(e) => setForm({ ...form, expires_at: e.target.value })} className="min-h-11 w-full rounded-xl border border-border bg-background px-3" /></label>
+
+          {/* Pedido Mínimo e Data de Expiração */}
+          <div className="grid grid-cols-2 gap-3.5">
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pedido Mínimo (R$)</span>
+              <NumInput 
+                value={form.voucher_min_order} 
+                onValueChange={(v) => setForm({ ...form, voucher_min_order: v ?? 0 })} 
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" 
+              />
+            </div>
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Validade (Opcional)</span>
+              <input 
+                type="date" 
+                value={form.expires_at} 
+                onChange={(e) => setForm({ ...form, expires_at: e.target.value })} 
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" 
+              />
+            </div>
+          </div>
         </div>
-        <div className="mt-5 flex gap-2">
-          <button onClick={onClose} className="min-h-11 flex-1 rounded-full border border-border">Cancelar</button>
-          <button disabled={save.isPending || !form.name} onClick={() => save.mutate()} className="min-h-11 flex-1 rounded-full bg-primary text-primary-foreground disabled:opacity-50">{save.isPending ? "Salvando..." : isEdit ? "Salvar" : "Criar"}</button>
+
+        {/* Rodapé de Ações */}
+        <div className="mt-6 flex gap-3">
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="min-h-11 flex-1 rounded-full border border-border bg-background hover:bg-secondary/40 text-sm font-semibold transition-all active:scale-[0.98] cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="button"
+            disabled={save.isPending || !form.name} 
+            onClick={() => save.mutate()} 
+            className="min-h-11 flex-1 rounded-full bg-primary text-primary-foreground hover:bg-primary/95 text-sm font-semibold shadow-md transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+          >
+            {save.isPending ? "Salvando..." : isEdit ? "Salvar" : "Criar"}
+          </button>
         </div>
       </div>
     </div>
