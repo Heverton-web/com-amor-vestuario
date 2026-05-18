@@ -60,6 +60,16 @@ export type Branding = {
     background: string;
     foreground: string;
   }[];
+  gallery_items?: {
+    src: string;
+    caption: string;
+    span?: string;
+  }[];
+  testimonials?: {
+    quote: string;
+    name: string;
+    role: string;
+  }[];
 };
 
 export const DEFAULT_BRANDING: Branding = {
@@ -110,6 +120,29 @@ export const DEFAULT_BRANDING: Branding = {
   rewards_label: "Loja de Recompensas",
   n8n_rewards_webhook: "",
   custom_palettes: [],
+  gallery_items: [
+    { src: "", caption: "Mariana · Blusa Linho", span: "md:row-span-2" },
+    { src: "", caption: "Equipe Solaris · Fardamento", span: "" },
+    { src: "", caption: "Carla · Vestido Sage", span: "" },
+    { src: "", caption: "Pedro · Camisa Argila", span: "md:row-span-2" },
+  ],
+  testimonials: [
+    {
+      quote: "O acabamento é de outro mundo. Sinto o cuidado em cada costura — comprei uma peça, voltei para mais três.",
+      name: "Beatriz Lima",
+      role: "Cliente varejo",
+    },
+    {
+      quote: "Fizemos o fardamento da nossa equipe inteira. Pontualidade impecável e qualidade que valoriza nossa marca.",
+      name: "Ricardo Sales",
+      role: "Solaris Tecnologia",
+    },
+    {
+      quote: "Atendimento humano de verdade. Me ajudaram a escolher tamanho pelo WhatsApp e a peça caiu perfeita.",
+      name: "Luana Pires",
+      role: "Cliente varejo",
+    },
+  ],
 };
 
 type Ctx = {

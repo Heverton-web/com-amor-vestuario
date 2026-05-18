@@ -520,6 +520,107 @@ function BrandingPage() {
                 </div>
               </div>
             ))}
+
+            {activeTab === "landing" && (
+              <>
+                {/* Editor de Galeria de Imagens */}
+                <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-primary" />
+                      <h3 className="font-display text-lg font-medium">Galeria de Imagens (Landing Page)</h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = draft.gallery_items || [];
+                        setDraft(d => ({
+                          ...d,
+                          gallery_items: [...current, { src: "", caption: "Nova Imagem", span: "" }]
+                        }));
+                      }}
+                      className="px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/95 transition-colors"
+                    >
+                      ➕ Adicionar Imagem
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    As imagens da sua galeria aparecem na seção "Quem veste a gente". Você pode fazer upload de fotos dos seus clientes reais, definir legendas e escolher se a foto ocupa 1 espaço simples ou 2 espaços verticais (Grande).
+                  </p>
+
+                  {draft.gallery_items && draft.gallery_items.length > 0 ? (
+                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+                      {draft.gallery_items.map((item, idx) => (
+                        <GalleryItemEditor
+                          key={idx}
+                          idx={idx}
+                          item={item}
+                          onUpdate={(updatedItem) => {
+                            const list = [...(draft.gallery_items || [])];
+                            list[idx] = updatedItem;
+                            setDraft(d => ({ ...d, gallery_items: list }));
+                          }}
+                          onDelete={() => {
+                            const list = (draft.gallery_items || []).filter((_, i) => i !== idx);
+                            setDraft(d => ({ ...d, gallery_items: list }));
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic text-center py-4">Nenhuma imagem na galeria. Clique em "Adicionar Imagem" para começar.</p>
+                  )}
+                </div>
+
+                {/* Editor de Depoimentos */}
+                <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-primary" />
+                      <h3 className="font-display text-lg font-medium">Depoimentos dos Clientes (Landing Page)</h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = draft.testimonials || [];
+                        setDraft(d => ({
+                          ...d,
+                          testimonials: [...current, { quote: "", name: "Nome do Cliente", role: "Cliente" }]
+                        }));
+                      }}
+                      className="px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/95 transition-colors"
+                    >
+                      ➕ Adicionar Depoimento
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Configure depoimentos reais que mostram o carinho e cuidado da sua marca com seus clientes. Eles aparecem no rodapé dinâmico da página inicial.
+                  </p>
+
+                  {draft.testimonials && draft.testimonials.length > 0 ? (
+                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+                      {draft.testimonials.map((item, idx) => (
+                        <TestimonialItemEditor
+                          key={idx}
+                          item={item}
+                          onUpdate={(updatedItem) => {
+                            const list = [...(draft.testimonials || [])];
+                            list[idx] = updatedItem;
+                            setDraft(d => ({ ...d, testimonials: list }));
+                          }}
+                          onDelete={() => {
+                            const list = (draft.testimonials || []).filter((_, i) => i !== idx);
+                            setDraft(d => ({ ...d, testimonials: list }));
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic text-center py-4">Nenhum depoimento configurado. Clique em "Adicionar Depoimento" para começar.</p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
         </div>
@@ -979,3 +1080,162 @@ function FieldEditor({
     </div>
   );
 }
+
+// Subcomponente de edicao para um item da Galeria
+function GalleryItemEditor({
+  idx,
+  item,
+  onUpdate,
+  onDelete,
+}: {
+  idx: number;
+  item: { src: string; caption: string; span?: string };
+  onUpdate: (updated: { src: string; caption: string; span?: string }) => void;
+  onDelete: () => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split(".").pop() || "bin";
+    const path = `gallery-item-${idx}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("branding").upload(path, file, {
+      cacheControl: "3600",
+      upsert: true,
+    });
+    setUploading(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const { data } = supabase.storage.from("branding").getPublicUrl(path);
+    onUpdate({ ...item, src: data.publicUrl });
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-border bg-background/50 shadow-sm relative group items-start sm:items-center">
+      {/* Miniatura com Uploader */}
+      <div className="relative h-16 w-16 rounded-xl overflow-hidden border border-border bg-muted flex items-center justify-center shrink-0">
+        {item.src ? (
+          <img src={item.src} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span className="text-[10px] text-muted-foreground">Sem Foto</span>
+        )}
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="text-[9px] text-white font-bold"
+          >
+            {uploading ? "Subindo..." : "Trocar"}
+          </button>
+        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleUpload}
+        />
+      </div>
+
+      <div className="flex-1 w-full grid gap-2 sm:grid-cols-2">
+        <div>
+          <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Legenda / Descrição</label>
+          <input
+            type="text"
+            value={item.caption}
+            onChange={(e) => onUpdate({ ...item, caption: e.target.value })}
+            className="w-full bg-background border border-input rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary mt-1"
+            placeholder="Ex: Mariana · Blusa Linho"
+          />
+        </div>
+        <div>
+          <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Layout da Grade</label>
+          <select
+            value={item.span || ""}
+            onChange={(e) => onUpdate({ ...item, span: e.target.value })}
+            className="w-full bg-background border border-input rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary mt-1"
+          >
+            <option value="">Retrato Simples (1x1)</option>
+            <option value="md:row-span-2">Destaque Vertical Duplo (1x2)</option>
+          </select>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onDelete}
+        className="p-2 text-muted-foreground hover:text-red-500 rounded-lg hover:bg-red-50 sm:self-center self-end shrink-0"
+        title="Excluir Imagem"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+// Subcomponente de edicao para um depoimento de cliente
+function TestimonialItemEditor({
+  item,
+  onUpdate,
+  onDelete,
+}: {
+  item: { quote: string; name: string; role: string };
+  onUpdate: (updated: { quote: string; name: string; role: string }) => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3 p-4 rounded-xl border border-border bg-background/50 shadow-sm relative group">
+      <div className="flex justify-between items-center">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Depoimento</span>
+        <button
+          type="button"
+          onClick={onDelete}
+          className="p-1.5 text-muted-foreground hover:text-red-500 rounded-lg hover:bg-red-50"
+          title="Excluir Depoimento"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Depoimento (Citação)</label>
+          <textarea
+            value={item.quote}
+            onChange={(e) => onUpdate({ ...item, quote: e.target.value })}
+            className="w-full bg-background border border-input rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary mt-1 min-h-[60px] resize-y"
+            placeholder="Ex: O acabamento é maravilhoso, caimento perfeito!"
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Nome do Cliente</label>
+            <input
+              type="text"
+              value={item.name}
+              onChange={(e) => onUpdate({ ...item, name: e.target.value })}
+              className="w-full bg-background border border-input rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary mt-1"
+              placeholder="Ex: Beatriz Lima"
+            />
+          </div>
+          <div>
+            <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Ocupação / Empresa</label>
+            <input
+              type="text"
+              value={item.role}
+              onChange={(e) => onUpdate({ ...item, role: e.target.value })}
+              className="w-full bg-background border border-input rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary mt-1"
+              placeholder="Ex: Cliente Varejo"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

@@ -3,14 +3,25 @@ import c2 from "@/assets/client-2.jpg";
 import c3 from "@/assets/client-3.jpg";
 import c4 from "@/assets/client-4.jpg";
 
-const items = [
-  { src: c1, caption: "Mariana · Blusa Linho", span: "md:row-span-2" },
-  { src: c2, caption: "Equipe Solaris · Fardamento", span: "" },
-  { src: c3, caption: "Carla · Vestido Sage", span: "" },
-  { src: c4, caption: "Pedro · Camisa Argila", span: "md:row-span-2" },
-];
+import { useBranding } from "@/features/core/services/branding";
 
 export function Gallery() {
+  const { branding } = useBranding();
+
+  const defaultImages = [c1, c2, c3, c4];
+  const items = branding.gallery_items?.length
+    ? branding.gallery_items.map((item, idx) => ({
+        src: item.src || defaultImages[idx % defaultImages.length],
+        caption: item.caption,
+        span: item.span || "",
+      }))
+    : [
+        { src: c1, caption: "Mariana · Blusa Linho", span: "md:row-span-2" },
+        { src: c2, caption: "Equipe Solaris · Fardamento", span: "" },
+        { src: c3, caption: "Carla · Vestido Sage", span: "" },
+        { src: c4, caption: "Pedro · Camisa Argila", span: "md:row-span-2" },
+      ];
+
   return (
     <section id="galeria" className="py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">

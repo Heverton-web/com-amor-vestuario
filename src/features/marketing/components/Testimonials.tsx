@@ -1,27 +1,29 @@
 import { Quote } from "lucide-react";
-
-const items = [
-  {
-    quote:
-      "O acabamento é de outro mundo. Sinto o cuidado em cada costura — comprei uma peça, voltei para mais três.",
-    name: "Beatriz Lima",
-    role: "Cliente varejo",
-  },
-  {
-    quote:
-      "Fizemos o fardamento da nossa equipe inteira. Pontualidade impecável e qualidade que valoriza nossa marca.",
-    name: "Ricardo Sales",
-    role: "Solaris Tecnologia",
-  },
-  {
-    quote:
-      "Atendimento humano de verdade. Me ajudaram a escolher tamanho pelo WhatsApp e a peça caiu perfeita.",
-    name: "Luana Pires",
-    role: "Cliente varejo",
-  },
-];
+import { useBranding } from "@/features/core/services/branding";
 
 export function Testimonials() {
+  const { branding } = useBranding();
+
+  const items = branding.testimonials?.length
+    ? branding.testimonials
+    : [
+        {
+          quote: "O acabamento é de outro mundo. Sinto o cuidado em cada costura — comprei uma peça, voltei para mais três.",
+          name: "Beatriz Lima",
+          role: "Cliente varejo",
+        },
+        {
+          quote: "Fizemos o fardamento da nossa equipe inteira. Pontualidade impecável e qualidade que valoriza nossa marca.",
+          name: "Ricardo Sales",
+          role: "Solaris Tecnologia",
+        },
+        {
+          quote: "Atendimento humano de verdade. Me ajudaram a escolher tamanho pelo WhatsApp e a peça caiu perfeita.",
+          name: "Luana Pires",
+          role: "Cliente varejo",
+        },
+      ];
+
   return (
     <section id="depoimentos" className="bg-primary text-primary-foreground">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24">
