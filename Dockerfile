@@ -33,11 +33,11 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/wrangler.jsonc ./wrangler.jsonc
 COPY --from=builder /app/package.json ./package.json
 
-# Instala explicitamente a versão mais recente e estável do wrangler para garantir suporte ao runtime moderno
-RUN npm install wrangler@latest --omit=dev --no-audit --no-fund
+# Força a instalação GLOBAL da versão exata exigida pelo Cloudflare (v4) para evitar conflitos com versões antigas cacheadas em bibliotecas locais
+RUN npm install -g wrangler@4.92.0
 
 # Expõe a porta configurada
 EXPOSE 3000
 
-# Executa o wrangler dev forçando a compatibilidade com Node.js para habilitar o módulo node:async_hooks
-CMD ["npx", "wrangler", "dev", "dist/server/index.js", "--port", "3000", "--ip", "0.0.0.0", "--compatibility-date=2025-09-24", "--compatibility-flag=nodejs_compat", "--live-reload", "false"]
+# Executa o wrangler V4 de forma global (sem npx), apontando a compatibilidade de 2025 e os recursos estáticos corretos
+CMD ["wrangler", "dev", "dist/server/index.js", "--port", "3000", "--ip", "0.0.0.0", "--compatibility-date=2025-09-24", "--compatibility-flag=nodejs_compat", "--assets", "dist/client", "--live-reload", "false"]
