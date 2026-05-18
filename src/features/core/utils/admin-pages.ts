@@ -15,6 +15,7 @@ export const ADMIN_CATEGORIES: { key: string; label: string }[] = [
   { key: "recompensas", label: "Recompensas" },
   { key: "acompanhamento", label: "Acompanhamento" },
   { key: "analise", label: "Análise" },
+  { key: "desenvolvedor", label: "Desenvolvedor" },
 ];
 
 export const ADMIN_PAGES: AdminPageDef[] = [
@@ -31,6 +32,7 @@ export const ADMIN_PAGES: AdminPageDef[] = [
   { key: "kanban", label: "CRM (Kanban)", path: "/admin/kanban", category: "acompanhamento" },
   { key: "analises", label: "Análises", path: "/admin/analises", category: "analise" },
   { key: "utm", label: "Gerador UTM", path: "/admin/utm", category: "analise" },
+  { key: "dev", label: "Ambiente Dev", path: "/admin/dev", category: "desenvolvedor" },
 ];
 
 // Page reserved for the superadmin only; not assignable to regular admins.

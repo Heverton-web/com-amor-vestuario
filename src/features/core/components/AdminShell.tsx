@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, Package, Users, FileText, ShoppingBag,
   Kanban, BarChart3, Link2, Receipt, LogOut, Heart, Palette,
-  ShieldCheck, Menu, FileSpreadsheet, ReceiptText, Gift,
+  ShieldCheck, Menu, FileSpreadsheet, ReceiptText, Gift, Terminal,
 } from "lucide-react";
 import { useAuth } from "@/features/core/integrations/auth";
 import { ADMIN_PAGES, ADMIN_CATEGORIES, SUPERADMIN_PAGE, pageKeyForPath } from "@/features/core/utils/admin-pages";
@@ -24,6 +24,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   nfe: Receipt,
   recompensas: Gift,
   equipe: ShieldCheck,
+  dev: Terminal,
 };
 
 export function AdminShell({ title, children, actions }: {

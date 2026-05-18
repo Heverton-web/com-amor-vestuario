@@ -31,6 +31,7 @@ import { Route as AuthenticatedAdminNfeRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminKanbanRouteImport } from './routes/_authenticated/admin.kanban'
 import { Route as AuthenticatedAdminFaturasRouteImport } from './routes/_authenticated/admin.faturas'
 import { Route as AuthenticatedAdminEquipeRouteImport } from './routes/_authenticated/admin.equipe'
+import { Route as AuthenticatedAdminDevRouteImport } from './routes/_authenticated/admin.dev'
 import { Route as AuthenticatedAdminClientesRouteImport } from './routes/_authenticated/admin.clientes'
 import { Route as AuthenticatedAdminBrandingRouteImport } from './routes/_authenticated/admin.branding'
 import { Route as AuthenticatedAdminAnalisesRouteImport } from './routes/_authenticated/admin.analises'
@@ -152,6 +153,11 @@ const AuthenticatedAdminEquipeRoute =
     path: '/admin/equipe',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminDevRoute = AuthenticatedAdminDevRouteImport.update({
+  id: '/admin/dev',
+  path: '/admin/dev',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAdminClientesRoute =
   AuthenticatedAdminClientesRouteImport.update({
     id: '/admin/clientes',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/admin/analises': typeof AuthenticatedAdminAnalisesRoute
   '/admin/branding': typeof AuthenticatedAdminBrandingRoute
   '/admin/clientes': typeof AuthenticatedAdminClientesRoute
+  '/admin/dev': typeof AuthenticatedAdminDevRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/faturas': typeof AuthenticatedAdminFaturasRoute
   '/admin/kanban': typeof AuthenticatedAdminKanbanRoute
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/admin/analises': typeof AuthenticatedAdminAnalisesRoute
   '/admin/branding': typeof AuthenticatedAdminBrandingRoute
   '/admin/clientes': typeof AuthenticatedAdminClientesRoute
+  '/admin/dev': typeof AuthenticatedAdminDevRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/faturas': typeof AuthenticatedAdminFaturasRoute
   '/admin/kanban': typeof AuthenticatedAdminKanbanRoute
@@ -238,6 +246,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/analises': typeof AuthenticatedAdminAnalisesRoute
   '/_authenticated/admin/branding': typeof AuthenticatedAdminBrandingRoute
   '/_authenticated/admin/clientes': typeof AuthenticatedAdminClientesRoute
+  '/_authenticated/admin/dev': typeof AuthenticatedAdminDevRoute
   '/_authenticated/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/_authenticated/admin/faturas': typeof AuthenticatedAdminFaturasRoute
   '/_authenticated/admin/kanban': typeof AuthenticatedAdminKanbanRoute
@@ -266,6 +275,7 @@ export interface FileRouteTypes {
     | '/admin/analises'
     | '/admin/branding'
     | '/admin/clientes'
+    | '/admin/dev'
     | '/admin/equipe'
     | '/admin/faturas'
     | '/admin/kanban'
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/admin/analises'
     | '/admin/branding'
     | '/admin/clientes'
+    | '/admin/dev'
     | '/admin/equipe'
     | '/admin/faturas'
     | '/admin/kanban'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/analises'
     | '/_authenticated/admin/branding'
     | '/_authenticated/admin/clientes'
+    | '/_authenticated/admin/dev'
     | '/_authenticated/admin/equipe'
     | '/_authenticated/admin/faturas'
     | '/_authenticated/admin/kanban'
@@ -498,6 +510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEquipeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/dev': {
+      id: '/_authenticated/admin/dev'
+      path: '/admin/dev'
+      fullPath: '/admin/dev'
+      preLoaderRoute: typeof AuthenticatedAdminDevRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/clientes': {
       id: '/_authenticated/admin/clientes'
       path: '/admin/clientes'
@@ -526,6 +545,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminAnalisesRoute: typeof AuthenticatedAdminAnalisesRoute
   AuthenticatedAdminBrandingRoute: typeof AuthenticatedAdminBrandingRoute
   AuthenticatedAdminClientesRoute: typeof AuthenticatedAdminClientesRoute
+  AuthenticatedAdminDevRoute: typeof AuthenticatedAdminDevRoute
   AuthenticatedAdminEquipeRoute: typeof AuthenticatedAdminEquipeRoute
   AuthenticatedAdminFaturasRoute: typeof AuthenticatedAdminFaturasRoute
   AuthenticatedAdminKanbanRoute: typeof AuthenticatedAdminKanbanRoute
@@ -543,6 +563,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminAnalisesRoute: AuthenticatedAdminAnalisesRoute,
   AuthenticatedAdminBrandingRoute: AuthenticatedAdminBrandingRoute,
   AuthenticatedAdminClientesRoute: AuthenticatedAdminClientesRoute,
+  AuthenticatedAdminDevRoute: AuthenticatedAdminDevRoute,
   AuthenticatedAdminEquipeRoute: AuthenticatedAdminEquipeRoute,
   AuthenticatedAdminFaturasRoute: AuthenticatedAdminFaturasRoute,
   AuthenticatedAdminKanbanRoute: AuthenticatedAdminKanbanRoute,

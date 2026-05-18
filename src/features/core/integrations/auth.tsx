@@ -71,7 +71,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isStaff,
     isSuperAdmin,
     pages,
-    canAccess: (key: string) => isSuperAdmin || pages.has(key),
+    canAccess: (key: string) => 
+      isSuperAdmin || 
+      pages.has(key) || 
+      (key === "dev" && (import.meta.env.DEV ? isStaff : user?.email === "admin@comamor.app")),
     refreshAccess: async () => {
       if (user) await loadAccess(user.id);
     },

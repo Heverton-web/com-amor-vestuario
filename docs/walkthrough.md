@@ -1,46 +1,78 @@
-# Walkthrough: Implementação do Fluxo de Estoque e Resgates
+# Walkthrough: Ambiente de Desenvolvimento (Developer Console)
 
-Este documento resume as implementações realizadas para sincronizar os estoques de produtos físicos da Loja de Recompensas e processar seus resgates com geração automática de pedidos no status `'separado'` e baixa unificada no faturamento.
-
----
-
-## 🛠️ Alterações Executadas
-
-### 1. Migração do Banco de Dados (Supabase)
-*   **Arquivo criado:** [20260517223500_sincronizacao_estoque.sql](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/supabase/migrations/20260517223500_sincronizacao_estoque.sql)
-*   **Triggers Adicionadas:**
-    1.  `trg_sync_reward_product_stock`: Mantém o estoque virtual de itens de recompensa sincronizado com o estoque real do produto físico convencional no momento de criação ou edição.
-    2.  `trg_sync_reward_stock_from_product`: Monitora mudanças de estoque em `public.products` (ex: compras, ajustes manuais) e replica instantaneamente em `public.reward_items.stock` para itens vinculados.
-    3.  `trg_deduct_stock_on_invoice`: Monitora a tabela `public.orders` e, **apenas quando o pedido transicionar para o status `'pago'` (Pago/Faturado)**, realiza a baixa física de todos os itens do pedido na tabela `public.products.stock`.
-
-### 2. Painel de Controle Administrativo
-*   **Arquivo modificado:** [admin.recompensas.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/_authenticated/admin.recompensas.tsx)
-*   **Melhorias na UI/UX:**
-    *   Adicionado o dropdown **"Produto Vinculado"** no modal de criação e edição de recompensas (`RewardModal`) quando o tipo da recompensa é definido como `"Produto físico"`.
-    *   **Estoque Travado e Sincronizado:** Quando um produto físico convencional é selecionado, o campo manual de `Estoque` é desabilitado na interface e exibe o texto `"(Sincronizado)"`, garantindo consistência visual.
-    *   O formulário salva o relacionamento no campo `product_id` da tabela `public.reward_items`.
-
-### 3. Mutação de Resgate de Recompensa Física
-*   **Arquivo modificado:** [recompensas.index.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/recompensas.index.tsx)
-*   **Fluxo de Resgate Físico Automatizado:**
-    1.  Valida se há saldo e se o estoque em `products.stock` (e não apenas o virtual da recompensa) é maior que zero.
-    2.  Registra a redenção em `public.redemptions`.
-    3.  Gera um pedido real em `public.orders` com `status = 'separado'` e `total = 0.00` (resgatado por pontos).
-    4.  Associa o item físico ao pedido através de `public.order_items`.
-    5.  Cria o card de Kanban automaticamente no estágio `'separado'` para acionar instantaneamente a expedição administrativa.
-    6.  Marca a redenção como `utilizado` e associa o `used_in_order_id` ao novo pedido criado.
-
-### 4. Remoção de Baixa Manual no Frontend
-*   **Arquivo modificado:** [checkout.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/checkout.tsx)
-*   **Limpeza lógica:** Removida a baixa de estoque imediata executada via mutação no React no momento de finalização do pedido. O pedido agora é criado no status inicial `'realizado'` sem alterar o estoque físico do produto convencional. A baixa real e definitiva ocorrerá somente quando o status for alterado para `'pago'` (Faturado), por meio da trigger PostgreSQL.
+Este documento resume a implementação bem-sucedida da feature **Ambiente Dev**, projetada como uma central técnica administrativo-operacional de alta fidelidade para gerenciar credenciais, testar conexões com APIs externas (Melhor Envio, Mercado Pago e N8N), simular fluxos de negócios híbridos e auditar eventos em tempo real.
 
 ---
 
-## 🚦 Próximos Passos de Validação
+## 🏗️ Arquitetura Implementada
 
-1.  **Rodar a Migração:** Execute o arquivo [20260517223500_sincronizacao_estoque.sql](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/supabase/migrations/20260517223500_sincronizacao_estoque.sql) no editor SQL do painel do Supabase para injetar as regras automáticas de integridade.
-2.  **Vincular uma Recompensa Física:** Vá ao painel administrativo de recompensas, crie uma recompensa do tipo "Produto físico" e vincule-a a um de seus produtos cadastrados. Verifique se o estoque é espelhado perfeitamente.
-3.  **Simular um Resgate:** Entre com a conta do cliente, resgate o produto físico e verifique:
-    *   Se o pedido no valor de R$ 0,00 foi criado com status `'separado'`.
-    *   Se o card Kanban correspondente apareceu na coluna "Separado" do quadro de Pedidos.
-    *   Se a baixa de estoque no produto convencional ocorre apenas quando você avança o pedido para a etapa **Pago / Faturado**.
+A feature foi projetada seguindo as regras de **Arquitetura Modular baseada em Features**, garantindo isolamento total do código-fonte e acoplamento zero com outros módulos.
+
+```mermaid
+graph TD
+  A[DevConsoleDashboard - UI Component] --> B[api-diagnostics - Pings & Latência]
+  A --> C[integrations-simulator - Simulador Híbrido]
+  A --> D[webhook-dispatcher - Envio de Eventos]
+  
+  C -->|Simula Transação| D
+  D -->|Dispara HTTP POST| E[Servidor N8N]
+  D -->|Auditoria / Persistência| F[(Supabase: webhook_logs)]
+  B -->|Lê Credenciais| G[(Supabase: integration_settings)]
+  C -->|Salva Tokens OAuth| G
+```
+
+---
+
+## 🛠️ O que foi Desenvolvido
+
+### 1. Camada de Infraestrutura (Banco de Dados)
+* **Migration SQL:** Criada a migração [20260518000000_ambiente_dev_core.sql](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/supabase/migrations/20260518000000_ambiente_dev_core.sql) mapeando:
+  * Tabela `public.integration_settings` para armazenamento de chaves de API, URLs de webhook e tokens OAuth.
+  * Tabela `public.webhook_logs` para auditoria estrita de disparos, latência e respostas HTTP.
+  * Políticas RLS robustas integradas ao controle de acesso RBAC do projeto para a permissão `'dev'`.
+
+### 2. Camada de Serviços & Integração
+* **Despachante de Webhooks (`webhook-dispatcher.ts`):** 
+  * Envia payloads assíncronos envelopados à URL configurada do N8N.
+  * Captura latência de processamento em milissegundos e código de status HTTP.
+  * Trata erros de rede ou CORS graciosamente e registra a auditoria no Supabase.
+* **Diagnóstico de Conectividade (`api-diagnostics.ts`):**
+  * Mede tempo de resposta e integridade da conexão ao Supabase, N8N, Mercado Pago e Melhor Envio.
+  * Identifica estados do token OAuth do Melhor Envio e formata relatórios de conectividade.
+* **Simuladores Híbridos (`integrations-simulator.ts`):**
+  * **Mercado Pago:** Permite selecionar pedidos ativos no banco, simular a liquidação de pagamentos (Aprovado, Recusado, Reembolsado), atualizar o status no Supabase e disparar webhooks integrados para automatizar ações subsequentes no N8N.
+  * **Melhor Envio:** Conecta-se à API de homologação do Melhor Envio para cotar fretes reais usando o token OAuth ou executa cotações locais via mocks detalhados.
+  * **Melhor Envio OAuth2:** Fornece o link do fluxo de autorização visual para troca de códigos de autorização.
+
+### 3. Componentes de UI Premium (`DevConsoleDashboard.tsx`)
+A interface foi projetada em Dark Mode com estética Editorial de alta qualidade contendo:
+* **Métricas de Latência:** Indicadores LED piscantes com tempo exato de resposta de cada serviço.
+* **Gestão de Chaves:** Formulários seguros com mascaramento de tokens e chaves privadas.
+* **Simulador de Pagamentos & Frete:** Interface intuitiva para acionar simulações em um clique.
+* **Console de Auditoria N8N:** Tabela polulada em tempo real com auto-refresh a cada 4 segundos contendo gaveta de detalhes, visualizador de JSON interativo, ações rápidas de cópia e botão para reprocessamento manual de qualquer evento.
+* **Console Supabase:** Painel mostrando migrações de banco aplicadas e estado operacional de Edge Functions.
+* **Resiliência Transparente:** Caso as tabelas ainda não tenham sido migradas para o banco remoto no ambiente local, o painel ativa automaticamente o **Modo Fallback**, salvando as credenciais no `localStorage` e mocks em memória, garantindo 100% de usabilidade imediata.
+
+### 4. Roteamento & RBAC
+* **Menu Sidebar:** Nova categoria `"Desenvolvedor"` e página `"Ambiente Dev"` adicionadas a [admin-pages.ts](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/features/core/utils/admin-pages.ts) e mapeadas com o ícone `Terminal` em [AdminShell.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/features/core/components/AdminShell.tsx).
+* **Física Route:** Criada a rota de página [admin.dev.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/_authenticated/admin.dev.tsx) no TanStack Router.
+
+---
+
+## 🧪 Verificação de Compilação
+
+Executamos o compilador estrito do TypeScript para garantir a integridade total do código de todas as rotas e serviços criados:
+```bash
+npx tsc --noEmit
+```
+**Resultado:**
+```text
+Status: DONE
+Exit code: 0 (Compilação concluída com sucesso absoluto!)
+```
+
+---
+
+## 📈 Próximos Passos Recomendados para Staging
+1. **Configuração do N8N:** Cadastrar a URL de Webhook exposta pelo N8N na aba **APIs & Chaves** do painel.
+2. **Integração Real:** Iniciar simulações de vendas no painel para ver as tarefas fluindo de ponta a ponta no N8N em tempo real.
