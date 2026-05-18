@@ -829,16 +829,37 @@ function LivePreviewContent({ draft, page }: { draft: Branding; page: "landing" 
           </section>
 
           {/* Seção Sobre */}
-          <section className="px-4 py-6 border-b border-foreground/5 bg-foreground/[0.01] grid gap-3">
-            <h2 className="text-center font-serif font-medium text-sm leading-snug">
-              {draft?.about_title || "O Nosso Atelier"}
-            </h2>
-            {draft?.about_image_url && (
-              <img src={draft.about_image_url} alt="" className="w-full h-24 object-cover rounded-xl border border-foreground/5" />
-            )}
-            <p className="text-[8px] leading-relaxed text-justify opacity-80">
-              {draft?.about_text || "Cada peça da nossa coleção passa por um processo de modelagem exclusivo. Valorizamos a produção justa e o acabamento meticuloso."}
-            </p>
+          <section className="px-4 py-6 border-b border-foreground/5 bg-background space-y-4">
+            <div className="relative">
+              {/* Moldura tracejada flutuante decorativa do simulador */}
+              <div className="absolute -inset-1.5 rounded-2xl border border-dashed opacity-45 -z-10 scale-95" style={{ borderColor: draft?.primary_color }} />
+              
+              {/* Imagem do simulador */}
+              {draft?.about_image_url && (
+                <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-muted shadow-md aspect-[16/10] w-full">
+                  <img src={draft.about_image_url} alt="" className="w-full h-full object-cover object-top" />
+                </div>
+              )}
+              {/* Selo do simulador */}
+              <div className="absolute -right-1 -top-1 rounded-lg px-2 py-0.5 text-[5px] font-semibold text-white shadow-md" style={{ backgroundColor: draft?.primary_color }}>
+                desde 2017
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[5px] uppercase tracking-[0.25em] block" style={{ color: draft?.primary_color }}>nossa essência</span>
+              <h2 className="font-serif font-medium text-xs leading-snug">
+                {draft?.about_title || "O Nosso Atelier"}
+              </h2>
+              <p className="text-[7px] leading-relaxed text-muted-foreground line-clamp-4">
+                {draft?.about_text || "Cada peça da nossa coleção passa por um processo de modelagem exclusivo. Valorizamos a produção justa e o acabamento meticuloso."}
+              </p>
+              
+              {/* Manifesto no simulador */}
+              <p className="border-l pl-2 text-[6px] italic text-muted-foreground font-serif" style={{ borderLeftColor: draft?.primary_color }}>
+                "Costurando afetos e vestindo histórias."
+              </p>
+            </div>
           </section>
 
           {/* Galeria do Rascunho no Simulador */}
