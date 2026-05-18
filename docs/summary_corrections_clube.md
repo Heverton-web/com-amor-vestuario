@@ -79,8 +79,16 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
   * O seletor de **"Produto Vinculado (Estoque)"** foi movido para o **topo absoluto do modal** de produtos.
   * O modal agora herda **todas as informações do estoque em tempo real** (Nome, Descrição, URL da imagem e Estoque disponível).
   * Como todos esses dados são herdados automaticamente da tabela `products` do Supabase, **ocultamos todos os campos de texto manuais redundantes** (`Nome`, `Descrição` e `URL da imagem`) para produtos físicos.
-* **Card de Preview Dinâmico**:
-  * Ao selecionar um produto vinculado, exibimos um card de visualização estonteante e moderno no topo (`bg-secondary/30 border border-border`), contendo a miniatura da imagem do produto, nome e sua descrição completa, perfeitamente sincronizados e em modo somente-leitura.
+* **Geração 100% Automática de Nomes de Vouchers**:
+  * **Eliminação de Input Manual**: O campo de input manual `"Nome da recompensa"` foi **completamente removido** da interface de vouchers.
+  * **Cálculo em Tempo Real**: O nome do voucher é calculado e formatado automaticamente no formato exato solicitado:
+    * Se tipo Valor (`voucher_valor`): `"Vale R$ XX,XX de desconto"` (com formatação monetária brasileira de centavos).
+    * Se tipo Percentual (`voucher_percent`): `"Desconto de XX%"`.
+    * Se tipo Frete Grátis (`voucher_frete`): `"Frete grátis"`.
+* **Card Superior de Preview da Recompensa**:
+  * Adicionamos um card visual estonteante no topo de ambos os fluxos (`bg-primary/5 border border-primary/20`) contendo a tag `"Nome da Recompensa"`, o nome calculado em tempo real com tipografia premium e o ícone correspondente (`Gift` para produtos, `Ticket` para vouchers) fornecendo feedback interativo imediato.
+* **Card de Preview Dinâmico do Estoque**:
+  * Ao selecionar um produto vinculado, exibimos um card de visualização elegante (`bg-secondary/30 border border-border`), contendo a miniatura da imagem do produto, nome e sua descrição completa, perfeitamente sincronizados e em modo somente-leitura.
 * **Segmentador de Abas de Alta Fidelidade**: Para vouchers, substituímos o seletor nativo por um controle segmentado de abas horizontais premium (`Valor (R$)` | `Percentual (%)` | `Frete grátis`) com transições suaves, sombras sutis e estados ativos impecáveis.
 * **Refinamento Estético Global**:
   * **Efeito de Fundo Imersivo**: Adicionamos sobreposição escura com desfoque de fundo (`backdrop-blur-sm bg-black/60`) e animações de escala suave ao abrir o modal.
