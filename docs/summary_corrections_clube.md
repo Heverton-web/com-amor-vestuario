@@ -121,6 +121,12 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
   * **Diálogo de Prazos Rápidos**: Ao clicar, abre-se uma linda Dialog modal contendo botões de prorrogação rápida em lote:
     * `+ 3 Dias` | `+ 7 Dias` | `+ 15 Dias` | `+ 30 Dias` | `+ 90 Dias` | `Sem expiração (Vitalício)`.
   * **Data Customizada**: Disponibiliza também um input de `datetime-local` no rodapé da Dialog para que o admin defina uma data/hora milimétrica personalizada se preferir, salvando instantaneamente no banco de dados e atualizando o feed em tempo real com feedbacks visuais de sucesso.
+* **Barra de Filtros de Resgates Ultra-Premium (Local Indicado pelo Admin)**:
+  * Posicionamos no topo da aba de **Resgates** uma elegante barra de filtros horizontais segmentada em 3 colunas responsivas:
+    * **Filtro por Cliente**: Input interativo que pesquisa em tempo real pelo **Nome** ou **Código** do cliente (com suporte a botão rápido para limpar).
+    * **Filtro por Recompensa**: Input de texto reativo para filtrar instantaneamente pelo nome da recompensa ou produto físico.
+    * **Filtro por Data de Resgate**: Seletor de data (`type="date"`) nativo e estilizado para localizar resgates efetuados em uma data específica.
+  * **Feedback de Resultados Inexistentes**: Caso nenhum resgate atenda aos filtros selecionados, exibe-se um card explicativo indicando `"Nenhum resgate encontrado com os filtros selecionados"` com design coerente ao restante do projeto.
 
 ---
 
