@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { AdminShell } from "@/features/core/components/AdminShell";
 import { useBranding, type Branding } from "@/features/core/services/branding";
 import { supabase } from "@/features/core/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { 
   Upload, Save, ExternalLink, Palette, Sparkles, 
   Smartphone, Monitor, CheckCircle2, MapPin, Clock, Heart, 
-  ArrowRight, Landmark, PhoneCall
+  ArrowRight, Landmark, PhoneCall, Trash2, Gift, ShoppingBag, Eye
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/branding")({
@@ -21,30 +21,39 @@ type Field = {
   hint?: string;
 };
 
-// Seções agrupadas em 4 abas modernas
+// Seções simplificadas agrupadas em 4 abas curtas
 const tabSections = {
   identidade: {
     label: "Identidade & Cores",
     icon: Palette,
-    title: "Identidade & Cores da Marca",
-    description: "Defina o nome da sua marca, sua tagline e a paleta de cores artesanal que guiará todo o seu e-commerce.",
+    title: "Identidade & Cores",
+    description: "Defina o nome da sua marca, slogan, logotipos transparentes específicos para cada ambiente e personalize sua paleta de cores.",
     groups: [
       {
-        title: "Marca & Logo",
+        title: "Marca & Slogan",
         fields: [
           { key: "brand_name", label: "Nome da marca" },
           { key: "brand_suffix", label: "Sufixo (ex: vestuário)" },
-          { key: "tagline", label: "Tagline curta", hint: "Aparece nos motores de busca e compartilhamentos" },
-          { key: "logo_url", label: "Logo (PNG/SVG transparente)", type: "image" },
+          { key: "tagline", label: "Tagline curta (Slogan)" },
+        ] as Field[]
+      },
+      {
+        title: "Logotipos por Ambiente",
+        fields: [
+          { key: "logo_url", label: "Logo Geral (Fallback)", type: "image", hint: "Usado quando nenhum outro for definido" },
+          { key: "logo_landing_url", label: "Logo da Landing Page", type: "image", hint: "Aparece na página institucional de entrada" },
+          { key: "logo_loja_url", label: "Logo da Loja Virtual", type: "image", hint: "Aparece no e-commerce e catálogo" },
+          { key: "logo_recompensas_url", label: "Logo do Clube de Recompensas", type: "image", hint: "Aparece na central de pontos e fidelidade" },
+          { key: "logo_recibos_url", label: "Logo de Recibos & Faturamento", type: "image", hint: "Aparece no topo de faturas e PDFs" },
         ] as Field[]
       },
       {
         title: "Cores da Identidade",
         fields: [
-          { key: "primary_color", label: "Cor primária", type: "color", hint: "Usada em botões e destaques" },
-          { key: "accent_color", label: "Cor de destaque", type: "color", hint: "Usada em badges e detalhes" },
-          { key: "background_color", label: "Fundo", type: "color", hint: "Cor de fundo da loja" },
-          { key: "foreground_color", label: "Texto principal", type: "color", hint: "Cor das fontes e títulos" },
+          { key: "primary_color", label: "Cor primária (Destaque principal)", type: "color" },
+          { key: "accent_color", label: "Cor secundária (Apoio)", type: "color" },
+          { key: "background_color", label: "Cor de fundo (Background)", type: "color" },
+          { key: "foreground_color", label: "Cor do texto principal", type: "color" },
         ] as Field[]
       }
     ]
@@ -52,31 +61,31 @@ const tabSections = {
   landing: {
     label: "Página Inicial",
     icon: Sparkles,
-    title: "Design da Landing Page",
-    description: "Crie uma primeira impressão deslumbrante no topo da sua vitrine e conte a história por trás do seu atelier.",
+    title: "Página Inicial",
+    description: "Personalize os banners de impacto, textos editoriais do Atelier e configure as principais chamadas para ação (CTAs).",
     groups: [
       {
-        title: "Banner Principal (Hero)",
+        title: "Banner de Destaque (Hero)",
         fields: [
-          { key: "hero_title", label: "Título do Banner", type: "textarea" },
-          { key: "hero_subtitle", label: "Subtítulo do Banner", type: "textarea" },
+          { key: "hero_title", label: "Título de Impacto", type: "textarea" },
+          { key: "hero_subtitle", label: "Subtítulo de Apoio", type: "textarea" },
           { key: "hero_image_url", label: "Imagem de fundo do Banner", type: "image" },
         ] as Field[]
       },
       {
-        title: "História & Atelier (Sobre)",
+        title: "Seção Sobre o Atelier",
         fields: [
           { key: "about_title", label: "Título da Seção", type: "textarea" },
-          { key: "about_text", label: "Texto da Seção", type: "textarea" },
-          { key: "about_image_url", label: "Imagem da Seção", type: "image" },
+          { key: "about_text", label: "Texto Editorial", type: "textarea" },
+          { key: "about_image_url", label: "Imagem do Atelier / Produção", type: "image" },
         ] as Field[]
       },
       {
-        title: "Botões de Chamada (CTAs)",
+        title: "Ações da Página (Botões CTAs)",
         fields: [
           { key: "cta_shop_label", label: "Texto do botão da loja", hint: "Ex.: Ver Coleção" },
           { key: "cta_shop_url", label: "Link do botão da loja", hint: "Ex.: /loja" },
-          { key: "cta_contact_label", label: "Texto do botão de contato", hint: "Dispara o modal Fale Conosco" },
+          { key: "cta_contact_label", label: "Texto do botão de contato" },
           { key: "cta_footer_shop_label", label: "Texto do link de rodapé" },
           { key: "cta_footer_shop_url", label: "Link de rodapé" },
         ] as Field[]
@@ -86,38 +95,38 @@ const tabSections = {
   contatos: {
     label: "Canais & Horários",
     icon: PhoneCall,
-    title: "Canais, Endereço & Horários",
-    description: "Mantenha seus clientes conectados exibindo seus contatos atualizados e a agenda de atendimento do seu atelier.",
+    title: "Canais & Horários",
+    description: "Mantenha atualizados os dados de contato do suporte, links de mídias sociais e a agenda semanal de funcionamento físico.",
     groups: [
       {
-        title: "Canais de Atendimento",
+        title: "Canais de Comunicação",
         fields: [
-          { key: "phone", label: "Telefone de contato" },
-          { key: "whatsapp", label: "WhatsApp (somente números com DDI, ex: 5511999999999)" },
-          { key: "email", label: "E-mail de suporte" },
+          { key: "phone", label: "Telefone institucional" },
+          { key: "whatsapp", label: "WhatsApp (com DDI, ex: 5511999999999)" },
+          { key: "email", label: "E-mail de atendimento" },
         ] as Field[]
       },
       {
-        title: "Endereço Físico",
+        title: "Endereço Comercial",
         fields: [
-          { key: "address_line1", label: "Linha de endereço 1" },
-          { key: "address_line2", label: "Linha de endereço 2 (Bairro, CEP, Cidade)" },
+          { key: "address_line1", label: "Endereço (Rua, Número, Sala)" },
+          { key: "address_line2", label: "Bairro, Cidade, Estado e CEP" },
         ] as Field[]
       },
       {
         title: "Redes Sociais",
         fields: [
-          { key: "instagram_url", label: "Link do Instagram" },
-          { key: "instagram_handle", label: "@ Usuário do Instagram", hint: "Aparece no rodapé da loja" },
-          { key: "facebook_url", label: "Link do Facebook" },
+          { key: "instagram_url", label: "URL do Instagram" },
+          { key: "instagram_handle", label: "@ Usuário do Instagram" },
+          { key: "facebook_url", label: "URL do Facebook" },
         ] as Field[]
       },
       {
-        title: "Agenda & Horários",
+        title: "Horários de Funcionamento",
         fields: [
-          { key: "hours_weekday", label: "Segunda a sexta-feira" },
+          { key: "hours_weekday", label: "Segunda a sexta" },
           { key: "hours_saturday", label: "Sábado" },
-          { key: "hours_sunday", label: "Domingo e feriados" },
+          { key: "hours_sunday", label: "Domingo e Feriados" },
         ] as Field[]
       }
     ]
@@ -125,20 +134,20 @@ const tabSections = {
   recibos: {
     label: "Emissor de Recibos",
     icon: Landmark,
-    title: "Emissão de Recibos & Faturamento",
-    description: "Configure os dados fiscais e de assinatura digitalizada utilizados no gerador automatizado de faturas e recibos do cliente.",
+    title: "Emissor de Recibos",
+    description: "Informe os dados fiscais e de chancela digital que serão aplicados nas faturas e nos recibos gerados para os clientes.",
     groups: [
       {
-        title: "Dados Jurídicos",
+        title: "Dados Fiscais & Emissor",
         fields: [
-          { key: "issuer_legal_name", label: "Razão social / Nome completo" },
+          { key: "issuer_legal_name", label: "Razão Social / Nome do Emissor" },
           { key: "issuer_doc", label: "CNPJ ou CPF" },
-          { key: "issuer_city", label: "Cidade (aparece antes da data nos documentos)" },
-          { key: "issuer_address", label: "Endereço completo do Emissor", type: "textarea" },
+          { key: "issuer_city", label: "Cidade de Emissão" },
+          { key: "issuer_address", label: "Endereço Completo do Emissor", type: "textarea" },
         ] as Field[]
       },
       {
-        title: "Chancela & Assinatura",
+        title: "Assinatura do Emissor",
         fields: [
           { key: "signature_url", label: "Assinatura digitalizada (PNG transparente)", type: "image" },
         ] as Field[]
@@ -147,44 +156,57 @@ const tabSections = {
   }
 };
 
-const fashionPalettes = [
-  {
-    name: "Terracotta Wabi-Sabi",
-    description: "Artesanal e orgânico, ideal para marcas de linho, algodão e peças autorais.",
-    primary: "oklch(0.55 0.16 38)",
-    accent: "oklch(0.78 0.07 20)",
-    background: "oklch(0.972 0.018 80)",
-    foreground: "oklch(0.255 0.035 45)",
-  },
-  {
-    name: "Sage Garden",
-    description: "Sereno e sofisticado, inspirado na sutileza do eucalipto e tons florais secos.",
-    primary: "oklch(0.48 0.10 145)",
-    accent: "oklch(0.88 0.04 140)",
-    background: "oklch(0.97 0.01 140)",
-    foreground: "oklch(0.20 0.03 145)",
-  },
-  {
-    name: "Midnight Silk",
-    description: "Aesthetica luxuosa escura, remetendo a alfaiataria premium e detalhes em ouro.",
-    primary: "oklch(0.7 0.16 38)",
-    accent: "oklch(0.35 0.06 38)",
-    background: "oklch(0.18 0.02 45)",
-    foreground: "oklch(0.96 0.02 80)",
-  },
-  {
-    name: "Lavender Heather",
-    description: "Romântico, delicado e de alta costura contemporânea.",
-    primary: "oklch(0.52 0.12 290)",
-    accent: "oklch(0.85 0.06 295)",
-    background: "oklch(0.97 0.01 290)",
-    foreground: "oklch(0.22 0.04 290)",
-  }
-];
+// Paletas curadas divididas por sazonalidade
+const seasonalPalettes = {
+  festividades: [
+    {
+      name: "Dia das Mães 🌸",
+      description: "Suave, materno e delicado. Tons de rosa antigo e linho creme.",
+      primary: "oklch(0.68 0.11 20)",      // Rosa antigo
+      accent: "oklch(0.85 0.08 40)",       // Pêssego
+      background: "oklch(0.975 0.015 50)",  // Creme rosado
+      foreground: "oklch(0.28 0.04 20)"     // Walnut escuro
+    },
+    {
+      name: "Natal Mágico 🎄",
+      description: "Festivo e sofisticado. Verde pinheiro profundo e vermelho cereja.",
+      primary: "oklch(0.48 0.16 27)",       // Vermelho cereja
+      accent: "oklch(0.35 0.08 150)",      // Verde pinheiro
+      background: "oklch(0.98 0.01 80)",     // Linho off-white
+      foreground: "oklch(0.18 0.03 145)"    // Verde escuro
+    },
+    {
+      name: "Ano Novo Real 🌟",
+      description: "Ouro champanhe e seda branca. Minimalismo luxuoso e festivo.",
+      primary: "oklch(0.72 0.14 80)",       // Champanhe
+      accent: "oklch(0.88 0.06 85)",       // Prata
+      background: "oklch(0.98 0.005 90)",   // Off-white
+      foreground: "oklch(0.25 0.02 80)"     // Bronze
+    }
+  ],
+  estacoes: [
+    {
+      name: "Primavera/Verão ☀️",
+      description: "Fresco, leve e ensolarado. Tons de amarelo sol e rosa hibisco.",
+      primary: "oklch(0.78 0.16 75)",       // Amarelo sol
+      accent: "oklch(0.68 0.18 15)",       // Hibisco
+      background: "oklch(0.97 0.02 85)",    // Areia
+      foreground: "oklch(0.25 0.05 45)"     // Argila
+    },
+    {
+      name: "Outono/Inverno 🍂",
+      description: "Aconchegante e acolhedor. Tons de argila terracota e cacau profundo.",
+      primary: "oklch(0.55 0.16 38)",       // Terracota
+      accent: "oklch(0.38 0.08 30)",       // Marrom cacau
+      background: "oklch(0.94 0.02 75)",    // Cinza pedra
+      foreground: "oklch(0.20 0.03 45)"     // Walnut
+    }
+  ]
+};
 
-// Campos cruciais para o score de completude
+// Campos para cálculo da completude
 const coreFields: (keyof Branding)[] = [
-  "brand_name", "logo_url", "primary_color", "accent_color",
+  "brand_name", "logo_landing_url", "primary_color", "accent_color",
   "hero_title", "hero_image_url", "about_title", "phone",
   "whatsapp", "instagram_handle", "issuer_legal_name", "issuer_doc"
 ];
@@ -194,7 +216,13 @@ function BrandingPage() {
   const [draft, setDraft] = useState<Branding>(branding);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<keyof typeof tabSections>("identidade");
+  
+  // Controles do Simulador
   const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">("mobile");
+  const [previewPage, setPreviewPage] = useState<"landing" | "loja" | "recompensas">("landing");
+  
+  // Criador de Paleta Customizada
+  const [customPaletteName, setCustomPaletteName] = useState("");
 
   useEffect(() => {
     setDraft(branding);
@@ -211,7 +239,7 @@ function BrandingPage() {
     else toast.success("Branding atualizado!");
   };
 
-  const applyPalette = (p: typeof fashionPalettes[0]) => {
+  const applyPalette = (p: { name: string; primary: string; accent: string; background: string; foreground: string }) => {
     setDraft(d => ({
       ...d,
       primary_color: p.primary,
@@ -219,10 +247,40 @@ function BrandingPage() {
       background_color: p.background,
       foreground_color: p.foreground
     }));
-    toast.success(`Paleta "${p.name}" aplicada temporariamente! Clique em salvar.`);
+    toast.success(`Paleta "${p.name}" selecionada! Clique em "Salvar tudo" para aplicar definitivamente.`);
   };
 
-  // Cálculo da completude da marca
+  const saveCustomPalette = () => {
+    if (!customPaletteName.trim()) {
+      toast.error("Por favor, digite um nome para sua paleta personalizada.");
+      return;
+    }
+    const newPalette = {
+      name: customPaletteName.trim(),
+      primary: draft.primary_color,
+      accent: draft.accent_color,
+      background: draft.background_color,
+      foreground: draft.foreground_color
+    };
+    const currentCustoms = draft.custom_palettes || [];
+    if (currentCustoms.some(c => c.name.toLowerCase() === newPalette.name.toLowerCase())) {
+      toast.error("Já existe uma paleta com este nome.");
+      return;
+    }
+    const updated = [...currentCustoms, newPalette];
+    setDraft(d => ({ ...d, custom_palettes: updated }));
+    setCustomPaletteName("");
+    toast.success(`Sua paleta "${newPalette.name}" foi adicionada! Lembre-se de "Salvar Tudo" para persistir no banco.`);
+  };
+
+  const deleteCustomPalette = (name: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = (draft.custom_palettes || []).filter(c => c.name !== name);
+    setDraft(d => ({ ...d, custom_palettes: updated }));
+    toast.success("Paleta excluída!");
+  };
+
+  // Cálculo da completude
   const filledCount = coreFields.filter(f => !!draft?.[f]).length;
   const completeness = Math.round((filledCount / coreFields.length) * 100);
 
@@ -260,7 +318,7 @@ function BrandingPage() {
             <div className="flex items-center justify-between gap-3 mb-3">
               <div>
                 <h3 className="font-medium text-sm">Completo da sua Marca</h3>
-                <p className="text-xs text-muted-foreground">Preencha os dados essenciais para um visual profissional completo.</p>
+                <p className="text-xs text-muted-foreground">Preencha os dados essenciais para obter um visual completo de alta fidelidade.</p>
               </div>
               <span className="font-mono text-lg font-bold text-primary">{completeness}%</span>
             </div>
@@ -272,8 +330,8 @@ function BrandingPage() {
             </div>
           </div>
 
-          {/* Abas Superiores */}
-          <div className="flex flex-wrap gap-2 border-b border-border pb-px">
+          {/* Abas Horizontais Curtas e Simplificadas */}
+          <div className="flex flex-nowrap overflow-x-auto gap-2 border-b border-border pb-px scrollbar-none">
             {(Object.keys(tabSections) as Array<keyof typeof tabSections>).map((key) => {
               const tab = tabSections[key];
               const Icon = tab.icon;
@@ -282,13 +340,13 @@ function BrandingPage() {
                 <button
                   key={key}
                   onClick={() => setActiveTab(key)}
-                  className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${
                     active
                       ? "border-primary text-primary"
                       : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-4 w-4 shrink-0" />
                   {tab.label}
                 </button>
               );
@@ -301,44 +359,147 @@ function BrandingPage() {
             <p className="text-sm text-muted-foreground">{activeTabContent.description}</p>
           </div>
 
-          {/* Grade de Paletas (somente na aba Identidade & Cores) */}
+          {/* Interface de Paletas (Aba Identidade & Cores) */}
           {activeTab === "identidade" && (
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-              <div className="flex items-center gap-2">
-                <Palette className="h-5 w-5 text-primary" />
-                <h3 className="font-display text-lg font-medium">Paletas Curadas por Estilistas</h3>
+            <div className="space-y-6">
+              
+              {/* Paletas Sazonais */}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-5">
+                <div className="flex items-center gap-2">
+                  <Palette className="h-5 w-5 text-primary" />
+                  <h3 className="font-display text-lg font-medium">Paletas Temáticas e Sazonais</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Escolha estéticas prontas de alta costura inspiradas em estações e comemorações importantes para renovar sua loja instantaneamente.</p>
+                
+                {/* Categoria Festividades */}
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">🎉 Datas Especiais & Festas</h4>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {seasonalPalettes.festividades.map((p) => {
+                      const isCurrent = draft?.primary_color === p.primary && draft?.background_color === p.background;
+                      return (
+                        <button
+                          key={p.name}
+                          onClick={() => applyPalette(p)}
+                          className={`flex flex-col text-left p-3.5 rounded-xl border transition-all hover:bg-muted ${
+                            isCurrent ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-background"
+                          }`}
+                        >
+                          <span className="text-[11px] font-bold block mb-1">{p.name}</span>
+                          <p className="text-[9px] text-muted-foreground leading-normal mb-3 flex-1">{p.description}</p>
+                          <div className="flex items-center gap-1 mt-auto">
+                            <span className="h-4.5 w-4.5 rounded border border-foreground/5" style={{ background: p.primary }} />
+                            <span className="h-4.5 w-4.5 rounded border border-foreground/5" style={{ background: p.accent }} />
+                            <span className="h-4.5 w-4.5 rounded border border-foreground/5" style={{ background: p.background }} />
+                            <span className="h-4.5 w-4.5 rounded border border-foreground/5" style={{ background: p.foreground }} />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Categoria Estações */}
+                <div className="space-y-3 pt-2">
+                  <h4 className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">🍂 Estações do Ano</h4>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {seasonalPalettes.estacoes.map((p) => {
+                      const isCurrent = draft?.primary_color === p.primary && draft?.background_color === p.background;
+                      return (
+                        <button
+                          key={p.name}
+                          onClick={() => applyPalette(p)}
+                          className={`flex flex-col text-left p-3.5 rounded-xl border transition-all hover:bg-muted ${
+                            isCurrent ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-background"
+                          }`}
+                        >
+                          <span className="text-[11px] font-bold block mb-1">{p.name}</span>
+                          <p className="text-[9px] text-muted-foreground leading-normal mb-3 flex-1">{p.description}</p>
+                          <div className="flex items-center gap-1 mt-auto">
+                            <span className="h-4.5 w-4.5 rounded border border-foreground/5" style={{ background: p.primary }} />
+                            <span className="h-4.5 w-4.5 rounded border border-foreground/5" style={{ background: p.accent }} />
+                            <span className="h-4.5 w-4.5 rounded border border-foreground/5" style={{ background: p.background }} />
+                            <span className="h-4.5 w-4.5 rounded border border-foreground/5" style={{ background: p.foreground }} />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">Escolha uma estética pronta de alta costura com um único clique. Suas cores de fundo, botões e textos serão atualizados na hora.</p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {fashionPalettes.map((p) => {
-                  const isCurrent = 
-                    draft?.primary_color === p.primary &&
-                    draft?.background_color === p.background;
-                  return (
-                    <button
-                      key={p.name}
-                      onClick={() => applyPalette(p)}
-                      className={`flex flex-col text-left p-4 rounded-xl border transition-all hover:bg-muted ${
-                        isCurrent ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-background"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full mb-2">
-                        <span className="text-xs font-bold">{p.name}</span>
-                        {isCurrent && <CheckCircle2 className="h-4 w-4 text-primary fill-primary/10" />}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed mb-3">{p.description}</p>
-                      
-                      {/* Amostra visual de cores */}
-                      <div className="flex items-center gap-1.5 mt-auto">
-                        <span className="h-5 w-5 rounded border border-foreground/5 shadow-sm" style={{ background: p.primary }} />
-                        <span className="h-5 w-5 rounded border border-foreground/5 shadow-sm" style={{ background: p.accent }} />
-                        <span className="h-5 w-5 rounded border border-foreground/5 shadow-sm" style={{ background: p.background }} />
-                        <span className="h-5 w-5 rounded border border-foreground/5 shadow-sm" style={{ background: p.foreground }} />
-                      </div>
-                    </button>
-                  );
-                })}
+
+              {/* Criador de Paleta Customizada */}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-primary" />
+                  <h3 className="font-display text-lg font-medium">Minhas Paletas</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Personalize as cores nos inputs abaixo, escolha um nome exclusivo e salve a sua própria identidade de coleção.</p>
+                
+                {/* Painel de Criação */}
+                <div className="flex flex-col sm:flex-row gap-3 p-3 rounded-xl border border-dashed border-border bg-background/40 items-center justify-between">
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    {/* Visual da Paleta Ativa */}
+                    <div className="flex -space-x-1 shrink-0">
+                      <span className="h-6 w-6 rounded-full border border-background shadow" style={{ background: draft?.primary_color }} />
+                      <span className="h-6 w-6 rounded-full border border-background shadow" style={{ background: draft?.accent_color }} />
+                      <span className="h-6 w-6 rounded-full border border-background shadow" style={{ background: draft?.background_color }} />
+                      <span className="h-6 w-6 rounded-full border border-background shadow" style={{ background: draft?.foreground_color }} />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Nome da sua paleta..."
+                      value={customPaletteName}
+                      onChange={(e) => setCustomPaletteName(e.target.value)}
+                      className="bg-background border border-input rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary w-full max-w-[180px]"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={saveCustomPalette}
+                    className="w-full sm:w-auto px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/95 transition-colors whitespace-nowrap"
+                  >
+                    💾 Salvar Paleta
+                  </button>
+                </div>
+
+                {/* Exibição de Paletas Customizadas do Usuário */}
+                {draft?.custom_palettes && draft.custom_palettes.length > 0 ? (
+                  <div className="grid gap-3 sm:grid-cols-3 pt-2">
+                    {draft.custom_palettes.map((p) => {
+                      const isCurrent = draft?.primary_color === p.primary && draft?.background_color === p.background;
+                      return (
+                        <div
+                          key={p.name}
+                          onClick={() => applyPalette(p)}
+                          className={`group relative flex flex-col text-left p-3 rounded-xl border transition-all hover:bg-muted cursor-pointer ${
+                            isCurrent ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-background"
+                          }`}
+                        >
+                          <button
+                            onClick={(e) => deleteCustomPalette(p.name, e)}
+                            className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                            title="Excluir Paleta"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                          
+                          <span className="text-[10px] font-bold pr-5 truncate block mb-2">{p.name}</span>
+                          <div className="flex items-center gap-1 mt-auto">
+                            <span className="h-4 w-4 rounded-full border border-foreground/5" style={{ background: p.primary }} />
+                            <span className="h-4 w-4 rounded-full border border-foreground/5" style={{ background: p.accent }} />
+                            <span className="h-4 w-4 rounded-full border border-foreground/5" style={{ background: p.background }} />
+                            <span className="h-4 w-4 rounded-full border border-foreground/5" style={{ background: p.foreground }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-muted-foreground italic text-center py-2">Você ainda não criou nenhuma paleta própria.</p>
+                )}
               </div>
+
             </div>
           )}
 
@@ -346,7 +507,7 @@ function BrandingPage() {
           <div className="space-y-6">
             {activeTabContent.groups.map((group) => (
               <div key={group.title} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase text-xs">{group.title}</h3>
+                <h3 className="mb-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase tracking-widest">{group.title}</h3>
                 <div className="grid gap-5 md:grid-cols-2">
                   {group.fields.map((f) => (
                     <FieldEditor
@@ -363,34 +524,65 @@ function BrandingPage() {
 
         </div>
 
-        {/* Coluna da Direita (Simulador de Landing Page em Tempo Real) */}
+        {/* Coluna da Direita (Simulador Multi-Ambiente Reativo) */}
         <div className="lg:col-span-5 lg:sticky lg:top-8">
           <div className="rounded-3xl border border-border bg-card p-4 shadow-lg space-y-4">
             
-            {/* Controles do Simulador */}
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <div className="flex items-center gap-2">
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Simulador ao Vivo</span>
+            {/* Controles Principais do Simulador */}
+            <div className="flex flex-col gap-3 border-b border-border pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Estúdio de Design</span>
+                </div>
+                {/* Seletor Mobile/Desktop */}
+                <div className="flex rounded-lg border border-border bg-background p-1 gap-1">
+                  <button
+                    onClick={() => setPreviewMode("mobile")}
+                    className={`p-1.5 rounded-md transition-colors ${
+                      previewMode === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                    }`}
+                    title="Visualização Celular"
+                  >
+                    <Smartphone className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setPreviewMode("desktop")}
+                    className={`p-1.5 rounded-md transition-colors ${
+                      previewMode === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                    }`}
+                    title="Visualização Desktop"
+                  >
+                    <Monitor className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
-              <div className="flex rounded-lg border border-border bg-background p-1 gap-1">
+
+              {/* Seletor de Ambiente / Página */}
+              <div className="grid grid-cols-3 gap-1 p-1 bg-secondary/40 rounded-xl border border-border/60">
                 <button
-                  onClick={() => setPreviewMode("mobile")}
-                  className={`p-1.5 rounded-md transition-colors ${
-                    previewMode === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                  onClick={() => setPreviewPage("landing")}
+                  className={`py-1.5 px-2 text-[10px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors ${
+                    previewPage === "landing" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
-                  title="Visualização Celular"
                 >
-                  <Smartphone className="h-3.5 w-3.5" />
+                  <Eye className="h-3 w-3" /> Landing
                 </button>
                 <button
-                  onClick={() => setPreviewMode("desktop")}
-                  className={`p-1.5 rounded-md transition-colors ${
-                    previewMode === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                  onClick={() => setPreviewPage("loja")}
+                  className={`py-1.5 px-2 text-[10px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors ${
+                    previewPage === "loja" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
-                  title="Visualização Desktop"
                 >
-                  <Monitor className="h-3.5 w-3.5" />
+                  <ShoppingBag className="h-3 w-3" /> Loja
+                </button>
+                <button
+                  onClick={() => setPreviewPage("recompensas")}
+                  className={`py-1.5 px-2 text-[10px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors ${
+                    previewPage === "recompensas" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Gift className="h-3 w-3" /> Fidelidade
                 </button>
               </div>
             </div>
@@ -408,7 +600,7 @@ function BrandingPage() {
                   
                   {/* Tela Interna */}
                   <div className="flex-1 flex flex-col overflow-y-auto scrollbar-none text-[10px] select-none pt-4 bg-background" style={{ background: draft?.background_color, color: draft?.foreground_color }}>
-                    <LivePreviewContent draft={draft} />
+                    <LivePreviewContent draft={draft} page={previewPage} />
                   </div>
                 </div>
               ) : (
@@ -420,13 +612,13 @@ function BrandingPage() {
                     <span className="h-2 w-2 rounded-full bg-amber-500" />
                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
                     <div className="mx-auto w-3/5 rounded bg-zinc-800 py-0.5 px-3 text-center text-[8px] text-zinc-500 truncate">
-                      {draft?.brand_name?.toLowerCase() || "comamor"}.com.br
+                      {draft?.brand_name?.toLowerCase() || "comamor"}.com.br/{previewPage === "landing" ? "" : previewPage}
                     </div>
                   </div>
                   
                   {/* Tela Interna */}
-                  <div className="flex-1 flex flex-col overflow-y-auto text-xs select-none bg-background" style={{ background: draft?.background_color, color: draft?.foreground_color }}>
-                    <LivePreviewContent draft={draft} />
+                  <div className="flex-1 flex flex-col overflow-y-auto text-xs select-none bg-background animate-fade-in" style={{ background: draft?.background_color, color: draft?.foreground_color }}>
+                    <LivePreviewContent draft={draft} page={previewPage} />
                   </div>
                 </div>
               )}
@@ -440,17 +632,25 @@ function BrandingPage() {
   );
 }
 
-// Subcomponente de Renderização do Mockup em tempo real
-function LivePreviewContent({ draft }: { draft: Branding }) {
+// Subcomponente de Renderização do Mockup em tempo real com Multi-Ambiente e Multi-Logo
+function LivePreviewContent({ draft, page }: { draft: Branding; page: "landing" | "loja" | "recompensas" }) {
   const brandTitle = draft?.brand_name || "Com Amor";
   const brandSuffix = draft?.brand_suffix || "vestuário";
 
+  // Identificação do logotipo correspondente ao ambiente ativo
+  const activeLogo = useMemo(() => {
+    if (page === "landing") return draft?.logo_landing_url || draft?.logo_url;
+    if (page === "loja") return draft?.logo_loja_url || draft?.logo_url;
+    if (page === "recompensas") return draft?.logo_recompensas_url || draft?.logo_url;
+    return draft?.logo_url;
+  }, [page, draft?.logo_url, draft?.logo_landing_url, draft?.logo_loja_url, draft?.logo_recompensas_url]);
+
   return (
     <div className="w-full flex flex-col flex-1">
-      {/* Mini Header */}
-      <header className="px-4 py-3 flex items-center justify-between border-b border-foreground/5 sticky top-0 bg-inherit backdrop-blur-sm z-10">
-        {draft?.logo_url ? (
-          <img src={draft.logo_url} alt="" className="h-5 w-auto object-contain max-w-[80px]" />
+      {/* Mini Header com Logo Específico */}
+      <header className="px-4 py-3 flex items-center justify-between border-b border-foreground/5 sticky top-0 bg-inherit backdrop-blur-sm z-10 transition-colors">
+        {activeLogo ? (
+          <img src={activeLogo} alt="" className="h-5 w-auto object-contain max-w-[85px] animate-fade-in" />
         ) : (
           <div className="flex items-baseline gap-1 text-xs">
             <Heart className="h-3 w-3 fill-primary stroke-primary text-primary" style={{ fill: draft?.primary_color, stroke: draft?.primary_color }} />
@@ -458,46 +658,139 @@ function LivePreviewContent({ draft }: { draft: Branding }) {
             <span className="text-[7px] opacity-70 uppercase tracking-widest">{brandSuffix}</span>
           </div>
         )}
-        <div className="flex gap-2 opacity-80 text-[8px]">
-          <span>loja</span>
-          <span>atelier</span>
+        
+        {/* Status de Menu adaptado por Ambiente */}
+        <div className="flex gap-2.5 opacity-80 text-[8px] font-medium">
+          <span className={page === "landing" ? "text-primary border-b border-primary" : ""} style={page === "landing" ? { color: draft?.primary_color, borderColor: draft?.primary_color } : {}}>Início</span>
+          <span className={page === "loja" ? "text-primary border-b border-primary" : ""} style={page === "loja" ? { color: draft?.primary_color, borderColor: draft?.primary_color } : {}}>Coleção</span>
+          <span className={page === "recompensas" ? "text-primary border-b border-primary" : ""} style={page === "recompensas" ? { color: draft?.primary_color, borderColor: draft?.primary_color } : {}}>Clube</span>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="px-4 py-8 text-center flex flex-col items-center justify-center relative min-h-[160px] overflow-hidden">
-        {draft?.hero_image_url && (
-          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${draft.hero_image_url})` }} />
-        )}
-        <div className="relative z-10 space-y-3">
-          <h1 className="font-serif text-lg font-medium leading-tight max-w-[90%] mx-auto whitespace-pre-wrap">
-            {draft?.hero_title || "Peças atemporais criadas com afeto."}
-          </h1>
-          <p className="text-[9px] max-w-[80%] mx-auto opacity-80 leading-normal">
-            {draft?.hero_subtitle || "Moda lenta inspirada na delicadeza e na alfaiataria fina."}
-          </p>
-          <button 
-            type="button"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[8px] font-medium shadow-sm transition-all whitespace-nowrap"
-            style={{ backgroundColor: draft?.primary_color, color: "#fff" }}
-          >
-            {draft?.cta_shop_label || "Ver Coleção"} <ArrowRight className="h-2 w-2" />
-          </button>
-        </div>
-      </section>
+      {/* RENDERIZADOR DE PÁGINAS DO SIMULADOR */}
 
-      {/* Sobre o Atelier Section */}
-      <section className="px-4 py-6 border-t border-foreground/5 bg-foreground/[0.01] grid gap-4">
-        <h2 className="text-center font-serif font-medium text-sm leading-snug">
-          {draft?.about_title || "O Feito à Mão"}
-        </h2>
-        {draft?.about_image_url && (
-          <img src={draft.about_image_url} alt="" className="w-full h-24 object-cover rounded-xl border border-foreground/5" />
-        )}
-        <p className="text-[8px] leading-relaxed text-justify opacity-80">
-          {draft?.about_text || "Cada peça da nossa coleção passa por um processo de modelagem exclusivo. Valorizamos a produção justa e o acabamento meticuloso."}
-        </p>
-      </section>
+      {page === "landing" && (
+        /* PÁGINA 1: LANDING PAGE INSTITUCIONAL */
+        <div className="flex-1 flex flex-col">
+          {/* Hero Banner */}
+          <section className="px-4 py-9 text-center flex flex-col items-center justify-center relative min-h-[170px] overflow-hidden border-b border-foreground/5">
+            {draft?.hero_image_url && (
+              <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${draft.hero_image_url})` }} />
+            )}
+            <div className="relative z-10 space-y-3">
+              <h1 className="font-serif text-lg font-medium leading-snug max-w-[90%] mx-auto whitespace-pre-wrap">
+                {draft?.hero_title || "Peças atemporais criadas com afeto."}
+              </h1>
+              <p className="text-[9px] max-w-[80%] mx-auto opacity-80 leading-normal">
+                {draft?.hero_subtitle || "Moda lenta inspirada na delicadeza e na alfaiataria fina."}
+              </p>
+              <button 
+                type="button"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[8px] font-semibold shadow-sm transition-all whitespace-nowrap"
+                style={{ backgroundColor: draft?.primary_color, color: "#fff" }}
+              >
+                {draft?.cta_shop_label || "Ver Coleção"} <ArrowRight className="h-2 w-2" />
+              </button>
+            </div>
+          </section>
+
+          {/* Seção Sobre */}
+          <section className="px-4 py-6 border-b border-foreground/5 bg-foreground/[0.01] grid gap-3">
+            <h2 className="text-center font-serif font-medium text-sm leading-snug">
+              {draft?.about_title || "O Nosso Atelier"}
+            </h2>
+            {draft?.about_image_url && (
+              <img src={draft.about_image_url} alt="" className="w-full h-24 object-cover rounded-xl border border-foreground/5" />
+            )}
+            <p className="text-[8px] leading-relaxed text-justify opacity-80">
+              {draft?.about_text || "Cada peça da nossa coleção passa por um processo de modelagem exclusivo. Valorizamos a produção justa e o acabamento meticuloso."}
+            </p>
+          </section>
+        </div>
+      )}
+
+      {page === "loja" && (
+        /* PÁGINA 2: LOJA VIRTUAL / CATÁLOGO */
+        <div className="flex-1 flex flex-col p-4 space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="font-serif text-sm font-medium">Lançamentos de Outono</h2>
+            <span className="text-[8px] opacity-60">6 Itens</span>
+          </div>
+          
+          {/* Grid de Roupas */}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { name: "Camisa de Linho Puro", price: "R$ 290,00", color: "Areia" },
+              { name: "Vestido Midi Alfaiataria", price: "R$ 480,00", color: "Terracota" },
+            ].map((p, idx) => (
+              <div key={idx} className="group rounded-xl border border-foreground/5 bg-foreground/[0.01] overflow-hidden flex flex-col">
+                <div className="h-28 w-full bg-foreground/5 flex items-center justify-center text-[8px] text-muted-foreground uppercase tracking-widest font-mono">
+                  [Imagem {p.color}]
+                </div>
+                <div className="p-2 space-y-1 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-semibold text-[8px] truncate">{p.name}</h3>
+                    <span className="text-[7px] text-muted-foreground block">{p.color}</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1 mt-auto">
+                    <span className="font-medium text-[8px]" style={{ color: draft?.primary_color }}>{p.price}</span>
+                    <button 
+                      type="button"
+                      className="p-1 rounded-full text-white" 
+                      style={{ backgroundColor: draft?.primary_color }}
+                    >
+                      <ShoppingBag className="h-2 w-2" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {page === "recompensas" && (
+        /* PÁGINA 3: LOJA DE RECOMPENSAS / FIDELIDADE */
+        <div className="flex-1 flex flex-col p-4 space-y-4">
+          {/* Banner de Boas-Vindas */}
+          <div className="rounded-2xl p-4 text-center text-white space-y-2" style={{ backgroundColor: draft?.primary_color }}>
+            <h2 className="font-serif text-sm font-medium">Clube Com Amor</h2>
+            <p className="text-[8px] opacity-90">Acumule pontos em todas as compras e troque por mimos e descontos no Atelier.</p>
+            
+            {/* Saldo de Pontos */}
+            <div className="inline-block bg-white/10 px-3 py-1 rounded-full text-[9px] font-bold border border-white/20">
+              Seu Saldo: <span className="font-mono">1.250</span> pontos
+            </div>
+          </div>
+
+          <h3 className="font-serif text-xs font-medium">Vouchers de Recompensas</h3>
+          
+          {/* Cupons Mock */}
+          <div className="space-y-2">
+            {[
+              { label: "R$ 50 de Desconto", points: "500" },
+              { label: "Frete Grátis Sul/SE", points: "300" }
+            ].map((v, i) => (
+              <div key={i} className="flex justify-between items-center p-3 rounded-xl border border-foreground/5 bg-foreground/[0.01]">
+                <div className="flex items-center gap-2">
+                  <Gift className="h-3.5 w-3.5 text-primary" style={{ color: draft?.primary_color }} />
+                  <div>
+                    <h4 className="font-bold text-[8px]">{v.label}</h4>
+                    <span className="text-[7px] text-muted-foreground">Resgate imediato</span>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  className="px-2 py-1 rounded-full text-[7px] font-bold text-white shadow-sm"
+                  style={{ backgroundColor: draft?.primary_color }}
+                >
+                  {v.points} pts
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Mini Footer */}
       <footer className="mt-auto px-4 py-6 border-t border-foreground/5 bg-foreground/[0.03] space-y-4">
@@ -559,7 +852,12 @@ function FieldEditor({
     onChange(data.publicUrl);
   };
 
-  const isWide = field.type === "image" && (field.key.includes("hero") || field.key.includes("about"));
+  const isWide = field.type === "image" && (
+    field.key.includes("hero") || 
+    field.key.includes("about") || 
+    field.key.includes("logo") ||
+    field.key.includes("signature")
+  );
 
   if (field.type === "image") {
     return (
@@ -568,8 +866,8 @@ function FieldEditor({
         
         <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-border bg-background/50 shadow-inner">
           {value ? (
-            <div className="relative group h-14 w-14 rounded-lg overflow-hidden border border-border shadow-sm">
-              <img src={value} alt="" className="h-full w-full object-cover" />
+            <div className="relative group h-14 w-14 rounded-lg overflow-hidden border border-border shadow-sm bg-zinc-100 flex items-center justify-center">
+              <img src={value} alt="" className="h-full w-full object-contain" />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   type="button"
@@ -585,16 +883,27 @@ function FieldEditor({
               Vazio
             </div>
           )}
-          <div className="flex flex-col gap-1">
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors disabled:opacity-60"
-            >
-              <Upload className="h-3 w-3" /> {uploading ? "Carregando..." : "Escolher Arquivo"}
-            </button>
-            <span className="text-[10px] text-muted-foreground">PNG, JPG ou SVG. Máx 5MB.</span>
+          <div className="flex flex-col gap-1 flex-1">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-muted transition-colors disabled:opacity-60"
+              >
+                <Upload className="h-3 w-3" /> {uploading ? "Carregando..." : "Escolher Arquivo"}
+              </button>
+              {value && (
+                <button
+                  type="button"
+                  onClick={() => onChange(null)}
+                  className="text-xs text-red-500 hover:text-red-600 font-semibold"
+                >
+                  Excluir
+                </button>
+              )}
+            </div>
+            <span className="text-[9px] text-muted-foreground leading-normal">{field.hint || "PNG ou SVG com fundo transparente recomendado."}</span>
           </div>
           <input
             ref={fileRef}
@@ -609,10 +918,9 @@ function FieldEditor({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value || null)}
-          placeholder="Ou cole uma URL externa direta da imagem..."
+          placeholder="Ou cole uma URL direta da imagem..."
           className="w-full rounded-xl border border-input bg-background/80 px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50 transition-shadow"
         />
-        {field.hint && <p className="text-[10px] text-muted-foreground leading-relaxed">{field.hint}</p>}
       </div>
     );
   }
@@ -622,10 +930,10 @@ function FieldEditor({
       <div className="space-y-1.5">
         <label className="block text-xs font-semibold text-foreground/80 tracking-wide">{field.label}</label>
         <div className="flex items-center gap-2">
-          <div className="relative h-10 w-10 shrink-0 rounded-xl overflow-hidden border border-border/80 shadow-sm">
+          <div className="relative h-10 w-10 shrink-0 rounded-xl overflow-hidden border border-border shadow-sm flex items-center justify-center bg-zinc-100">
             <input
               type="color"
-              value={value.startsWith("oklch") ? "#8c7263" : value} // Fallback simples para input color nativo
+              value={value.startsWith("oklch") ? "#8c7263" : value} // Fallback hex para seletor nativo
               onChange={(e) => onChange(e.target.value)}
               className="absolute inset-[-4px] h-[48px] w-[48px] cursor-pointer"
             />
@@ -634,11 +942,11 @@ function FieldEditor({
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="HEX, HSL ou OKLCH"
+            placeholder="HEX ou OKLCH"
             className="w-full rounded-xl border border-input bg-background/80 px-3.5 py-2.5 font-mono text-xs outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50 transition-shadow"
           />
         </div>
-        {field.hint && <p className="text-[10px] text-muted-foreground leading-relaxed">{field.hint}</p>}
+        {field.hint && <p className="text-[9px] text-muted-foreground leading-relaxed">{field.hint}</p>}
       </div>
     );
   }
@@ -653,7 +961,7 @@ function FieldEditor({
           onChange={(e) => onChange(e.target.value)}
           className="w-full rounded-xl border border-input bg-background/80 px-3.5 py-2.5 text-xs leading-relaxed outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50 transition-shadow"
         />
-        {field.hint && <p className="text-[10px] text-muted-foreground leading-relaxed">{field.hint}</p>}
+        {field.hint && <p className="text-[9px] text-muted-foreground leading-relaxed">{field.hint}</p>}
       </div>
     );
   }
@@ -667,7 +975,7 @@ function FieldEditor({
         onChange={(e) => onChange(e.target.value || null)}
         className="w-full rounded-xl border border-input bg-background/80 px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50 transition-shadow"
       />
-      {field.hint && <p className="text-[10px] text-muted-foreground leading-relaxed">{field.hint}</p>}
+      {field.hint && <p className="text-[9px] text-muted-foreground leading-relaxed">{field.hint}</p>}
     </div>
   );
 }

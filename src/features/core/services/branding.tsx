@@ -13,6 +13,10 @@ export type Branding = {
   brand_suffix: string;
   tagline: string;
   logo_url: string | null;
+  logo_landing_url: string | null;
+  logo_loja_url: string | null;
+  logo_recompensas_url: string | null;
+  logo_recibos_url: string | null;
   primary_color: string;
   accent_color: string;
   background_color: string;
@@ -49,6 +53,13 @@ export type Branding = {
   redemption_days_default: number;  // validade do resgate em dias
   rewards_label: string;            // nome da página pública
   n8n_rewards_webhook: string;      // webhook n8n para WhatsApp (mock se vazio)
+  custom_palettes?: {
+    name: string;
+    primary: string;
+    accent: string;
+    background: string;
+    foreground: string;
+  }[];
 };
 
 export const DEFAULT_BRANDING: Branding = {
@@ -56,6 +67,10 @@ export const DEFAULT_BRANDING: Branding = {
   brand_suffix: "vestuário",
   tagline: "feito à mão, com afeto",
   logo_url: null,
+  logo_landing_url: null,
+  logo_loja_url: null,
+  logo_recompensas_url: null,
+  logo_recibos_url: null,
   primary_color: "oklch(0.55 0.16 38)",
   accent_color: "oklch(0.88 0.06 38)",
   background_color: "oklch(0.972 0.018 80)",
@@ -94,6 +109,7 @@ export const DEFAULT_BRANDING: Branding = {
   redemption_days_default: 30,
   rewards_label: "Loja de Recompensas",
   n8n_rewards_webhook: "",
+  custom_palettes: [],
 };
 
 type Ctx = {

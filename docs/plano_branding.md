@@ -7,17 +7,27 @@ Este documento detalha o plano técnico para refatorar e elevar a aba de **Brand
 ## 💎 Destaques da Nova Interface
 
 1. **Organização por Abas Horizontais / Verticais:**
-   - Reduz a poluição visual separando as 9 seções originais em 4 abas coesas: `Identidade & Cores`, `Página Inicial (Landing)`, `Canais & Horários` e `Recibos & Faturamento`.
+   - Reduz a poluição visual separando as seções originais em 4 abas curtas e coesas: `Identidade & Cores`, `Página Inicial`, `Canais & Horários` e `Emissor de Recibos`.
 
-2. **Simulador Visual em Tempo Real (Mockup Interativo):**
+2. **Simulador Visual em Tempo Real (Mockup Interativo Multi-Ambiente):**
    - Um celular/desktop virtual posicionado ao lado direito do formulário que replica a landing page real do e-commerce.
-   - Atualiza instantaneamente fontes, cores primárias, imagens do hero, textos de CTAs e logo de forma reativa conforme o usuário digita.
+   - **Seletor de Páginas:** Permite visualizar a **Landing Page**, a **Loja Virtual (Catálogo)** ou a área de **Fidelidade (Clube de Recompensas)**, reativamente.
+   - Atualiza instantaneamente fontes, cores primárias, imagens do hero, textos de CTAs e logotipos correspondentes de forma reativa conforme o usuário digita.
    - Toggle rápido entre visualização **Mobile** (celular premium) e **Desktop** (tela inteira de vidro).
 
-3. **Paletas Curadas de Alta Costura (One-Click Themes):**
-   - 4 paletas pré-configuradas e selecionadas por estilistas de moda (ex: Terracota Artesanal, Oliva Orgânico, Seda Negra e Brisa de Lavanda) que preenchem as cores do formulário instantaneamente ao serem clicadas.
+3. **Logotipos Múltiplos por Ambiente:**
+   - Permite o upload de arquivos transparentes PNG/SVG exclusivos para cada ambiente do ecossistema:
+     - Logo Geral (Fallback)
+     - Logo da Landing Page
+     - Logo da Loja Virtual
+     - Logo do Clube de Recompensas
+     - Logo de Recibos & Faturamento
 
-4. **Indicador de Completude da Marca (Completeness Score):**
+4. **Paletas Sazonais & Personalizadas (One-Click Themes):**
+   - **Sazonalidades:** Paletas prontas divididas em *Festividades* (Dia das Mães, Natal, Ano Novo) e *Estações* (Primavera/Verão, Outono/Inverno).
+   - **Criador de Paleta Própria:** Permite ajustar as cores nos seletores visuais, definir um nome exclusivo e salvar a paleta na sua lista de coleções pessoais, persistindo no banco de dados.
+
+5. **Indicador de Completude da Marca (Completeness Score):**
    - Barra de progresso circular ou linear em LED que analisa quais campos essenciais (logo, cores, telefone, CNPJ) já foram preenchidos e dá uma nota de completude (ex: 85% Concluído).
 
 ---
