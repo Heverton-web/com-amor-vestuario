@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { AdminShell } from "@/features/core/components/AdminShell";
-import { Plus, Trash2, Gift, X, Send, Pencil, Eye, EyeOff, Ticket, Calendar, Copy, ArrowUpRight, ArrowDownLeft, CheckCircle2, User, KeyRound } from "lucide-react";
+import { Plus, Trash2, Gift, X, Send, Pencil, Eye, EyeOff, Ticket, Calendar, Copy, ArrowUpRight, ArrowDownLeft, CheckCircle2, User, KeyRound, Upload, Check } from "lucide-react";
 import { toast } from "sonner";
 import { NumInput } from "@/features/core/components/num-input";
 import { kindLabel, type RewardItem, type RewardKind, type Redemption, type LedgerEntry } from "@/features/fidelidade/services/rewards";
@@ -105,7 +105,7 @@ function Catalogo() {
               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                 <span><strong className="text-primary">{r.points_cost}</strong> pts</span>
                 <span>{r.stock} em estoque</span>
-                {r.expires_at && <span>Expira {dateBR(r.expires_at)}</span>}
+                {r.expires_at && <span>Expira {dateTimeBR(r.expires_at)}</span>}
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 <button onClick={() => { setEditing(r); setOpen(true); }} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs"><Pencil className="h-3 w-3" /> Editar</button>
@@ -140,12 +140,14 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
     points_cost: item?.points_cost ?? 50,
     stock: item?.stock ?? 10,
     image_url: item?.images?.[0] ?? "",
-    expires_at: item?.expires_at ? item.expires_at.slice(0, 10) : "",
+    expires_at: item?.expires_at ? item.expires_at.slice(0, 16) : "",
     voucher_value: Number(item?.voucher_value ?? 0),
     voucher_percent: item?.voucher_percent ?? 10,
     voucher_min_order: Number(item?.voucher_min_order ?? 0),
     product_id: item?.product_id ?? "",
   });
+
+  const [uploading, setUploading] = useState(false);
 
   const getCalculatedName = () => {
     if (form.kind === "produto_fisico") {
@@ -332,14 +334,70 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
                 </div>
               </div>
 
-              {/* URL da Imagem */}
-              <div className="space-y-1.5">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Imagem do Voucher (Opcional)</span>
+              {/* Imagem do Voucher (Opcional) com Uploader Interativo e URL */}
+              <div className="space-y-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Imagem do Voucher (Opcional)</span>
+                
+                {uploading ? (
+                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-primary/40 bg-primary/5 rounded-2xl p-6 animate-pulse">
+                    <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
+                    <span className="text-xs font-semibold text-primary">Enviando imagem para o storage...</span>
+                  </div>
+                ) : form.image_url ? (
+                  <div className="relative rounded-2xl overflow-hidden border border-border bg-secondary/30 p-2.5 flex items-center justify-between animate-fade-in">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img src={form.image_url} alt="" className="h-12 w-12 rounded-xl object-cover border border-border shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-foreground truncate max-w-[200px]">Imagem selecionada</div>
+                        <button
+                          type="button"
+                          onClick={() => setForm((s) => ({ ...s, image_url: "" }))}
+                          className="text-[10px] text-destructive hover:underline font-bold block mt-0.5"
+                        >
+                          Remover e escolher outra
+                        </button>
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1 shrink-0">
+                      <Check className="h-3 w-3 shrink-0" /> Pronto
+                    </div>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-border hover:border-primary/50 bg-secondary/10 hover:bg-secondary/20 rounded-2xl p-6 cursor-pointer transition-all active:scale-[0.99]">
+                    <Upload className="h-6 w-6 text-muted-foreground mb-1.5" />
+                    <span className="text-xs font-semibold text-foreground">Clique para enviar imagem</span>
+                    <span className="text-[10px] text-muted-foreground/80 mt-0.5">JPEG, PNG ou WEBP (Max 5MB)</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const files = e.target.files;
+                        if (!files?.length) return;
+                        setUploading(true);
+                        const file = files[0];
+                        const path = `rewards/${Date.now()}-${file.name.replace(/\s/g, "_")}`;
+                        const { error } = await supabase.storage.from("product-images").upload(path, file);
+                        if (error) {
+                          toast.error(error.message);
+                          setUploading(false);
+                          return;
+                        }
+                        const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+                        setForm((s) => ({ ...s, image_url: data.publicUrl }));
+                        setUploading(false);
+                        toast.success("Imagem enviada com sucesso!");
+                      }}
+                    />
+                  </label>
+                )}
+
+                {/* Alternativa: URL Manual */}
                 <input 
-                  placeholder="URL da imagem (opcional)" 
+                  placeholder="Ou cole a URL de uma imagem externa..." 
                   value={form.image_url} 
                   onChange={(e) => setForm({ ...form, image_url: e.target.value })} 
-                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
+                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
                 />
               </div>
             </>
@@ -405,10 +463,10 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
             <div className="space-y-1.5">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Validade (Opcional)</span>
               <input 
-                type="date" 
+                type="datetime-local" 
                 value={form.expires_at} 
                 onChange={(e) => setForm({ ...form, expires_at: e.target.value })} 
-                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" 
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all cursor-pointer font-medium" 
               />
             </div>
           </div>
