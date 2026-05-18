@@ -130,7 +130,7 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
 
   const { data: products } = useQuery({
     queryKey: ["products-active-rewards"],
-    queryFn: async () => (await supabase.from("products").select("id, name, code, stock").eq("active", true).order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("id, name, code, stock, description, images").eq("active", true).order("name")).data ?? [],
   });
 
   const [form, setForm] = useState({
@@ -182,83 +182,114 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
         </div>
         
         <div className="max-h-[65vh] space-y-4 overflow-y-auto pr-1 text-sm">
-          {/* Nome e Descrição */}
-          <div className="space-y-3">
-            <input 
-              placeholder="Nome da recompensa" 
-              value={form.name} 
-              onChange={(e) => setForm({ ...form, name: e.target.value })} 
-              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
-            />
-            <textarea 
-              placeholder="Descrição detalhada" 
-              value={form.description} 
-              onChange={(e) => setForm({ ...form, description: e.target.value })} 
-              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all min-h-20 max-h-40 placeholder:text-muted-foreground/60" 
-            />
-          </div>
-
-          {/* Seletor Segmentado de Tipo de Voucher (Somente se não for produto físico) */}
-          {form.kind !== "produto_fisico" ? (
-            <div className="space-y-1.5">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tipo de Voucher</span>
-              <div className="flex rounded-xl bg-secondary p-1 border border-border/60">
-                {[
-                  { k: "voucher_valor", l: "Valor (R$)" },
-                  { k: "voucher_percent", l: "Percentual (%)" },
-                  { k: "voucher_frete", l: "Frete grátis" }
-                ].map((opt) => (
-                  <button
-                    key={opt.k}
-                    type="button"
-                    onClick={() => setForm({ ...form, kind: opt.k as RewardKind })}
-                    className={`flex-1 min-h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      form.kind === opt.k
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {opt.l}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {/* URL da Imagem */}
-          <input 
-            placeholder="URL da imagem (opcional)" 
-            value={form.image_url} 
-            onChange={(e) => setForm({ ...form, image_url: e.target.value })} 
-            className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
-          />
-          
-          {/* Produto Vinculado (Se for produto físico) */}
+          {/* 1. SE FOR PRODUTO FÍSICO: Produto Vinculado no topo absoluto! */}
           {form.kind === "produto_fisico" && (
-            <div className="space-y-1.5">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Produto Vinculado</span>
-              <select
-                value={form.product_id}
-                onChange={(e) => {
-                  const prodId = e.target.value;
-                  const p = products?.find((x) => x.id === prodId);
-                  setForm({
-                    ...form,
-                    product_id: prodId,
-                    name: form.name || p?.name || "",
-                    stock: p?.stock ?? 0,
-                  });
-                }}
-                className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
-              >
-                <option value="">Selecione um produto cadastrado...</option>
-                {products?.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.code} · {p.name} (Estoque: {p.stock})
-                  </option>
-                ))}
-              </select>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Produto Vinculado (Estoque)</span>
+                <select
+                  value={form.product_id}
+                  onChange={(e) => {
+                    const prodId = e.target.value;
+                    const p = products?.find((x) => x.id === prodId);
+                    setForm({
+                      ...form,
+                      product_id: prodId,
+                      name: p?.name || "",
+                      description: p?.description || "",
+                      image_url: p?.images?.[0] || "",
+                      stock: p?.stock ?? 0,
+                    });
+                  }}
+                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all cursor-pointer font-medium"
+                >
+                  <option value="">Selecione um produto do estoque...</option>
+                  {products?.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.code} · {p.name} (Estoque: {p.stock})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Card visual herdando as informações em tempo real */}
+              {(() => {
+                const p = products?.find((x) => x.id === form.product_id);
+                if (!p) return null;
+                return (
+                  <div className="flex gap-3.5 rounded-2xl border border-border bg-secondary/30 p-3.5 items-center animate-fade-in">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-secondary border border-border">
+                      {p.images?.[0] ? (
+                        <img src={p.images[0]} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-muted-foreground"><Gift className="h-6 w-6" /></div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] font-bold text-primary uppercase tracking-wider">Informações Herdadas</div>
+                      <div className="font-semibold text-sm truncate mt-0.5">{p.name}</div>
+                      {p.description && (
+                        <div className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">{p.description}</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
+          )}
+
+          {/* 2. SE FOR VOUCHER: Nome, Descrição e URL de Imagem no topo */}
+          {form.kind !== "produto_fisico" && (
+            <>
+              {/* Nome e Descrição */}
+              <div className="space-y-3">
+                <input 
+                  placeholder="Nome da recompensa (Ex: R$ 50 Off)" 
+                  value={form.name} 
+                  onChange={(e) => setForm({ ...form, name: e.target.value })} 
+                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
+                />
+                <textarea 
+                  placeholder="Descrição detalhada" 
+                  value={form.description} 
+                  onChange={(e) => setForm({ ...form, description: e.target.value })} 
+                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all min-h-20 max-h-40 placeholder:text-muted-foreground/60" 
+                />
+              </div>
+
+              {/* Seletor Segmentado de Tipo de Voucher */}
+              <div className="space-y-1.5">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tipo de Voucher</span>
+                <div className="flex rounded-xl bg-secondary p-1 border border-border/60">
+                  {[
+                    { k: "voucher_valor", l: "Valor (R$)" },
+                    { k: "voucher_percent", l: "Percentual (%)" },
+                    { k: "voucher_frete", l: "Frete grátis" }
+                  ].map((opt) => (
+                    <button
+                      key={opt.k}
+                      type="button"
+                      onClick={() => setForm({ ...form, kind: opt.k as RewardKind })}
+                      className={`flex-1 min-h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        form.kind === opt.k
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {opt.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* URL da Imagem */}
+              <input 
+                placeholder="URL da imagem (opcional)" 
+                value={form.image_url} 
+                onChange={(e) => setForm({ ...form, image_url: e.target.value })} 
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60" 
+              />
+            </>
           )}
 
           {/* Custo em Pontos e Estoque */}
