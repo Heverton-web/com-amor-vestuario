@@ -127,6 +127,19 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
     * **Filtro por Recompensa**: Input de texto reativo para filtrar instantaneamente pelo nome da recompensa ou produto físico.
     * **Filtro por Data de Resgate**: Seletor de data (`type="date"`) nativo e estilizado para localizar resgates efetuados em uma data específica.
   * **Feedback de Resultados Inexistentes**: Caso nenhum resgate atenda aos filtros selecionados, exibe-se um card explicativo indicando `"Nenhum resgate encontrado com os filtros selecionados"` com design coerente ao restante do projeto.
+* **Painel de Análises Inteligente (Aba "Análises")**:
+  * Adicionamos a aba **"Análises"** na navegação principal do CRM do Clube Com Amor.
+  * **Três Cards de Métricas (KPIs)**:
+    * *Total de Resgates*: Número total de transações de troca efetuadas no período.
+    * *Pontos Utilizados*: Volume absoluto de pontos convertidos por clientes.
+    * *Distribuição de Resgates*: Gráfico de barra de equilíbrio dinâmico e bilíngue (Produto Físico vs. Cupom/Voucher) com cálculo percentual em tempo real.
+  * **Barra de Filtros Multidimensional**:
+    * Inputs de *Data Inicial* e *Data Final* permitindo filtrar as análises por qualquer período customizado.
+    * Pesquisa instantânea por *Cliente* e por *Recompensa* (produto ou cupom).
+    * Botão geral de *Limpar Todos os Filtros* quando aplicados.
+  * **Rankings de Alta Performance (Top 5)**:
+    * *Top Clientes que mais Resgatam*: Lista ordenada com pódios estilizados (ouro, prata, bronze), quantidade de trocas e total de pontos investidos.
+    * *Recompensas Mais Resgatadas*: Lista de itens físicos ou digitais que lideram a preferência de troca no clube de fidelidade.
 
 ---
 
