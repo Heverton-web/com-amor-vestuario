@@ -17,8 +17,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Variáveis de ambiente e segredos
-.env
+# Variáveis de ambiente e segredos (o .env principal é necessário no build do Vite)
 .env.local
 .env.production
 .env.development
