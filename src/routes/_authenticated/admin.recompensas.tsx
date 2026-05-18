@@ -670,6 +670,10 @@ function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; 
 
 function Resgates() {
   const qc = useQueryClient();
+  const [searchClient, setSearchClient] = useState("");
+  const [searchProduct, setSearchProduct] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+
   const { data } = useQuery({
     queryKey: ["redemptions-admin"],
     queryFn: async () => {
@@ -684,6 +688,31 @@ function Resgates() {
       await supabase.from("redemptions" as never).update({ status, used_at: status === "utilizado" ? new Date().toISOString() : null } as never).eq("id", id);
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["redemptions-admin"] }); toast.success("Atualizado"); },
+  });
+
+  const filtered = (data ?? []).filter((r) => {
+    if (searchClient) {
+      const clientName = r.customer?.name?.toLowerCase() || "";
+      const clientCode = r.customer?.code?.toLowerCase() || "";
+      const query = searchClient.toLowerCase();
+      if (!clientName.includes(query) && !clientCode.includes(query)) {
+        return false;
+      }
+    }
+    if (searchProduct) {
+      const rewardName = r.reward?.name?.toLowerCase() || "";
+      const query = searchProduct.toLowerCase();
+      if (!rewardName.includes(query)) {
+        return false;
+      }
+    }
+    if (filterDate) {
+      const redemptionDate = r.created_at ? r.created_at.slice(0, 10) : "";
+      if (redemptionDate !== filterDate) {
+        return false;
+      }
+    }
+    return true;
   });
 
   function getStatusStyle(status: string) {
@@ -701,8 +730,80 @@ function Resgates() {
   }
 
   return (
-    <div className="space-y-3">
-      {(data ?? []).map((r) => (
+    <div className="space-y-4">
+      {/* Barra de Filtros Ultra-Premium (Cliente, Produto e Data) */}
+      <div className="grid gap-3.5 sm:grid-cols-3 bg-secondary/20 border border-border p-3.5 rounded-2xl animate-fade-in">
+        {/* Filtro Cliente */}
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Filtrar por Cliente</label>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Nome ou código do cliente..."
+              value={searchClient}
+              onChange={(e) => setSearchClient(e.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+            />
+            {searchClient && (
+              <button 
+                type="button" 
+                onClick={() => setSearchClient("")} 
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Filtro Produto/Recompensa */}
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Filtrar por Recompensa</label>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Nome do produto ou voucher..."
+              value={searchProduct}
+              onChange={(e) => setSearchProduct(e.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+            />
+            {searchProduct && (
+              <button 
+                type="button" 
+                onClick={() => setSearchProduct("")} 
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Filtro Data de Resgate */}
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Filtrar por Data de Resgate</label>
+          <div className="relative">
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all cursor-pointer font-medium"
+            />
+            {filterDate && (
+              <button 
+                type="button" 
+                onClick={() => setFilterDate("")} 
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Listagem de Resgates */}
+      {filtered.map((r) => (
         <div key={r.id} className="flex flex-col md:flex-row md:items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-sm">
           {/* Left Icon Badge */}
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/5 text-primary border border-primary/10">
@@ -773,10 +874,10 @@ function Resgates() {
           </div>
         </div>
       ))}
-      {!data?.length && (
+      {!filtered.length && (
         <div className="rounded-2xl border border-dashed border-border bg-card p-14 text-center text-muted-foreground">
           <Gift className="mx-auto h-8 w-8 text-muted-foreground opacity-50 mb-3" />
-          <p className="text-sm font-medium">Nenhum resgate registrado ainda.</p>
+          <p className="text-sm font-medium">Nenhum resgate encontrado com os filtros selecionados.</p>
         </div>
       )}
     </div>
