@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/admin/recompensas")({
   component: RewardsAdmin,
 });
 
-type Tab = "catalogo" | "resgates" | "pontos";
+type Tab = "catalogo" | "resgates" | "pontos" | "analises";
 
 function RewardsAdmin() {
   const [tab, setTab] = useState<Tab>("catalogo");
@@ -27,6 +27,7 @@ function RewardsAdmin() {
           { k: "catalogo", l: "Catálogo" },
           { k: "resgates", l: "Resgates" },
           { k: "pontos", l: "Pontos" },
+          { k: "analises", l: "Análises" },
         ].map((t) => (
           <button
             key={t.k} onClick={() => setTab(t.k as Tab)}
@@ -37,6 +38,7 @@ function RewardsAdmin() {
       {tab === "catalogo" && <Catalogo />}
       {tab === "resgates" && <Resgates />}
       {tab === "pontos" && <Pontos />}
+      {tab === "analises" && <Analises />}
     </AdminShell>
   );
 }
@@ -1052,6 +1054,322 @@ function Pontos() {
               Nenhum saldo computado.
             </div>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Analises() {
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [searchProduct, setSearchProduct] = useState("");
+  const [searchVoucher, setSearchVoucher] = useState("");
+  const [searchCustomer, setSearchCustomer] = useState("");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["redemptions-admin"],
+    queryFn: async () => {
+      const { data } = await supabase.from("redemptions" as never)
+        .select("*, reward:reward_items(name,kind), customer:customers(name,code)")
+        .order("created_at", { ascending: false });
+      return (data ?? []) as unknown as (Redemption & { reward: { name: string; kind: string }; customer: { name: string; code: string } })[];
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 animate-pulse">
+        <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+        <span className="text-sm font-semibold text-muted-foreground">Carregando painel de análises...</span>
+      </div>
+    );
+  }
+
+  // Filtragem reativa em tempo real
+  const filtered = (data ?? []).filter((r) => {
+    // 1. Filtro de Cliente
+    if (searchCustomer) {
+      const name = r.customer?.name?.toLowerCase() || "";
+      const code = r.customer?.code?.toLowerCase() || "";
+      const query = searchCustomer.toLowerCase();
+      if (!name.includes(query) && !code.includes(query)) return false;
+    }
+    // 2. Filtro de Produto
+    if (searchProduct) {
+      const name = r.reward?.name?.toLowerCase() || "";
+      const isProduct = r.reward?.kind === "produto_fisico";
+      if (!isProduct || !name.includes(searchProduct.toLowerCase())) return false;
+    }
+    // 3. Filtro de Voucher
+    if (searchVoucher) {
+      const name = r.reward?.name?.toLowerCase() || "";
+      const isVoucher = r.reward?.kind !== "produto_fisico";
+      if (!isVoucher || !name.includes(searchVoucher.toLowerCase())) return false;
+    }
+    // 4. Filtro de Data
+    if (startDate) {
+      const rDate = r.created_at ? r.created_at.slice(0, 10) : "";
+      if (rDate < startDate) return false;
+    }
+    if (endDate) {
+      const rDate = r.created_at ? r.created_at.slice(0, 10) : "";
+      if (rDate > endDate) return false;
+    }
+    return true;
+  });
+
+  // Métricas agregadas
+  const totalRedemptions = filtered.length;
+  const totalPointsSpent = filtered.reduce((sum, r) => sum + r.points_spent, 0);
+
+  // Produtos físicos vs Vouchers
+  const productCount = filtered.filter(r => r.reward?.kind === "produto_fisico").length;
+  const voucherCount = filtered.filter(r => r.reward?.kind !== "produto_fisico").length;
+  const productPercent = totalRedemptions > 0 ? Math.round((productCount / totalRedemptions) * 100) : 0;
+  const voucherPercent = totalRedemptions > 0 ? Math.round((voucherCount / totalRedemptions) * 100) : 0;
+
+  // Top Clientes
+  const customerCounts: Record<string, { count: number; points: number; code: string }> = {};
+  filtered.forEach((r) => {
+    const name = r.customer?.name || "Desconhecido";
+    const code = r.customer?.code || "";
+    if (!customerCounts[name]) {
+      customerCounts[name] = { count: 0, points: 0, code };
+    }
+    customerCounts[name].count += 1;
+    customerCounts[name].points += r.points_spent;
+  });
+  const topCustomers = Object.entries(customerCounts)
+    .map(([name, val]) => ({ name, ...val }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  // Top Recompensas
+  const rewardCounts: Record<string, { count: number; points: number; kind: string }> = {};
+  filtered.forEach((r) => {
+    const name = r.reward?.name || "Desconhecida";
+    const kind = r.reward?.kind || "";
+    if (!rewardCounts[name]) {
+      rewardCounts[name] = { count: 0, points: 0, kind };
+    }
+    rewardCounts[name].count += 1;
+    rewardCounts[name].points += r.points_spent;
+  });
+  const topRewards = Object.entries(rewardCounts)
+    .map(([name, val]) => ({ name, ...val }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  return (
+    <div className="space-y-6">
+      {/* Cards de KPIs de Alta Fidelidade */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {/* KPI 1: Total Resgates */}
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Total de Resgates</span>
+            <strong className="text-3xl font-display font-semibold text-foreground mt-2 block">{totalRedemptions}</strong>
+          </div>
+          <p className="text-xs text-muted-foreground/80 mt-3 flex items-center gap-1">
+            <Gift className="h-3.5 w-3.5 text-primary" />
+            Transações processadas
+          </p>
+        </div>
+
+        {/* KPI 2: Pontos Trocados */}
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Pontos Utilizados</span>
+            <strong className="text-3xl font-display font-semibold text-primary mt-2 block">{totalPointsSpent} <span className="text-sm font-sans text-muted-foreground font-normal">pts</span></strong>
+          </div>
+          <p className="text-xs text-muted-foreground/80 mt-3 flex items-center gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+            Investimento em fidelidade
+          </p>
+        </div>
+
+        {/* KPI 3: Produtos vs Vouchers */}
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Distribuição de Resgates</span>
+            <div className="flex items-center justify-between text-xs mt-2.5 font-semibold text-foreground">
+              <span>Produtos ({productPercent}%)</span>
+              <span>Cupons ({voucherPercent}%)</span>
+            </div>
+            {/* Visual Balance Bar */}
+            <div className="mt-2 h-2.5 w-full rounded-full bg-secondary overflow-hidden flex">
+              <div className="h-full bg-primary transition-all duration-300" style={{ width: `${productPercent}%` }} />
+              <div className="h-full bg-amber-500 transition-all duration-300" style={{ width: `${voucherPercent}%` }} />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground/80 mt-2 flex items-center justify-between">
+            <span>{productCount} Prod. físicos</span>
+            <span>{voucherCount} Vouchers</span>
+          </p>
+        </div>
+      </div>
+
+      {/* Barra de Filtros Ultra-Premium (Análises) */}
+      <div className="bg-secondary/20 border border-border p-4 rounded-3xl space-y-3.5 animate-fade-in">
+        <span className="text-xs font-bold text-foreground uppercase tracking-wider block">Filtros de Pesquisa Avançados</span>
+        
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Período: Início */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Data Inicial</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-medium cursor-pointer"
+            />
+          </div>
+
+          {/* Período: Fim */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Data Final</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-medium cursor-pointer"
+            />
+          </div>
+
+          {/* Filtro: Cliente */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Cliente</label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Nome ou código..."
+                value={searchCustomer}
+                onChange={(e) => setSearchCustomer(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+              />
+              {searchCustomer && (
+                <button type="button" onClick={() => setSearchCustomer("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer">Limpar</button>
+              )}
+            </div>
+          </div>
+
+          {/* Filtro: Recompensa (Produto ou Voucher) */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Recompensa</label>
+            <div className="relative flex gap-1.5">
+              <input
+                type="text"
+                placeholder="Pesquisar..."
+                value={searchProduct || searchVoucher}
+                onChange={(e) => {
+                  setSearchProduct(e.target.value);
+                  setSearchVoucher(e.target.value);
+                }}
+                className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+              />
+              {(searchProduct || searchVoucher) && (
+                <button type="button" onClick={() => { setSearchProduct(""); setSearchVoucher(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] font-bold cursor-pointer">Limpar</button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Linha de Status de Limpeza */}
+        {(startDate || endDate || searchCustomer || searchProduct || searchVoucher) && (
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+                setSearchCustomer("");
+                setSearchProduct("");
+                setSearchVoucher("");
+              }}
+              className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <X className="h-3 w-3" /> Limpar todos os filtros
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Grids Principais de Análises (Top Clientes e Top Recompensas) */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Top 1: Clientes */}
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 border-b border-border/60 pb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <User className="h-4 w-4" />
+            </div>
+            <h3 className="font-display font-semibold text-foreground text-sm uppercase tracking-wider">🏆 Top Clientes que mais Resgatam</h3>
+          </div>
+
+          <div className="space-y-2.5">
+            {topCustomers.map((c, index) => (
+              <div key={c.name} className="flex items-center justify-between p-3 rounded-2xl bg-secondary/10 border border-border/50 hover:bg-secondary/20 transition-all">
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Posicionamento */}
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                    index === 0 ? "bg-amber-400 text-amber-950" : index === 1 ? "bg-slate-300 text-slate-900" : index === 2 ? "bg-amber-600 text-amber-50" : "bg-secondary text-muted-foreground"
+                  }`}>
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-foreground truncate">{c.name}</div>
+                    <div className="text-[10px] font-mono text-muted-foreground uppercase">{c.code}</div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-xs font-bold text-foreground">{c.count} resgates</div>
+                  <div className="text-[10px] text-muted-foreground font-semibold">-{c.points} pts</div>
+                </div>
+              </div>
+            ))}
+            {!topCustomers.length && (
+              <div className="py-12 text-center text-xs text-muted-foreground font-medium">
+                Nenhum dado de cliente encontrado para este período.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Top 2: Recompensas */}
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 border-b border-border/60 pb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Gift className="h-4 w-4" />
+            </div>
+            <h3 className="font-display font-semibold text-foreground text-sm uppercase tracking-wider">🔥 Recompensas Mais Resgatadas</h3>
+          </div>
+
+          <div className="space-y-2.5">
+            {topRewards.map((r, index) => (
+              <div key={r.name} className="flex items-center justify-between p-3 rounded-2xl bg-secondary/10 border border-border/50 hover:bg-secondary/20 transition-all">
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Posicionamento */}
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                    index === 0 ? "bg-amber-400 text-amber-950" : index === 1 ? "bg-slate-300 text-slate-900" : index === 2 ? "bg-amber-600 text-amber-50" : "bg-secondary text-muted-foreground"
+                  }`}>
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-foreground truncate">{r.name}</div>
+                    <div className="text-[10px] font-semibold text-muted-foreground uppercase">{kindLabel(r.kind as RewardKind)}</div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-xs font-bold text-foreground">{r.count} resgates</div>
+                  <div className="text-[10px] text-muted-foreground font-semibold">-{r.points} pts</div>
+                </div>
+              </div>
+            ))}
+            {!topRewards.length && (
+              <div className="py-12 text-center text-xs text-muted-foreground font-medium">
+                Nenhum dado de recompensa encontrado para este período.
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
