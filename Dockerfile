@@ -11,8 +11,9 @@ WORKDIR /app
 # Copia os arquivos de dependência do projeto
 COPY package.json package-lock.json* ./
 
-# Instala todas as dependências (necessárias para buildar o projeto)
-RUN npm ci
+# Instala todas as dependências (tolerando conflitos de peer-dependencies do React 19)
+RUN npm install --legacy-peer-deps
+
 
 # Copia todo o código-fonte
 COPY . .
