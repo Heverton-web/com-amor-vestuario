@@ -89,6 +89,14 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
   * Adicionamos um card visual estonteante no topo de ambos os fluxos (`bg-primary/5 border border-primary/20`) contendo a tag `"Nome da Recompensa"`, o nome calculado em tempo real com tipografia premium e o ícone correspondente (`Gift` para produtos, `Ticket` para vouchers) fornecendo feedback interativo imediato.
 * **Card de Preview Dinâmico do Estoque**:
   * Ao selecionar um produto vinculado, exibimos um card de visualização elegante (`bg-secondary/30 border border-border`), contendo a miniatura da imagem do produto, nome e sua descrição completa, perfeitamente sincronizados e em modo somente-leitura.
+* **Uploader Interativo Premium de Imagens (Opcional)**:
+  * **Integração com Supabase Storage**: Implementamos um uploader interativo com suporte a clique e arraste para envio de arquivos de imagem locais diretamente para o bucket de storage do Supabase.
+  * **Feedback Visual e Estados de Loading**: O uploader exibe um spinner animado e efeito pulse de carregamento enquanto o upload está em andamento.
+  * **Card de Sucesso e Remoção**: Após a conclusão, renderiza um card com miniatura da imagem enviada, badge verde de status `"Pronto"` com ícone `Check` e botão de remoção rápida.
+  * **Flexibilidade Total (URL Alternativa)**: Mantivemos o campo de inserção manual de URL abaixo do uploader interativo, permitindo usar tanto arquivos locais quanto links externos perfeitamente.
+* **Validade Ultra-Precisa (Data, Hora e Minutos)**:
+  * **Input Completo**: Substituímos o seletor simples de data por um campo de data e hora local completo (`type="datetime-local"`), permitindo configurar a expiração da recompensa com precisão exata de dia, mês, ano, hora e minuto.
+  * **Exibição Dinâmica no Painel**: Atualizamos os cards da listagem no dashboard administrativo para utilizar o formatador `dateTimeBR`, exibindo o horário exato de expiração no formato brasileiro (ex: `"Expira 18/05/2026 às 14:30"`).
 * **Segmentador de Abas de Alta Fidelidade**: Para vouchers, substituímos o seletor nativo por um controle segmentado de abas horizontais premium (`Valor (R$)` | `Percentual (%)` | `Frete grátis`) com transições suaves, sombras sutis e estados ativos impecáveis.
 * **Refinamento Estético Global**:
   * **Efeito de Fundo Imersivo**: Adicionamos sobreposição escura com desfoque de fundo (`backdrop-blur-sm bg-black/60`) e animações de escala suave ao abrir o modal.
