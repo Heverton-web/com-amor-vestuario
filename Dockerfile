@@ -1,7 +1,7 @@
 # ==========================================
 # 1. ESTÁGIO DE BUILD (builder)
 # ==========================================
-FROM node:20-slim AS builder
+FROM node:20 AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ RUN npm run build
 # ==========================================
 # 2. ESTÁGIO DE PRODUÇÃO (runner)
 # ==========================================
-FROM node:20-slim AS runner
+FROM node:20 AS runner
 
 WORKDIR /app
 
