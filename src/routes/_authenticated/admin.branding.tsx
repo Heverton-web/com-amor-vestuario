@@ -789,26 +789,44 @@ function LivePreviewContent({ draft, page }: { draft: Branding; page: "landing" 
       {page === "landing" && (
         /* PÁGINA 1: LANDING PAGE INSTITUCIONAL */
         <div className="flex-1 flex flex-col">
-          {/* Hero Banner */}
-          <section className="px-4 py-9 text-center flex flex-col items-center justify-center relative min-h-[170px] overflow-hidden border-b border-foreground/5">
-            {draft?.hero_image_url && (
-              <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${draft.hero_image_url})` }} />
-            )}
-            <div className="relative z-10 space-y-3">
-              <h1 className="font-serif text-lg font-medium leading-snug max-w-[90%] mx-auto whitespace-pre-wrap">
+          {/* Hero Banner no Simulador */}
+          <section className="px-4 py-8 flex flex-col gap-4 relative overflow-hidden border-b border-foreground/5 bg-background">
+            {/* Ambient background blur */}
+            <div className="absolute inset-0 opacity-[0.03] blur-xl" style={{ backgroundImage: `url(${draft?.hero_image_url})`, backgroundSize: "cover" }} />
+            
+            {/* Conteudo do Texto no Simulador */}
+            <div className="relative z-10 space-y-2.5 max-w-full">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-border bg-card text-[6px] uppercase tracking-widest text-muted-foreground shadow-sm">
+                <Heart className="h-1.5 w-1.5 fill-primary stroke-primary text-primary" style={{ fill: draft?.primary_color, stroke: draft?.primary_color }} />
+                {draft?.tagline || "Modelagem exclusiva"}
+              </span>
+              <h1 className="font-serif text-sm font-semibold leading-tight text-foreground whitespace-pre-wrap">
                 {draft?.hero_title || "Peças atemporais criadas com afeto."}
               </h1>
-              <p className="text-[9px] max-w-[80%] mx-auto opacity-80 leading-normal">
+              <p className="text-[7px] text-muted-foreground leading-normal">
                 {draft?.hero_subtitle || "Moda lenta inspirada na delicadeza e na alfaiataria fina."}
               </p>
-              <button 
-                type="button"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[8px] font-semibold shadow-sm transition-all whitespace-nowrap"
-                style={{ backgroundColor: draft?.primary_color, color: "#fff" }}
-              >
-                {draft?.cta_shop_label || "Ver Coleção"} <ArrowRight className="h-2 w-2" />
-              </button>
+              <div className="flex gap-2 pt-1">
+                <button 
+                  type="button"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[6px] font-bold shadow-sm transition-all whitespace-nowrap text-white"
+                  style={{ backgroundColor: draft?.primary_color }}
+                >
+                  {draft?.cta_shop_label || "Ver Coleção"} <ArrowRight className="h-1.5 w-1.5" />
+                </button>
+              </div>
             </div>
+
+            {/* Imagem Completa (sem cortes) no Simulador */}
+            {draft?.hero_image_url && (
+              <div className="relative overflow-hidden rounded-xl border border-border bg-muted/10 shadow-md p-1.5 w-full flex items-center justify-center max-h-[160px]">
+                <img 
+                  src={draft.hero_image_url} 
+                  alt="" 
+                  className="w-full h-auto max-h-[145px] object-contain rounded-lg"
+                />
+              </div>
+            )}
           </section>
 
           {/* Seção Sobre */}
