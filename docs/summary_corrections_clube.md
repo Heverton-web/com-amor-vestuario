@@ -75,7 +75,12 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
 ---
 
 ## 9. Redesenho Visual Ultra-Premium do Modal de Recompensas
-* **Remoção de Campos Redundantes**: Removemos o antigo dropdown de seleção nativa de tipo de recompensa (`kind`) ao criar ou editar produtos físicos. Como o tipo já é determinado pela intenção do botão clicado, o campo foi completamente ocultado ("Não precisa ter"), limpando a interface.
+* **Posicionamento e Herança Absoluta do Estoque**:
+  * O seletor de **"Produto Vinculado (Estoque)"** foi movido para o **topo absoluto do modal** de produtos.
+  * O modal agora herda **todas as informações do estoque em tempo real** (Nome, Descrição, URL da imagem e Estoque disponível).
+  * Como todos esses dados são herdados automaticamente da tabela `products` do Supabase, **ocultamos todos os campos de texto manuais redundantes** (`Nome`, `Descrição` e `URL da imagem`) para produtos físicos.
+* **Card de Preview Dinâmico**:
+  * Ao selecionar um produto vinculado, exibimos um card de visualização estonteante e moderno no topo (`bg-secondary/30 border border-border`), contendo a miniatura da imagem do produto, nome e sua descrição completa, perfeitamente sincronizados e em modo somente-leitura.
 * **Segmentador de Abas de Alta Fidelidade**: Para vouchers, substituímos o seletor nativo por um controle segmentado de abas horizontais premium (`Valor (R$)` | `Percentual (%)` | `Frete grátis`) com transições suaves, sombras sutis e estados ativos impecáveis.
 * **Refinamento Estético Global**:
   * **Efeito de Fundo Imersivo**: Adicionamos sobreposição escura com desfoque de fundo (`backdrop-blur-sm bg-black/60`) e animações de escala suave ao abrir o modal.
