@@ -63,5 +63,16 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
 
 ---
 
-## 8. Validação de Integridade
+## 8. Criação Dedicada de Recompensas no Admin (Novo Produto e Novo Voucher)
+* **Substituição do Botão Genérico**: Substituímos o antigo botão genérico `+ Nova Recompensa` por dois botões modernos e estilizados posicionados lado a lado: **"Novo produto"** e **"Novo voucher"**.
+* **Ícones e Estilos Distintos**:
+  * O botão **"Novo produto"** utiliza o ícone `Gift` em um estilo secundário premium (`bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20`).
+  * O botão **"Novo voucher"** utiliza o ícone `Ticket` em estilo primário sólido (`bg-primary text-primary-foreground`).
+* **Auto-Seleção e Fluxo Inteligente**:
+  * Ao clicar em **"Novo produto"**, o modal abre automaticamente pré-configurado com a categoria **"Produto físico"** selecionada e exibe o título dinâmico **"Novo produto"**.
+  * Ao clicar em **"Novo voucher"**, o modal abre automaticamente pré-configurado com a categoria de cupom de desconto (**"Voucher R$"**) e exibe o título dinâmico **"Novo voucher"**.
+
+---
+
+## 9. Validação de Integridade
 * **Tipagem Estrita**: Executamos o compilador TypeScript `npx tsc --noEmit` e validamos que a aplicação compila com **zero erros** de tipos.
