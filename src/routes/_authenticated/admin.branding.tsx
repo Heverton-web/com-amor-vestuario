@@ -823,6 +823,48 @@ function LivePreviewContent({ draft, page }: { draft: Branding; page: "landing" 
               {draft?.about_text || "Cada peça da nossa coleção passa por um processo de modelagem exclusivo. Valorizamos a produção justa e o acabamento meticuloso."}
             </p>
           </section>
+
+          {/* Galeria do Rascunho no Simulador */}
+          <section className="px-4 py-6 border-b border-foreground/5 bg-background space-y-3">
+            <h2 className="font-serif font-medium text-xs text-center">Quem veste a gente.</h2>
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin">
+              {(draft?.gallery_items?.length ? draft.gallery_items : [
+                { src: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80", caption: "Mariana · Blusa Linho" },
+                { src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80", caption: "Equipe Solaris · Fardamento" },
+                { src: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80", caption: "Carla · Vestido Sage" },
+                { src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80", caption: "Pedro · Camisa Argila" }
+              ]).map((i, idx) => (
+                <div key={idx} className="w-[100px] shrink-0">
+                  <figure className="relative overflow-hidden rounded-xl border border-foreground/5 aspect-[4/5] bg-muted/20">
+                    <img src={i.src || ""} alt="" className="h-full w-full object-cover" />
+                    <figcaption className="absolute inset-x-0 bottom-0 bg-black/60 p-1.5 text-[6px] text-white truncate text-center font-medium">
+                      {i.caption}
+                    </figcaption>
+                  </figure>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Depoimentos do Rascunho no Simulador */}
+          <section className="px-4 py-6 border-b border-foreground/5 text-white space-y-3" style={{ backgroundColor: draft?.primary_color || "#3d3028" }}>
+            <h2 className="font-serif font-medium text-xs text-center">A gente costura. Elas contam.</h2>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+              {(draft?.testimonials?.length ? draft.testimonials : [
+                { quote: "O acabamento é de outro mundo. Sinto o cuidado em cada costura — comprei uma peça, voltei para mais três.", name: "Beatriz Lima", role: "Cliente varejo" },
+                { quote: "Fizemos o fardamento da nossa equipe inteira. Pontualidade impecável e qualidade que valoriza nossa marca.", name: "Ricardo Sales", role: "Solaris Tecnologia" },
+                { quote: "Atendimento humano de verdade. Me ajudaram a escolher tamanho pelo WhatsApp e a peça caiu perfeita.", name: "Luana Pires", role: "Cliente varejo" }
+              ]).map((t, idx) => (
+                <div key={idx} className="w-[150px] shrink-0 bg-white/10 rounded-2xl p-3 border border-white/10 flex flex-col justify-between min-h-[90px]">
+                  <p className="text-[7px] italic leading-normal line-clamp-3">“{t.quote}”</p>
+                  <div className="text-[6px] border-t border-white/10 pt-1.5 mt-1.5 opacity-90">
+                    <span className="font-semibold block">{t.name}</span>
+                    <span className="opacity-70">{t.role}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       )}
 
