@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { 
   Upload, Save, ExternalLink, Palette, Sparkles, 
   Smartphone, Monitor, CheckCircle2, MapPin, Clock, Heart, 
-  ArrowRight, Landmark, PhoneCall, Trash2, Gift, ShoppingBag, Eye
+  ArrowRight, Landmark, PhoneCall, Trash2, Gift, ShoppingBag, Eye,
+  Plus, X
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/branding")({
@@ -224,6 +225,10 @@ function BrandingPage() {
   // Criador de Paleta Customizada
   const [customPaletteName, setCustomPaletteName] = useState("");
 
+  // Controle de Modais de Cadastro
+  const [showAddImageModal, setShowAddImageModal] = useState(false);
+  const [showAddTestimonialModal, setShowAddTestimonialModal] = useState(false);
+
   useEffect(() => {
     setDraft(branding);
   }, [branding]);
@@ -287,7 +292,8 @@ function BrandingPage() {
   const activeTabContent = tabSections[activeTab];
 
   return (
-    <AdminShell
+    <>
+      <AdminShell
       title="Branding & Conteúdo"
       actions={
         <div className="flex items-center gap-2">
@@ -457,9 +463,9 @@ function BrandingPage() {
                   <button
                     type="button"
                     onClick={saveCustomPalette}
-                    className="w-full sm:w-auto px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/95 transition-colors whitespace-nowrap"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap shadow-sm"
                   >
-                    💾 Salvar Paleta
+                    <Save className="h-3.5 w-3.5" /> Salvar Paleta
                   </button>
                 </div>
 
@@ -532,16 +538,10 @@ function BrandingPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        const current = draft.gallery_items || [];
-                        setDraft(d => ({
-                          ...d,
-                          gallery_items: [...current, { src: "", caption: "Nova Imagem", span: "" }]
-                        }));
-                      }}
-                      className="px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/95 transition-colors"
+                      onClick={() => setShowAddImageModal(true)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
                     >
-                      ➕ Adicionar Imagem
+                      <Plus className="h-3.5 w-3.5" /> Adicionar Imagem
                     </button>
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -581,16 +581,10 @@ function BrandingPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        const current = draft.testimonials || [];
-                        setDraft(d => ({
-                          ...d,
-                          testimonials: [...current, { quote: "", name: "Nome do Cliente", role: "Cliente" }]
-                        }));
-                      }}
-                      className="px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/95 transition-colors"
+                      onClick={() => setShowAddTestimonialModal(true)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
                     >
-                      ➕ Adicionar Depoimento
+                      <Plus className="h-3.5 w-3.5" /> Adicionar Depoimento
                     </button>
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -730,7 +724,29 @@ function BrandingPage() {
 
       </div>
     </AdminShell>
-  );
+
+    {showAddImageModal && (
+      <AddImageModal 
+        onClose={() => setShowAddImageModal(false)}
+        nextIndex={(draft.gallery_items || []).length}
+        onAdd={(item) => setDraft(d => ({
+          ...d,
+          gallery_items: [...(d.gallery_items || []), item]
+        }))}
+      />
+    )}
+
+    {showAddTestimonialModal && (
+      <AddTestimonialModal 
+        onClose={() => setShowAddTestimonialModal(false)}
+        onAdd={(item) => setDraft(d => ({
+          ...d,
+          testimonials: [...(d.testimonials || []), item]
+        }))}
+      />
+    )}
+  </>
+);
 }
 
 // Subcomponente de Renderização do Mockup em tempo real com Multi-Ambiente e Multi-Logo
@@ -919,6 +935,231 @@ function LivePreviewContent({ draft, page }: { draft: Branding; page: "landing" 
           © {new Date().getFullYear()} {brandTitle}. Todos os direitos reservados.
         </div>
       </footer>
+    </div>
+  );
+}
+
+// ==========================================
+// MODAIS DE CADASTRO (EXCLUSIVO)
+// ==========================================
+
+function AddImageModal({
+  onClose,
+  onAdd,
+  nextIndex
+}: {
+  onClose: () => void;
+  onAdd: (item: { src: string; caption: string; span: string }) => void;
+  nextIndex: number;
+}) {
+  const [caption, setCaption] = useState("");
+  const [span, setSpan] = useState("");
+  const [src, setSrc] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split(".").pop() || "bin";
+    const path = `gallery-item-${nextIndex}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("branding").upload(path, file, {
+      cacheControl: "3600",
+      upsert: true,
+    });
+    setUploading(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const { data } = supabase.storage.from("branding").getPublicUrl(path);
+    setSrc(data.publicUrl);
+    toast.success("Imagem enviada com sucesso!");
+  };
+
+  const handleSave = () => {
+    if (!src) {
+      toast.error("Por favor, envie uma imagem.");
+      return;
+    }
+    if (!caption.trim()) {
+      toast.error("Por favor, insira uma legenda.");
+      return;
+    }
+    onAdd({ src, caption: caption.trim(), span });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-3xl border border-border bg-background p-6 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <h3 className="font-display text-xl">Cadastrar Nova Imagem</h3>
+          <button onClick={onClose} className="rounded-full p-2 hover:bg-muted"><X className="h-4 w-4" /></button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Dropzone de upload */}
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Foto do Cliente</span>
+            <div 
+              onClick={() => fileRef.current?.click()}
+              className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden relative group"
+            >
+              {src ? (
+                <>
+                  <img src={src} alt="" className="h-full w-full object-cover animate-fade-in" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-xs text-white font-bold">Alterar foto</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-8 w-8 text-muted-foreground/60 mb-2 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-medium text-foreground/80">{uploading ? "Enviando arquivo..." : "Clique para selecionar"}</span>
+                  <span className="text-[10px] text-muted-foreground mt-1">Formatos aceitos: JPG, PNG, WEBP</span>
+                </>
+              )}
+            </div>
+            <input 
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleUpload}
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Legenda / Identificação</label>
+            <input 
+              type="text"
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              className="w-full bg-background border border-input rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary mt-1.5"
+              placeholder="Ex: Mariana · Blusa Linho"
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Disposição na Grade</label>
+            <select
+              value={span}
+              onChange={(e) => setSpan(e.target.value)}
+              className="w-full bg-background border border-input rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary mt-1.5"
+            >
+              <option value="">Tamanho Padrão (1x1)</option>
+              <option value="md:row-span-2">Destaque Vertical Duplo (1x2)</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex gap-2.5 border-t border-border pt-4 mt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 min-h-[40px] inline-flex items-center justify-center rounded-full border border-border px-5 py-2 text-xs font-semibold hover:bg-muted transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            className="flex-1 min-h-[40px] inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Salvar Imagem
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddTestimonialModal({
+  onClose,
+  onAdd
+}: {
+  onClose: () => void;
+  onAdd: (item: { quote: string; name: string; role: string }) => void;
+}) {
+  const [quote, setQuote] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("");
+
+  const handleSave = () => {
+    if (!quote.trim()) {
+      toast.error("Por favor, digite o depoimento.");
+      return;
+    }
+    if (!name.trim()) {
+      toast.error("Por favor, insira o nome da cliente.");
+      return;
+    }
+    onAdd({ quote: quote.trim(), name: name.trim(), role: role.trim() || "Cliente" });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-3xl border border-border bg-background p-6 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <h3 className="font-display text-xl">Cadastrar Novo Depoimento</h3>
+          <button onClick={onClose} className="rounded-full p-2 hover:bg-muted"><X className="h-4 w-4" /></button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Depoimento (Citação do Cliente)</label>
+            <textarea
+              rows={4}
+              value={quote}
+              onChange={(e) => setQuote(e.target.value)}
+              className="w-full bg-background border border-input rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary mt-1.5 resize-none"
+              placeholder="Ex: O acabamento é maravilhoso, caimento impecável. Super recomendo!"
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nome do Cliente</label>
+            <input 
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full bg-background border border-input rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary mt-1.5"
+              placeholder="Ex: Beatriz Lima"
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Ocupação / Cargo (Opcional)</label>
+            <input 
+              type="text"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full bg-background border border-input rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-primary mt-1.5"
+              placeholder="Ex: Cliente Varejo ou Sócia da Solaris"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-2.5 border-t border-border pt-4 mt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 min-h-[40px] inline-flex items-center justify-center rounded-full border border-border px-5 py-2 text-xs font-semibold hover:bg-muted transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            className="flex-1 min-h-[40px] inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Salvar Depoimento
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
