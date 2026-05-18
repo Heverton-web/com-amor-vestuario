@@ -5,7 +5,7 @@ export function About() {
   const { branding } = useBranding();
   const img = branding.about_image_url || atelier;
   return (
-    <section id="sobre" className="relative bg-background py-20 sm:py-28 overflow-hidden border-b border-border/40">
+    <section id="sobre" className="relative bg-background pt-12 pb-6 sm:pt-28 sm:pb-14 overflow-hidden border-b border-border/40">
       {/* Decorative subtle background blur */}
       <div 
         className="absolute -left-40 top-1/4 h-96 w-96 rounded-full opacity-[0.03] blur-[100px]" 

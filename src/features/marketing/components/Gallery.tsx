@@ -51,7 +51,7 @@ export function Gallery() {
   }, [maxIndex]);
 
   return (
-    <section id="galeria" className="py-16 sm:py-24 overflow-hidden bg-background">
+    <section id="galeria" className="pt-6 pb-12 sm:pt-14 sm:pb-24 overflow-hidden bg-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
