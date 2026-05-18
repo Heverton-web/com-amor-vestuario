@@ -254,11 +254,15 @@ function Catalogo() {
                     : "border-border"
               }`}
             >
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-secondary border border-border">
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-secondary/40 border border-border">
                 {r.images[0] ? (
                   <img src={r.images[0]} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full items-center justify-center"><Gift className="h-6 w-6 text-muted-foreground" /></div>
+                  <img
+                    src={rewardImage(r.images, r.kind)}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
                 )}
               </div>
               <div className="min-w-0 flex-1">
@@ -869,12 +873,14 @@ function Resgates() {
         {filtered.map((r) => (
           <div key={r.id} className="group flex flex-col rounded-2xl border border-border bg-card overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5">
             {/* Imagem da recompensa */}
-            <div className="relative h-36 w-full overflow-hidden bg-secondary">
+            <div className="relative h-32 w-full overflow-hidden bg-secondary/40">
               <img
                 src={rewardImage(r.reward?.images as string[] | undefined, r.reward?.kind as RewardKind ?? "frete_gratis")}
                 alt={r.reward?.name ?? ""}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
+              {/* Overlay gradiente sutil */}
+              <div className="absolute inset-0 bg-gradient-to-t from-card/40 via-transparent to-transparent" />
               {/* Badge de tipo */}
               <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-card/90 backdrop-blur-sm border border-border px-2.5 py-1 text-[10px] font-bold text-foreground uppercase tracking-wider">
                 {r.reward?.kind === "produto_fisico" ? <Gift className="h-3 w-3" /> : <Ticket className="h-3 w-3" />}

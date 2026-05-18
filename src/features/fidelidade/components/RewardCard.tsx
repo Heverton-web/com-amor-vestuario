@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Clock, Gift, Ticket, Truck } from "lucide-react";
-import type { RewardItem } from "@/features/fidelidade/services/rewards";
+import { Clock } from "lucide-react";
+import type { RewardItem, RewardKind } from "@/features/fidelidade/services/rewards";
 import { kindLabel, rewardSummary } from "@/features/fidelidade/services/rewards";
 
 function timeLeft(iso: string): string {
@@ -15,9 +15,16 @@ function timeLeft(iso: string): string {
 }
 
 function KindIcon({ k }: { k: RewardItem["kind"] }) {
-  if (k === "voucher_frete") return <Truck className="h-3.5 w-3.5" />;
-  if (k === "voucher_valor" || k === "voucher_percent") return <Ticket className="h-3.5 w-3.5" />;
-  return <Gift className="h-3.5 w-3.5" />;
+  if (k === "voucher_frete") return null;
+  if (k === "voucher_valor" || k === "voucher_percent") return null;
+  return null;
+}
+
+function defaultVoucherImg(kind: RewardKind): string {
+  if (kind === "voucher_frete") return "/voucher-frete.png";
+  if (kind === "voucher_valor") return "/voucher-reais.png";
+  if (kind === "voucher_percent") return "/voucher-percentual.png";
+  return "/voucher-frete.png";
 }
 
 export function RewardCard({
@@ -41,13 +48,21 @@ export function RewardCard({
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-lg">
-      <div className="relative aspect-[4/5] bg-secondary">
+      <div className="relative aspect-[4/5] bg-secondary/60">
         {img ? (
           <img src={img} alt={reward.name} loading="lazy" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <KindIcon k={reward.kind} />
+        ) : reward.kind === "produto_fisico" ? (
+          <div className="flex h-full w-full items-center justify-center text-muted-foreground/30">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="h-12 w-12 opacity-30"><path d="M20 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
           </div>
+        ) : (
+          <img
+            src={defaultVoucherImg(reward.kind)}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover opacity-40 mix-blend-multiply transition-transform group-hover:scale-105"
+            style={{ mixBlendMode: "multiply" }}
+          />
         )}
         <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/85 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider backdrop-blur">
           <KindIcon k={reward.kind} /> {kindLabel(reward.kind)}
