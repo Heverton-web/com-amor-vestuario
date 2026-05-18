@@ -33,8 +33,8 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/wrangler.jsonc ./wrangler.jsonc
 COPY --from=builder /app/package.json ./package.json
 
-# Instala apenas o wrangler como dependência de execução para o Miniflare do Cloudflare Pages local
-RUN npm install wrangler@3.57.1 --omit=dev --no-audit --no-fund
+# Instala a versão estável mais recente do wrangler para obter o runtime moderno compatível com 2025/2026
+RUN npm install wrangler --omit=dev --no-audit --no-fund
 
 # Expõe a porta configurada
 EXPOSE 3000
