@@ -22,7 +22,7 @@ export function Hours({ onContact }: { onContact: () => void }) {
             </p>
             <button
               onClick={onContact}
-              className="mt-8 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background hover:opacity-90"
+              className="mt-8 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-95 transition-all"
             >
               {branding.cta_contact_label}
             </button>

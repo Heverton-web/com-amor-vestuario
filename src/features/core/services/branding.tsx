@@ -157,6 +157,8 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     root.style.setProperty("--accent", branding.accent_color);
     root.style.setProperty("--background", branding.background_color);
     root.style.setProperty("--foreground", branding.foreground_color);
+    root.style.setProperty("--ink", branding.foreground_color);
+    root.style.setProperty("--cream", branding.background_color);
   }, [
     branding.primary_color,
     branding.accent_color,
