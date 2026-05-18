@@ -44,6 +44,8 @@ function Catalogo() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<RewardItem | null>(null);
   const [open, setOpen] = useState(false);
+  const [initialKind, setInitialKind] = useState<RewardKind>("produto_fisico");
+
   const { data: items } = useQuery({
     queryKey: ["rewards-admin"],
     queryFn: async () => {
@@ -69,8 +71,27 @@ function Catalogo() {
   });
   return (
     <>
-      <div className="mb-4 flex justify-end">
-        <button onClick={() => { setEditing(null); setOpen(true); }} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 text-sm text-primary-foreground"><Plus className="h-4 w-4" /> Nova recompensa</button>
+      <div className="mb-5 flex justify-end gap-3">
+        <button
+          onClick={() => {
+            setEditing(null);
+            setInitialKind("produto_fisico");
+            setOpen(true);
+          }}
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-5 text-sm font-medium text-primary hover:bg-primary/20 transition-all active:scale-[0.98] cursor-pointer"
+        >
+          <Gift className="h-4 w-4" /> Novo produto
+        </button>
+        <button
+          onClick={() => {
+            setEditing(null);
+            setInitialKind("voucher_valor");
+            setOpen(true);
+          }}
+          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/95 transition-all active:scale-[0.98] cursor-pointer"
+        >
+          <Ticket className="h-4 w-4" /> Novo voucher
+        </button>
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {(items ?? []).map((r) => (
@@ -98,12 +119,12 @@ function Catalogo() {
         ))}
         {!items?.length && <div className="col-span-full rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">Nenhuma recompensa criada ainda.</div>}
       </div>
-      {open && <RewardModal item={editing} onClose={() => { setOpen(false); setEditing(null); }} />}
+      {open && <RewardModal item={editing} initialKind={initialKind} onClose={() => { setOpen(false); setEditing(null); }} />}
     </>
   );
 }
 
-function RewardModal({ item, onClose }: { item: RewardItem | null; onClose: () => void }) {
+function RewardModal({ item, initialKind, onClose }: { item: RewardItem | null; initialKind: RewardKind; onClose: () => void }) {
   const qc = useQueryClient();
   const isEdit = !!item;
 
@@ -115,7 +136,7 @@ function RewardModal({ item, onClose }: { item: RewardItem | null; onClose: () =
   const [form, setForm] = useState({
     name: item?.name ?? "",
     description: item?.description ?? "",
-    kind: (item?.kind ?? "voucher_valor") as RewardKind,
+    kind: (item?.kind ?? initialKind) as RewardKind,
     points_cost: item?.points_cost ?? 50,
     stock: item?.stock ?? 10,
     image_url: item?.images?.[0] ?? "",
@@ -154,7 +175,9 @@ function RewardModal({ item, onClose }: { item: RewardItem | null; onClose: () =
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 md:items-center md:p-4">
       <div className="w-full max-w-lg rounded-t-3xl bg-card p-5 md:rounded-3xl md:p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-xl">{isEdit ? "Editar recompensa" : "Nova recompensa"}</h2>
+          <h2 className="font-display text-xl">
+            {isEdit ? "Editar recompensa" : form.kind === "produto_fisico" ? "Novo produto" : "Novo voucher"}
+          </h2>
           <button onClick={onClose} className="rounded-full p-2 hover:bg-secondary"><X className="h-4 w-4" /></button>
         </div>
         <div className="max-h-[70vh] space-y-3 overflow-y-auto text-sm">
