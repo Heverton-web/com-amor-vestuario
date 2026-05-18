@@ -4,12 +4,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { AdminShell } from "@/features/core/components/AdminShell";
-import { Plus, Trash2, Gift, X, Send, Pencil, Eye, EyeOff, Ticket, Calendar, Copy, ArrowUpRight, ArrowDownLeft, CheckCircle2, User, KeyRound, Upload, Check } from "lucide-react";
+import { Plus, Trash2, Gift, X, Send, Pencil, Eye, EyeOff, Ticket, Calendar, Copy, ArrowUpRight, ArrowDownLeft, CheckCircle2, User, KeyRound, Upload, Check, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { NumInput } from "@/features/core/components/num-input";
 import { kindLabel, type RewardItem, type RewardKind, type Redemption, type LedgerEntry } from "@/features/fidelidade/services/rewards";
 import { ensurePortalAccount } from "@/features/acessos/services/portal.functions";
 import { dateTimeBR, dateBR, brl } from "@/features/core/utils/format";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/features/core/components/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/recompensas")({
   component: RewardsAdmin,
@@ -40,11 +41,61 @@ function RewardsAdmin() {
   );
 }
 
+function getTimeLeftText(expiresAt: string): { text: string; isExpiringSoon: boolean; isExpired: boolean } {
+  const diff = new Date(expiresAt).getTime() - Date.now();
+  if (diff <= 0) {
+    return { text: "Encerrado", isExpiringSoon: false, isExpired: true };
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  
+  if (d > 0) {
+    return {
+      text: `Falta ${d}d ${h}h`,
+      isExpiringSoon: d <= 2,
+      isExpired: false
+    };
+  }
+  if (h > 0) {
+    return {
+      text: `Falta ${h}h ${m}m`,
+      isExpiringSoon: true,
+      isExpired: false
+    };
+  }
+  return {
+    text: `Falta ${m}m`,
+    isExpiringSoon: true,
+    isExpired: false
+  };
+}
+
 function Catalogo() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<RewardItem | null>(null);
   const [open, setOpen] = useState(false);
   const [initialKind, setInitialKind] = useState<RewardKind>("produto_fisico");
+  const [extendingItem, setExtendingItem] = useState<RewardItem | null>(null);
+
+  const extendExpiry = useMutation({
+    mutationFn: async ({ id, days }: { id: string; days: number | null }) => {
+      let nextDate: string | null = null;
+      if (days !== null) {
+        const base = new Date();
+        base.setDate(base.getDate() + days);
+        nextDate = base.toISOString();
+      }
+      const { error } = await supabase.from("reward_items" as never).update({ expires_at: nextDate } as never).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["rewards-admin"] });
+      toast.success("Validade prorrogada com sucesso!");
+      setExtendingItem(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data: items } = useQuery({
     queryKey: ["rewards-admin"],
@@ -121,17 +172,34 @@ function Catalogo() {
                   {isExpired && <span className="text-rose-600 font-semibold uppercase tracking-wider text-[9px] bg-rose-500/10 px-1.5 py-0.5 rounded-full ml-1 animate-pulse">Encerrado</span>}
                 </div>
                 <div className="truncate font-medium mt-1">{r.name}</div>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                  <span><strong className="text-primary">{r.points_cost}</strong> pts</span>
+                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1.5 text-xs items-center">
+                  <span><strong className="text-primary font-semibold">{r.points_cost}</strong> pts</span>
+                  <span className="text-muted-foreground/30">•</span>
                   <span>{r.stock} em estoque</span>
                   {r.expires_at && (
-                    <span className={isExpired ? "text-rose-600 font-medium" : ""}>
-                      Expira {dateTimeBR(r.expires_at)}
-                    </span>
+                    <>
+                      <span className="text-muted-foreground/30">•</span>
+                      {(() => {
+                        const { text, isExpiringSoon, isExpired: expired } = getTimeLeftText(r.expires_at);
+                        return (
+                          <span className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider ${
+                            expired 
+                              ? "bg-rose-500/10 text-rose-600 border border-rose-500/20" 
+                              : isExpiringSoon 
+                                ? "bg-amber-500/10 text-amber-600 border border-amber-500/20 animate-pulse-subtle" 
+                                : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                          }`}>
+                            <Clock className="h-2.5 w-2.5 shrink-0" />
+                            {text} (Expira {dateTimeBR(r.expires_at)})
+                          </span>
+                        );
+                      })()}
+                    </>
                   )}
                 </div>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <button onClick={() => { setEditing(r); setOpen(true); }} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-background hover:bg-secondary px-3 text-xs cursor-pointer"><Pencil className="h-3 w-3" /> Editar / Reativar</button>
+                  <button onClick={() => setExtendingItem(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary px-3 text-xs cursor-pointer"><Clock className="h-3 w-3" /> Prorrogar</button>
                   <button onClick={() => toggleActive.mutate(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-background hover:bg-secondary px-3 text-xs cursor-pointer">
                     {r.active ? <><EyeOff className="h-3 w-3" /> Desativar</> : <><Eye className="h-3 w-3" /> Ativar</>}
                   </button>
@@ -143,7 +211,88 @@ function Catalogo() {
         })}
         {!items?.length && <div className="col-span-full rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">Nenhuma recompensa criada ainda.</div>}
       </div>
+
       {open && <RewardModal item={editing} initialKind={initialKind} onClose={() => { setOpen(false); setEditing(null); }} />}
+
+      {extendingItem && (
+        <Dialog open={!!extendingItem} onOpenChange={(o) => !o && setExtendingItem(null)}>
+          <DialogContent className="max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl animate-scale-in">
+            <DialogHeader>
+              <DialogTitle className="font-display text-lg flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary animate-pulse-subtle" />
+                Prorrogar Validade
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground text-sm mt-1.5">
+                Escolha por quanto tempo deseja prorrogar ou alterar a validade de <strong className="text-foreground">{extendingItem.name}</strong>:
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid grid-cols-2 gap-2.5 mt-4">
+              {[
+                { label: "+ 3 Dias", days: 3 },
+                { label: "+ 7 Dias", days: 7 },
+                { label: "+ 15 Dias", days: 15 },
+                { label: "+ 30 Dias", days: 30 },
+                { label: "+ 90 Dias", days: 90 },
+                { label: "Sem expiração (Vitalício)", days: null }
+              ].map((opt) => (
+                <button
+                  key={opt.label}
+                  onClick={() => extendExpiry.mutate({ id: extendingItem.id, days: opt.days })}
+                  className="flex flex-col items-center justify-center p-3.5 rounded-2xl border border-border bg-secondary/30 hover:bg-secondary/60 hover:border-primary/40 active:scale-[0.98] transition-all text-xs font-semibold text-foreground cursor-pointer"
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-5 border-t border-border/60 pt-4">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">Ou escolha uma data e hora específica:</span>
+              <div className="flex gap-2">
+                <input
+                  type="datetime-local"
+                  id="custom-extend-date"
+                  className="flex-1 rounded-xl border border-border bg-background px-3.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
+                  defaultValue={extendingItem.expires_at ? extendingItem.expires_at.slice(0, 16) : ""}
+                />
+                <button
+                  onClick={() => {
+                    const el = document.getElementById("custom-extend-date") as HTMLInputElement;
+                    if (el && el.value) {
+                      const iso = new Date(el.value).toISOString();
+                      supabase.from("reward_items" as never).update({ expires_at: iso } as never).eq("id", extendingItem.id)
+                        .then(({ error }) => {
+                          if (error) {
+                            toast.error(error.message);
+                          } else {
+                            qc.invalidateQueries({ queryKey: ["rewards-admin"] });
+                            toast.success("Validade prorrogada com sucesso!");
+                            setExtendingItem(null);
+                          }
+                        });
+                    } else {
+                      toast.error("Por favor, selecione uma data válida.");
+                    }
+                  }}
+                  className="rounded-xl bg-primary px-4 text-xs font-bold text-primary-foreground hover:bg-primary/95 transition-all active:scale-[0.98] cursor-pointer"
+                >
+                  Salvar
+                </button>
+              </div>
+            </div>
+
+            <DialogFooter className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setExtendingItem(null)}
+                className="rounded-full border border-border bg-background px-5 py-2 text-xs font-semibold hover:bg-secondary transition-all active:scale-[0.98] cursor-pointer"
+              >
+                Cancelar
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
