@@ -6,22 +6,26 @@ export function Hero({ onContact }: { onContact: () => void }) {
   const { branding } = useBranding();
   const img = branding.hero_image_url || heroImg;
   return (
-    <section id="top" className="relative min-h-[600px] sm:min-h-[700px] flex items-center overflow-hidden bg-background text-foreground py-12 md:py-16">
-      {/* Cenário de Fundo Atmosférico (Sutil e desfocado) */}
-      <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
+    <section id="top" className="relative min-h-[600px] sm:min-h-[700px] flex items-center overflow-hidden bg-background text-foreground border-b border-border/40">
+      
+      {/* Container da Imagem (Lado Direito Inteiro no Desktop, Fullscreen no Mobile) */}
+      <div className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 z-0">
         <img
           src={img}
-          alt=""
-          className="h-full w-full object-cover opacity-5 blur-2xl scale-110"
+          alt="Com Amor Atelier"
+          className="h-full w-full object-cover object-top animate-fade-in"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
+        {/* Degradê sutil no lado esquerdo da imagem para se fundir ao fundo no Desktop (restrito à borda esquerda) */}
+        <div className="absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-background to-transparent z-10 hidden md:block" />
+        {/* Degradê sutil de baixo para cima no Mobile (restrito à borda inferior) */}
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent z-10 md:hidden" />
       </div>
 
       {/* Conteúdo Central */}
-      <div className="relative z-20 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 items-center md:grid-cols-[1.1fr_1fr] md:gap-16">
-          {/* Coluna de Texto */}
-          <div className="flex flex-col justify-center">
+      <div className="relative z-20 mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div className="grid md:grid-cols-2">
+          {/* Coluna da Esquerda (Texto) */}
+          <div className="flex flex-col justify-center pr-0 md:pr-12">
             <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-border bg-card/85 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:text-xs md:mb-6 backdrop-blur-sm shadow-sm">
               <Heart className="h-3.5 w-3.5 fill-primary stroke-primary text-primary" style={{ fill: branding.primary_color, stroke: branding.primary_color }} />
               {branding.tagline}
@@ -64,23 +68,6 @@ export function Hero({ onContact }: { onContact: () => void }) {
                 </div>
               ))}
             </dl>
-          </div>
-
-          {/* Coluna de Imagem com visualização 100% livre de cortes */}
-          <div className="relative flex items-center justify-center w-full h-full">
-            {/* Brilho decorativo atenuado atrás da imagem principal */}
-            <div 
-              className="absolute -inset-4 rounded-3xl opacity-10 blur-3xl -z-10" 
-              style={{ backgroundColor: branding.primary_color }}
-            />
-            
-            <div className="relative overflow-hidden rounded-3xl border border-border bg-muted/10 shadow-2xl p-2 md:p-3">
-              <img
-                src={img}
-                alt="Com Amor Atelier"
-                className="w-full h-auto max-h-[400px] sm:max-h-[480px] md:max-h-[580px] object-contain rounded-2xl animate-fade-in"
-              />
-            </div>
           </div>
         </div>
       </div>

@@ -790,43 +790,42 @@ function LivePreviewContent({ draft, page }: { draft: Branding; page: "landing" 
         /* PÁGINA 1: LANDING PAGE INSTITUCIONAL */
         <div className="flex-1 flex flex-col">
           {/* Hero Banner no Simulador */}
-          <section className="px-4 py-8 flex flex-col gap-4 relative overflow-hidden border-b border-foreground/5 bg-background">
-            {/* Ambient background blur */}
-            <div className="absolute inset-0 opacity-[0.03] blur-xl" style={{ backgroundImage: `url(${draft?.hero_image_url})`, backgroundSize: "cover" }} />
-            
-            {/* Conteudo do Texto no Simulador */}
-            <div className="relative z-10 space-y-2.5 max-w-full">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-border bg-card text-[6px] uppercase tracking-widest text-muted-foreground shadow-sm">
-                <Heart className="h-1.5 w-1.5 fill-primary stroke-primary text-primary" style={{ fill: draft?.primary_color, stroke: draft?.primary_color }} />
-                {draft?.tagline || "Modelagem exclusiva"}
-              </span>
-              <h1 className="font-serif text-sm font-semibold leading-tight text-foreground whitespace-pre-wrap">
-                {draft?.hero_title || "Peças atemporais criadas com afeto."}
-              </h1>
-              <p className="text-[7px] text-muted-foreground leading-normal">
-                {draft?.hero_subtitle || "Moda lenta inspirada na delicadeza e na alfaiataria fina."}
-              </p>
-              <div className="flex gap-2 pt-1">
-                <button 
-                  type="button"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[6px] font-bold shadow-sm transition-all whitespace-nowrap text-white"
-                  style={{ backgroundColor: draft?.primary_color }}
-                >
-                  {draft?.cta_shop_label || "Ver Coleção"} <ArrowRight className="h-1.5 w-1.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Imagem Completa (sem cortes) no Simulador */}
+          <section className="px-4 py-8 flex flex-col gap-4 relative overflow-hidden border-b border-foreground/5 bg-background min-h-[220px]">
+            {/* Imagem do lado direito (w-2/5 no simulador) */}
             {draft?.hero_image_url && (
-              <div className="relative overflow-hidden rounded-xl border border-border bg-muted/10 shadow-md p-1.5 w-full flex items-center justify-center max-h-[160px]">
+              <div className="absolute right-0 top-0 bottom-0 w-2/5 z-0">
                 <img 
                   src={draft.hero_image_url} 
                   alt="" 
-                  className="w-full h-auto max-h-[145px] object-contain rounded-lg"
+                  className="w-full h-full object-cover object-top"
                 />
+                {/* Degradê horizontal sutil restrito à borda esquerda da imagem no simulador */}
+                <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-background to-transparent z-10" />
               </div>
             )}
+            
+            {/* Conteúdo do Texto no Simulador */}
+            <div className="relative z-10 space-y-2.5 max-w-[60%] flex flex-col justify-center h-full">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-border bg-card text-[5px] uppercase tracking-widest text-muted-foreground shadow-sm w-fit">
+                <Heart className="h-1.5 w-1.5 fill-primary stroke-primary text-primary" style={{ fill: draft?.primary_color, stroke: draft?.primary_color }} />
+                {draft?.tagline || "Modelagem exclusiva"}
+              </span>
+              <h1 className="font-serif text-[10px] font-semibold leading-tight text-foreground whitespace-pre-wrap">
+                {draft?.hero_title || "Peças atemporais criadas com afeto."}
+              </h1>
+              <p className="text-[6px] text-muted-foreground leading-normal line-clamp-2">
+                {draft?.hero_subtitle || "Moda lenta inspirada na delicadeza e na alfaiataria fina."}
+              </p>
+              <div className="flex gap-2 pt-0.5">
+                <button 
+                  type="button"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[5px] font-bold shadow-sm transition-all whitespace-nowrap text-white"
+                  style={{ backgroundColor: draft?.primary_color }}
+                >
+                  {draft?.cta_shop_label || "Ver Coleção"} <ArrowRight className="h-1 w-1" />
+                </button>
+              </div>
+            </div>
           </section>
 
           {/* Seção Sobre */}
