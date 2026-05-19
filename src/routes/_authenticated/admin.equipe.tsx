@@ -125,22 +125,23 @@ function TeamPage() {
 
       {showCreate && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-xs animate-fade-in"
           onClick={() => setShowCreate(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg rounded-3xl border border-border bg-background p-6 shadow-xl"
+            className="w-full max-w-lg rounded-3xl border border-border bg-card p-6 shadow-2xl animate-scale-in"
           >
-            <h2 className="font-display text-2xl">Novo administrador</h2>
+            <h2 className="font-display text-2xl text-foreground">Novo administrador</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Defina credenciais e marque as páginas que essa pessoa poderá acessar.
             </p>
-            <div className="mt-5 space-y-3">
+            <div className="mt-5 space-y-4">
               <Field label="Nome">
                 <input
                   value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  placeholder="Ex: Heverton Peres"
                   className="input"
                 />
               </Field>
@@ -149,6 +150,7 @@ function TeamPage() {
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="Ex: heverton@comamor.app"
                   className="input"
                 />
               </Field>
@@ -157,22 +159,23 @@ function TeamPage() {
                   type="text"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder="Defina uma senha de acesso"
                   className="input"
                 />
               </Field>
               <PagesPicker value={form.pages} onChange={(s) => setForm({ ...form, pages: s })} />
             </div>
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-6 flex justify-end gap-2.5">
               <button
                 onClick={() => setShowCreate(false)}
-                className="rounded-full border border-border px-4 py-2 text-sm"
+                className="rounded-full border border-border bg-transparent px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted/80 active:scale-[0.98] transition-all cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 disabled={createMut.isPending}
                 onClick={() => createMut.mutate()}
-                className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
+                className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/95 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
               >
                 {createMut.isPending ? "Criando..." : "Criar"}
               </button>
@@ -181,7 +184,27 @@ function TeamPage() {
         </div>
       )}
 
-      <style>{`.input{width:100%;border:1px solid hsl(var(--border));background:hsl(var(--background));border-radius:.75rem;padding:.65rem .9rem;font-size:.875rem;outline:none}`}</style>
+      <style>{`
+        .input {
+          width: 100%;
+          border: 1px solid var(--border);
+          background: var(--background);
+          border-radius: 0.75rem;
+          padding: 0.65rem 0.9rem;
+          font-size: 0.875rem;
+          color: var(--foreground);
+          outline: none;
+          transition: all 0.2s ease-in-out;
+        }
+        .input:focus {
+          border-color: var(--primary);
+          box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 20%, transparent);
+        }
+        .input::placeholder {
+          color: var(--muted-foreground);
+          opacity: 0.6;
+        }
+      `}</style>
     </AdminShell>
   );
 }
@@ -189,7 +212,7 @@ function TeamPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-foreground">{label}</span>
       {children}
     </label>
   );
@@ -204,20 +227,23 @@ function PagesPicker({
 }) {
   return (
     <div>
-      <p className="mb-2 text-sm font-medium">Páginas liberadas</p>
-      <div className="grid grid-cols-2 gap-2">
+      <p className="mb-2 text-sm font-medium text-foreground font-display">Páginas liberadas</p>
+      <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto pr-1">
         {ADMIN_PAGES.map((p) => {
           const on = value.has(p.key);
           return (
             <label
               key={p.key}
-              className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm ${
-                on ? "border-primary bg-primary/10 text-primary" : "border-border bg-card"
+              className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-all hover:bg-muted/35 ${
+                on 
+                  ? "border-primary bg-primary/8 text-primary font-medium" 
+                  : "border-border bg-card text-muted-foreground"
               }`}
             >
               <input
                 type="checkbox"
                 checked={on}
+                className="h-4 w-4 rounded border-border text-primary accent-primary cursor-pointer focus:ring-0"
                 onChange={() => {
                   const next = new Set(value);
                   if (on) next.delete(p.key);
