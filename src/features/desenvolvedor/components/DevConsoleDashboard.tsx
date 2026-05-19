@@ -15,6 +15,7 @@ import { Input } from "@/features/core/components/input";
 import { Label } from "@/features/core/components/label";
 import { Switch } from "@/features/core/components/switch";
 import { Checkbox } from "@/features/core/components/checkbox";
+import { useBranding } from "@/features/core/services/branding";
 import {
   Table,
   TableBody,
@@ -58,6 +59,15 @@ import { WebhookLog, IntegrationSettings, ApiHealthStatus } from "../types";
 
 export function DevConsoleDashboard() {
   const queryClient = useQueryClient();
+  const { branding, save: saveBranding } = useBranding();
+  const [baseUrlSetting, setBaseUrlSetting] = useState("");
+
+  useEffect(() => {
+    if (branding?.base_url) {
+      setBaseUrlSetting(branding.base_url);
+    }
+  }, [branding]);
+
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedLog, setSelectedLog] = useState<WebhookLog | null>(null);
   const [fallbackMode, setFallbackMode] = useState(false);
@@ -528,6 +538,51 @@ export function DevConsoleDashboard() {
         {/* Tab 1: Diagnostics and keys */}
         <TabsContent value="diagnostics">
           <div className="grid gap-6 md:grid-cols-2">
+            {/* URL Base do Sistema */}
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Server className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle>URL Base do Sistema</CardTitle>
+                    <CardDescription>
+                      Configure a URL base do site para a geração de links absolutos de faturas, recibos e orçamentos
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="system-url">URL Base</Label>
+                  <Input
+                    id="system-url"
+                    value={baseUrlSetting}
+                    onChange={(e) => setBaseUrlSetting(e.target.value)}
+                    placeholder="https://sua-plataforma.com"
+                    className="font-mono bg-secondary/30 rounded-xl"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Se vazio, o sistema usará <code className="font-mono text-primary bg-primary/5 px-1 py-0.5 rounded">window.location.origin</code> do navegador.
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  onClick={async () => {
+                    const { error } = await saveBranding({ base_url: baseUrlSetting });
+                    if (error) {
+                      toast.error(`Erro ao salvar URL base: ${error}`);
+                    } else {
+                      toast.success("URL base do sistema salva!");
+                    }
+                  }}
+                  className="rounded-xl w-full"
+                >
+                  Salvar URL Base
+                </Button>
+              </CardFooter>
+            </Card>
+
             {/* N8N Settings */}
             <Card className="border-border bg-card">
               <CardHeader>

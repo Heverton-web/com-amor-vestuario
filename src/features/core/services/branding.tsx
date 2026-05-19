@@ -69,6 +69,7 @@ export type Branding = {
     name: string;
     role: string;
   }[];
+  base_url: string;
 };
 
 export const DEFAULT_BRANDING: Branding = {
@@ -150,6 +151,7 @@ export const DEFAULT_BRANDING: Branding = {
       role: "Cliente varejo",
     },
   ],
+  base_url: "",
 };
 
 type Ctx = {

@@ -80,7 +80,7 @@ function RecibosPage() {
     },
   });
 
-  const publicUrlFor = (token: string) => `${window.location.origin}/recibo/${token}`;
+  const publicUrlFor = (token: string) => `${branding.base_url || window.location.origin}/recibo/${token}`;
 
   const share = (r: Receipt, channel: "whatsapp" | "email" | "copy") => {
     const url = publicUrlFor(r.public_token);

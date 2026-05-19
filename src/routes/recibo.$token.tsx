@@ -84,8 +84,9 @@ function PublicReceiptPage() {
       issuer_address: rc.issuer_address || branding.issuer_address,
       signature_url: rc.signature_url || branding.signature_url,
       brand: branding.brand_name,
-      publicUrl:
-        typeof window !== "undefined" ? `${window.location.origin}/recibo/${rc.public_token}` : "",
+      publicUrl: branding.base_url
+        ? `${branding.base_url}/recibo/${rc.public_token}`
+        : (typeof window !== "undefined" ? `${window.location.origin}/recibo/${rc.public_token}` : ""),
     });
 
   return (

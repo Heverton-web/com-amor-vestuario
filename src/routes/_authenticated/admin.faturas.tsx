@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { NumInput } from "@/features/core/components/num-input";
 import { downloadDocPDF } from "@/features/core/services/pdf";
+import { useBranding } from "@/features/core/services/branding";
 
 export const Route = createFileRoute("/_authenticated/admin/faturas")({
   component: FaturasPage,
@@ -37,6 +38,7 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 function FaturasPage() {
+  const { branding } = useBranding();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<any | null>(null);
@@ -110,7 +112,7 @@ function FaturasPage() {
   });
 
   function publicUrl(token: string) {
-    return `${window.location.origin}/fatura/${token}`;
+    return `${branding.base_url || window.location.origin}/fatura/${token}`;
   }
   function copyLink(token: string) {
     navigator.clipboard.writeText(publicUrl(token));

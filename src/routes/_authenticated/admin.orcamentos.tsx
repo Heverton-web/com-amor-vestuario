@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { NumInput } from "@/features/core/components/num-input";
 import { downloadDocPDF } from "@/features/core/services/pdf";
+import { useBranding } from "@/features/core/services/branding";
 
 export const Route = createFileRoute("/_authenticated/admin/orcamentos")({
   component: QuotesPage,
@@ -627,6 +628,7 @@ function Lbl({ t, c = "", children }: { t: string; c?: string; children: React.R
 }
 
 function QuoteDetailDialog({ quote, onClose }: { quote: any; onClose: () => void }) {
+  const { branding } = useBranding();
   const { data: items, isLoading } = useQuery({
     queryKey: ["quote-items", quote.id],
     queryFn: async () =>
@@ -657,6 +659,7 @@ function QuoteDetailDialog({ quote, onClose }: { quote: any; onClose: () => void
       `*Total: ${brl(total)}*`,
       "",
       `Tabela aplicada: ${tier === "atacado" ? "ATACADO (6+ peças)" : "Varejo"}`,
+      `Visualizar online: ${branding.base_url || window.location.origin}/orcamento/${quote.id}`,
     ]
       .filter(Boolean)
       .join("\n");
@@ -664,7 +667,7 @@ function QuoteDetailDialog({ quote, onClose }: { quote: any; onClose: () => void
   }
 
   function copyLink() {
-    const url = `${window.location.origin}/orcamento/${quote.id}`;
+    const url = `${branding.base_url || window.location.origin}/orcamento/${quote.id}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copiado!");
   }
