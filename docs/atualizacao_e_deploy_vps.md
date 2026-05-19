@@ -79,7 +79,7 @@ docker service create \
   --label 'traefik.enable=true' \
   --label 'traefik.http.routers.comamor-app.rule=Host(`comamor.signa-docs.com`)' \
   --label 'traefik.http.routers.comamor-app.entrypoints=web,websecure' \
-  --label 'traefik.http.routers.comamor-app.tls.certresolver=letsencrypt' \
+  --label 'traefik.http.routers.comamor-app.tls.certresolver=letsencryptresolver' \
   --label 'traefik.http.services.comamor-app.loadbalancer.server.port=3000' \
   comamor-app:latest
 ```
