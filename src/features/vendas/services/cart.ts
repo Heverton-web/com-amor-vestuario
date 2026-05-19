@@ -33,10 +33,7 @@ export const useCart = create<CartState>()(
       add: (item) =>
         set((s) => {
           const idx = s.items.findIndex(
-            (i) =>
-              i.productId === item.productId &&
-              i.color === item.color &&
-              i.size === item.size,
+            (i) => i.productId === item.productId && i.color === item.color && i.size === item.size,
           );
           if (idx >= 0) {
             const items = [...s.items];
@@ -45,8 +42,7 @@ export const useCart = create<CartState>()(
           }
           return { items: [...s.items, item], open: true };
         }),
-      remove: (idx) =>
-        set((s) => ({ items: s.items.filter((_, i) => i !== idx) })),
+      remove: (idx) => set((s) => ({ items: s.items.filter((_, i) => i !== idx) })),
       setQty: (idx, qty) =>
         set((s) => {
           const items = [...s.items];

@@ -160,10 +160,7 @@ function TeamPage() {
                   className="input"
                 />
               </Field>
-              <PagesPicker
-                value={form.pages}
-                onChange={(s) => setForm({ ...form, pages: s })}
-              />
+              <PagesPicker value={form.pages} onChange={(s) => setForm({ ...form, pages: s })} />
             </div>
             <div className="mt-6 flex justify-end gap-2">
               <button
@@ -215,9 +212,7 @@ function PagesPicker({
             <label
               key={p.key}
               className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm ${
-                on
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-card"
+                on ? "border-primary bg-primary/10 text-primary" : "border-border bg-card"
               }`}
             >
               <input
@@ -318,4 +313,3 @@ function UserCard({
     </div>
   );
 }
-

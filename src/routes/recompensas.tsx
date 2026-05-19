@@ -27,9 +27,17 @@ function RecompensasPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
           <Link to="/recompensas" className="flex items-baseline gap-2">
-            <Heart className="h-4 w-4 fill-primary stroke-primary" style={{ fill: branding.primary_color, stroke: branding.primary_color }} />
+            <Heart
+              className="h-4 w-4 fill-primary stroke-primary"
+              style={{ fill: branding.primary_color, stroke: branding.primary_color }}
+            />
             <span className="font-display text-lg md:text-xl">{branding.brand_name}</span>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-primary" style={{ color: branding.primary_color }}>Clube Com Amor</span>
+            <span
+              className="text-[10px] uppercase tracking-[0.2em] text-primary"
+              style={{ color: branding.primary_color }}
+            >
+              Clube Com Amor
+            </span>
           </Link>
           <div className="flex items-center gap-2">
             <Link
@@ -84,5 +92,3 @@ function RecompensasPage() {
     </div>
   );
 }
-
-

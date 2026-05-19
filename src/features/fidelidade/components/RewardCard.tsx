@@ -28,7 +28,9 @@ function defaultVoucherImg(kind: RewardKind): string {
 }
 
 export function RewardCard({
-  reward, balance, onRedeem,
+  reward,
+  balance,
+  onRedeem,
 }: {
   reward: RewardItem;
   balance: number | null;
@@ -50,10 +52,25 @@ export function RewardCard({
     <article className="group overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-lg">
       <div className="relative aspect-[4/5] bg-secondary/60">
         {img ? (
-          <img src={img} alt={reward.name} loading="lazy" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+          <img
+            src={img}
+            alt={reward.name}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+          />
         ) : reward.kind === "produto_fisico" ? (
           <div className="flex h-full w-full items-center justify-center text-muted-foreground/30">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="h-12 w-12 opacity-30"><path d="M20 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+              className="h-12 w-12 opacity-30"
+            >
+              <path d="M20 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z" />
+              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+            </svg>
           </div>
         ) : (
           <img
@@ -98,4 +115,3 @@ export function RewardCard({
     </article>
   );
 }
-

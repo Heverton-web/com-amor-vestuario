@@ -18,16 +18,21 @@ function genPassword(): string {
 export const ensurePortalAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      customerId: z.string().uuid(),
-      channel: z.enum(["email", "whatsapp", "both"]).default("both"),
-    }).parse(input),
+    z
+      .object({
+        customerId: z.string().uuid(),
+        channel: z.enum(["email", "whatsapp", "both"]).default("both"),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     // Autorização: somente staff
-    const { data: isStaff } = await supabaseAdmin.rpc("is_staff" as never, {
-      _user_id: context.userId,
-    } as never);
+    const { data: isStaff } = await supabaseAdmin.rpc(
+      "is_staff" as never,
+      {
+        _user_id: context.userId,
+      } as never,
+    );
     if (!isStaff) throw new Response("Forbidden", { status: 403 });
 
     const { data: customer, error: cErr } = await supabaseAdmin
@@ -46,17 +51,17 @@ export const ensurePortalAccount = createServerFn({ method: "POST" })
 
     if (!userId) {
       // Tenta criar; se já existir, busca o existente
-      const { data: createRes, error: createErr } =
-        await supabaseAdmin.auth.admin.createUser({
-          email: customer.email,
-          password: tempPassword,
-          email_confirm: true,
-          user_metadata: { full_name: customer.name },
-        });
+      const { data: createRes, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+        email: customer.email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: { full_name: customer.name },
+      });
       if (createErr) {
         // Email já existente: localizar por listUsers
         const { data: list } = await supabaseAdmin.auth.admin.listUsers({
-          page: 1, perPage: 200,
+          page: 1,
+          perPage: 200,
         });
         const existing = list?.users.find((u) => u.email === customer.email);
         if (!existing) throw new Error(createErr.message);
@@ -107,4 +112,3 @@ export const ensurePortalAccount = createServerFn({ method: "POST" })
       loginUrl,
     };
   });
-

@@ -38,4 +38,3 @@ function AuthGuard() {
 
   return <Outlet />;
 }
-

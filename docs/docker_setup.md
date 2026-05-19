@@ -1,6 +1,6 @@
 # Guia de Configuração e Execução do Docker
 
-Este guia descreve como construir, configurar e executar a plataforma **Com Amor Vestuário** utilizando contêineres Docker. 
+Este guia descreve como construir, configurar e executar a plataforma **Com Amor Vestuário** utilizando contêineres Docker.
 
 O projeto é baseado no framework **TanStack Start** (React + Vite) e utiliza a integração nativa com o **Cloudflare Workers** através do **Wrangler**. A configuração Docker abaixo permite compilar toda a aplicação e rodá-la de forma 100% independente em servidores privados (VPS, instâncias de nuvem, AWS, GCP, etc.) simulando perfeitamente o ambiente de borda (edge).
 
@@ -9,16 +9,19 @@ O projeto é baseado no framework **TanStack Start** (React + Vite) e utiliza a 
 ## 🏗️ Estrutura do Dockerfile
 
 O `Dockerfile` na raiz do projeto foi projetado utilizando a técnica de **Multi-stage Build** (construção em múltiplos estágios) com os seguintes objetivos:
+
 1. **Redução de tamanho**: A imagem final contém apenas o necessário para a execução, reduzindo o tamanho de gigabytes para poucos megabytes.
 2. **Segurança**: Arquivos de desenvolvimento, chaves locais e dependências de compilação (como compiladores e linters) não são copiados para a imagem final de produção.
 3. **Cache Inteligente**: O Docker aproveita o cache de dependências de forma eficaz para acelerar builds subsequentes.
 
 ### Estágio 1: Builder (Compilação)
+
 - Baseado em `node:20-alpine` (uma distribuição Linux extremamente leve e rápida).
 - Instala todas as dependências do `package.json` (incluindo `devDependencies` e o Vite).
 - Transpila os códigos TypeScript e gera os assets otimizados do cliente em `dist/client` e o arquivo do servidor em `dist/server/index.js`.
 
 ### Estágio 2: Runner (Execução)
+
 - Baseado em `node:20-alpine`.
 - Copia apenas os arquivos gerados no estágio anterior (`dist/`).
 - Instala apenas o runtime de simulação de edge do **Wrangler** (`wrangler`) sem as dependências de desenvolvimento.
@@ -30,6 +33,7 @@ O `Dockerfile` na raiz do projeto foi projetado utilizando a técnica de **Multi
 ## 🚫 Arquivos Ignorados (`.dockerignore`)
 
 Para impedir que arquivos desnecessários aumentem o contexto enviado ao Docker Daemon ou vazem chaves secretas de ambiente locales, o arquivo `.dockerignore` bloqueia:
+
 - Pasta `node_modules/` local.
 - Pastas temporárias e caches como `.tanstack/`, `.wrangler/`, e `.output/`.
 - Chaves confidenciais como `.env`, `.env.local` e `.dev.vars`.
@@ -42,6 +46,7 @@ Para impedir que arquivos desnecessários aumentem o contexto enviado ao Docker 
 Siga as instruções abaixo para buildar e rodar o projeto localmente ou em produção.
 
 ### 1. Build da Imagem Docker
+
 Na raiz do projeto (onde está o `Dockerfile`), execute o comando para construir a imagem. Vamos chamá-la de `comamor-vestuario`:
 
 ```bash
@@ -52,6 +57,7 @@ docker build -t comamor-vestuario .
 > O primeiro build pode demorar alguns minutos para baixar a imagem base e instalar os pacotes, mas os próximos builds serão consideravelmente mais rápidos graças ao sistema de cache do Docker.
 
 ### 2. Executando o Contêiner
+
 Para iniciar o contêiner mapeando a porta local `3000` para a porta `3000` interna do contêiner:
 
 ```bash
@@ -78,6 +84,7 @@ docker run -d \
 ```
 
 ### Usando um arquivo `.env` de produção
+
 Se preferir gerenciar através de um arquivo local contendo as chaves de produção, crie um arquivo por exemplo `.env.prod` e execute:
 
 ```bash
@@ -94,27 +101,31 @@ docker run -d \
 
 Aqui estão alguns comandos básicos e úteis do Docker para gerenciar o servidor:
 
-* **Visualizar os logs em tempo real**:
+- **Visualizar os logs em tempo real**:
+
   ```bash
   docker logs -f comamor-app
   ```
 
-* **Parar o contêiner**:
+- **Parar o contêiner**:
+
   ```bash
   docker stop comamor-app
   ```
 
-* **Iniciar o contêiner parado**:
+- **Iniciar o contêiner parado**:
+
   ```bash
   docker start comamor-app
   ```
 
-* **Remover o contêiner**:
+- **Remover o contêiner**:
+
   ```bash
   docker rm -f comamor-app
   ```
 
-* **Verificar o consumo de memória e CPU**:
+- **Verificar o consumo de memória e CPU**:
   ```bash
   docker stats comamor-app
   ```
@@ -123,6 +134,6 @@ Aqui estão alguns comandos básicos e úteis do Docker para gerenciar o servido
 
 ## 💡 Melhores Práticas para Produção
 
-* **Orquestração (Docker Compose)**: Para cenários de produção mais robustos, recomenda-se criar um arquivo `docker-compose.yml` integrando o contêiner da aplicação com proxies reversos (como Nginx, Caddy ou Traefik) para gerenciar facilmente certificados SSL/HTTPS.
-* **Restart Policy**: Adicione a flag `--restart unless-stopped` no comando `docker run` para garantir que a aplicação reinicie automaticamente caso o servidor sofra um reboot físico ou falha de sistema.
-* **Saúde do Contêiner (Healthcheck)**: Pode ser configurado um Healthcheck apontando para `/` ou `/api` do seu app para assegurar que serviços externos de monitoramento saibam exatamente se o contêiner está pronto para receber requisições HTTP.
+- **Orquestração (Docker Compose)**: Para cenários de produção mais robustos, recomenda-se criar um arquivo `docker-compose.yml` integrando o contêiner da aplicação com proxies reversos (como Nginx, Caddy ou Traefik) para gerenciar facilmente certificados SSL/HTTPS.
+- **Restart Policy**: Adicione a flag `--restart unless-stopped` no comando `docker run` para garantir que a aplicação reinicie automaticamente caso o servidor sofra um reboot físico ou falha de sistema.
+- **Saúde do Contêiner (Healthcheck)**: Pode ser configurado um Healthcheck apontando para `/` ou `/api` do seu app para assegurar que serviços externos de monitoramento saibam exatamente se o contêiner está pronto para receber requisições HTTP.

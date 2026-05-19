@@ -46,11 +46,11 @@
   --radius: 0.75rem;
 
   /* Warm artisanal palette */
-  --background: oklch(0.972 0.018 80);          /* cream */
-  --foreground: oklch(0.255 0.035 45);          /* deep walnut */
+  --background: oklch(0.972 0.018 80); /* cream */
+  --foreground: oklch(0.255 0.035 45); /* deep walnut */
   --cream: oklch(0.972 0.018 80);
   --ink: oklch(0.255 0.035 45);
-  --clay: oklch(0.62 0.15 38);                  /* terracotta */
+  --clay: oklch(0.62 0.15 38); /* terracotta */
   --sage: oklch(0.65 0.08 145);
   --rose: oklch(0.78 0.07 20);
 
@@ -59,7 +59,7 @@
   --popover: oklch(0.99 0.01 80);
   --popover-foreground: var(--ink);
 
-  --primary: oklch(0.55 0.16 38);               /* clay-deep */
+  --primary: oklch(0.55 0.16 38); /* clay-deep */
   --primary-foreground: oklch(0.98 0.015 80);
 
   --secondary: oklch(0.93 0.03 75);
@@ -102,21 +102,21 @@
 }
 
 @layer base {
-  * { 
-    border-color: var(--color-border); 
+  * {
+    border-color: var(--color-border);
     scrollbar-width: thin;
     scrollbar-color: var(--color-primary) transparent;
   }
-  
+
   ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   ::-webkit-scrollbar-thumb {
     background-color: var(--color-primary);
     border-radius: 5px;
@@ -129,7 +129,11 @@
     font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, h4, .font-display {
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
     font-family: var(--font-display);
     font-feature-settings: "ss01";
     letter-spacing: -0.01em;
@@ -143,9 +147,14 @@
 
 @layer utilities {
   .grain {
-    background-image:
-      radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--ink) 6%, transparent) 1px, transparent 0);
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      color-mix(in oklab, var(--ink) 6%, transparent) 1px,
+      transparent 0
+    );
     background-size: 3px 3px;
   }
-  .text-balance { text-wrap: balance; }
+  .text-balance {
+    text-wrap: balance;
+  }
 }

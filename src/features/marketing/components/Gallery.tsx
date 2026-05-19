@@ -55,38 +55,31 @@ export function Gallery() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
-            <span className="text-xs uppercase tracking-[0.25em] text-primary">
-              galeria
-            </span>
+            <span className="text-xs uppercase tracking-[0.25em] text-primary">galeria</span>
             <h2 className="mt-3 font-display text-4xl font-medium leading-tight md:text-5xl">
               Quem veste a gente.
             </h2>
           </div>
           <p className="max-w-md text-muted-foreground">
-            Clientes reais usando peças reais. Sem retoque, sem cenário — só
-            gente que ficou bonita de verdade.
+            Clientes reais usando peças reais. Sem retoque, sem cenário — só gente que ficou bonita
+            de verdade.
           </p>
         </div>
 
         {/* Carousel Container */}
-        <div 
+        <div
           className="mt-10 relative group"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
           <div className="overflow-hidden rounded-3xl">
-            <div 
+            <div
               className="flex transition-transform duration-1000 ease-in-out -mx-2 sm:-mx-3"
               style={{ transform: `translateX(-${currentIndex * (100 / visibleCount)}%)` }}
             >
               {items.map((i, idx) => (
-                <div 
-                  key={idx} 
-                  className="w-full sm:w-1/2 lg:w-1/4 shrink-0 px-2 sm:px-3"
-                >
-                  <figure
-                    className="group/item relative overflow-hidden rounded-3xl border border-border aspect-[4/5] bg-muted/20"
-                  >
+                <div key={idx} className="w-full sm:w-1/2 lg:w-1/4 shrink-0 px-2 sm:px-3">
+                  <figure className="group/item relative overflow-hidden rounded-3xl border border-border aspect-[4/5] bg-muted/20">
                     <img
                       src={i.src}
                       alt={i.caption}
@@ -110,7 +103,9 @@ export function Gallery() {
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
                   className={`h-2 rounded-full transition-all duration-500 ${
-                    currentIndex === idx ? "w-6 bg-primary" : "w-2 bg-primary/20 hover:bg-primary/40"
+                    currentIndex === idx
+                      ? "w-6 bg-primary"
+                      : "w-2 bg-primary/20 hover:bg-primary/40"
                   }`}
                   aria-label={`Ir para slide ${idx + 1}`}
                 />

@@ -69,4 +69,3 @@ export function Hours({ onContact }: { onContact: () => void }) {
     </section>
   );
 }
-

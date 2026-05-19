@@ -8,7 +8,13 @@ import { lookupCep } from "@/features/vendas/services/viacep";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, Search, CreditCard, Check, Ticket, X as XIcon } from "lucide-react";
-import { evaluateVoucher, markVoucherUsed, type VoucherEval, type RewardItem, type Redemption } from "@/features/fidelidade/services/rewards";
+import {
+  evaluateVoucher,
+  markVoucherUsed,
+  type VoucherEval,
+  type RewardItem,
+  type Redemption,
+} from "@/features/fidelidade/services/rewards";
 import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/checkout")({
@@ -19,10 +25,23 @@ function CheckoutPage() {
   const cart = useCart();
   const navigate = useNavigate();
   const totalQty = cart.totalQty();
-  const items = useMemo(() => cart.items.map((i) => ({ ...i, unit: priceFor(totalQty, i.retailPrice, i.wholesalePrice) })), [cart.items, totalQty]);
+  const items = useMemo(
+    () =>
+      cart.items.map((i) => ({ ...i, unit: priceFor(totalQty, i.retailPrice, i.wholesalePrice) })),
+    [cart.items, totalQty],
+  );
   const subtotal = items.reduce((a, b) => a + b.unit * b.qty, 0);
 
-  const [form, setForm] = useState({ name: "", email: "", phone: "", cep: "", street: "", number: "", city: "", state: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    cep: "",
+    street: "",
+    number: "",
+    city: "",
+    state: "",
+  });
   const [shipping, setShipping] = useState(0);
   const [placing, setPlacing] = useState(false);
   const [done, setDone] = useState<string | null>(null);
@@ -35,16 +54,22 @@ function CheckoutPage() {
   const { data: userData } = useQuery({
     queryKey: ["auth-user"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       return user;
-    }
+    },
   });
 
   const { data: customer } = useQuery({
     queryKey: ["checkout-customer", userData?.id],
     queryFn: async () => {
       if (!userData?.id) return null;
-      const { data } = await supabase.from("customers").select("*").eq("user_id", userData.id).maybeSingle();
+      const { data } = await supabase
+        .from("customers")
+        .select("*")
+        .eq("user_id", userData.id)
+        .maybeSingle();
       return data;
     },
     enabled: !!userData?.id,
@@ -60,9 +85,9 @@ function CheckoutPage() {
         .eq("customer_id", customer.id)
         .eq("status", "resgatado")
         .order("created_at", { ascending: false });
-      
+
       return ((data ?? []) as unknown as (Redemption & { reward: RewardItem })[]).filter(
-        (r) => r.voucher_code && (!r.valid_until || new Date(r.valid_until) >= new Date())
+        (r) => r.voucher_code && (!r.valid_until || new Date(r.valid_until) >= new Date()),
       );
     },
     enabled: !!customer?.id,
@@ -99,34 +124,61 @@ function CheckoutPage() {
     // Passa o ID do cliente autenticado logado para avaliar de forma precisa
     const res = await evaluateVoucher(voucherCode, customer?.id || null, subtotal, shipping);
     setApplying(false);
-    if (!res.ok) { toast.error(res.error || "Voucher inválido"); return; }
+    if (!res.ok) {
+      toast.error(res.error || "Voucher inválido");
+      return;
+    }
     setVoucher(res);
     toast.success("Voucher aplicado!");
   }
 
-  function removeVoucher() { setVoucher(null); setVoucherCode(""); }
+  function removeVoucher() {
+    setVoucher(null);
+    setVoucherCode("");
+  }
 
   async function fetchCep() {
     const a = await lookupCep(form.cep);
-    if (!a) { toast.error("CEP não encontrado"); return; }
+    if (!a) {
+      toast.error("CEP não encontrado");
+      return;
+    }
     setForm((s) => ({ ...s, street: a.logradouro, city: a.localidade, state: a.uf }));
     setShipping(await calcShipping(form.cep, totalQty));
   }
 
   async function placeOrder() {
     if (!items.length) return;
-    if (!form.name || !form.phone) { toast.error("Preencha nome e WhatsApp"); return; }
+    if (!form.name || !form.phone) {
+      toast.error("Preencha nome e WhatsApp");
+      return;
+    }
     setPlacing(true);
 
     // upsert customer by phone or email
-    const { data: existing } = await supabase.from("customers").select("id").eq("phone", form.phone).maybeSingle();
+    const { data: existing } = await supabase
+      .from("customers")
+      .select("id")
+      .eq("phone", form.phone)
+      .maybeSingle();
     let customerId = existing?.id;
     if (!customerId) {
-      const { data: c } = await supabase.from("customers").insert({
-        name: form.name, type: "pf", phone: form.phone, email: form.email,
-        category: totalQty >= 6 ? "atacado" : "varejo",
-        cep: form.cep, street: form.street, number: form.number, city: form.city, state: form.state,
-      }).select("id").single();
+      const { data: c } = await supabase
+        .from("customers")
+        .insert({
+          name: form.name,
+          type: "pf",
+          phone: form.phone,
+          email: form.email,
+          category: totalQty >= 6 ? "atacado" : "varejo",
+          cep: form.cep,
+          street: form.street,
+          number: form.number,
+          city: form.city,
+          state: form.state,
+        })
+        .select("id")
+        .single();
       customerId = c?.id;
     }
 
@@ -134,7 +186,11 @@ function CheckoutPage() {
     let finalVoucher = voucher;
     if (voucher && customerId) {
       const recheck = await evaluateVoucher(voucherCode, customerId, subtotal, shipping);
-      if (!recheck.ok) { toast.error(recheck.error || "Voucher inválido para este cliente"); setPlacing(false); return; }
+      if (!recheck.ok) {
+        toast.error(recheck.error || "Voucher inválido para este cliente");
+        setPlacing(false);
+        return;
+      }
       finalVoucher = recheck;
     }
     const effShip = finalVoucher?.freeShipping ? 0 : shipping;
@@ -144,21 +200,42 @@ function CheckoutPage() {
       ? `Voucher ${finalVoucher.redemption.voucher_code}: -${brl(finalVoucher.freeShipping ? shipping : (finalVoucher.discount ?? 0))}`
       : null;
 
-    const { data: order } = await supabase.from("orders").insert({
-      customer_id: customerId, status: "realizado", source: "loja_virtual",
-      subtotal, shipping: effShip, total: finalTotal,
-      notes: voucherNote,
-    }).select().single();
+    const { data: order } = await supabase
+      .from("orders")
+      .insert({
+        customer_id: customerId,
+        status: "realizado",
+        source: "loja_virtual",
+        subtotal,
+        shipping: effShip,
+        total: finalTotal,
+        notes: voucherNote,
+      })
+      .select()
+      .single();
 
     if (order) {
-      await supabase.from("order_items").insert(items.map((it) => ({
-        order_id: order.id, product_id: it.productId, product_name: it.name,
-        color: it.color, size: it.size, quantity: it.qty, unit_price: it.unit, total: it.unit * it.qty,
-      })));
+      await supabase.from("order_items").insert(
+        items.map((it) => ({
+          order_id: order.id,
+          product_id: it.productId,
+          product_name: it.name,
+          color: it.color,
+          size: it.size,
+          quantity: it.qty,
+          unit_price: it.unit,
+          total: it.unit * it.qty,
+        })),
+      );
       await supabase.from("kanban_cards").insert({
-        board: "pedidos", stage: "realizado", title: `${order.code} · ${form.name}`,
-        customer_id: customerId, order_id: order.id, amount: finalTotal,
-        contact_name: form.name, contact_whatsapp: form.phone,
+        board: "pedidos",
+        stage: "realizado",
+        title: `${order.code} · ${form.name}`,
+        customer_id: customerId,
+        order_id: order.id,
+        amount: finalTotal,
+        contact_name: form.name,
+        contact_whatsapp: form.phone,
       });
       if (finalVoucher?.redemption) await markVoucherUsed(finalVoucher.redemption.id, order.id);
       cart.clear();
@@ -173,10 +250,20 @@ function CheckoutPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <div className="max-w-md rounded-3xl border border-border bg-card p-10 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-7 w-7" /></div>
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Check className="h-7 w-7" />
+          </div>
           <h1 className="mt-5 font-display text-3xl">Pedido recebido!</h1>
-          <p className="mt-2 text-muted-foreground">Seu pedido <strong>{done}</strong> foi registrado. Em breve enviaremos o link de pagamento (Mercado Pago) pelo WhatsApp.</p>
-          <Link to="/loja" className="mt-6 inline-flex rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground">Voltar para a loja</Link>
+          <p className="mt-2 text-muted-foreground">
+            Seu pedido <strong>{done}</strong> foi registrado. Em breve enviaremos o link de
+            pagamento (Mercado Pago) pelo WhatsApp.
+          </p>
+          <Link
+            to="/loja"
+            className="mt-6 inline-flex rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground"
+          >
+            Voltar para a loja
+          </Link>
         </div>
       </div>
     );
@@ -187,7 +274,12 @@ function CheckoutPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground">Seu carrinho está vazio.</p>
-          <Link to="/loja" className="mt-4 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm text-primary-foreground">Ir para a loja</Link>
+          <Link
+            to="/loja"
+            className="mt-4 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm text-primary-foreground"
+          >
+            Ir para a loja
+          </Link>
         </div>
       </div>
     );
@@ -197,7 +289,10 @@ function CheckoutPage() {
     <div className="min-h-screen bg-background pb-28 md:pb-0">
       <header className="border-b border-border">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:h-16 sm:px-6">
-          <Link to="/loja" className="inline-flex min-h-11 items-center gap-1 text-sm"><ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Voltar à loja</span></Link>
+          <Link to="/loja" className="inline-flex min-h-11 items-center gap-1 text-sm">
+            <ArrowLeft className="h-4 w-4" />{" "}
+            <span className="hidden sm:inline">Voltar à loja</span>
+          </Link>
           <h1 className="font-display text-base sm:text-xl">Finalizar compra</h1>
           <span className="w-8" />
         </div>
@@ -207,19 +302,78 @@ function CheckoutPage() {
         <div className="space-y-5 rounded-3xl border border-border bg-card p-4 sm:p-6">
           <h2 className="font-display text-lg sm:text-xl">Seus dados</h2>
           <div className="grid gap-4 md:grid-cols-2">
-            <Lbl t="Nome completo" c="md:col-span-2"><input required value={form.name} onChange={(e) => set("name", e.target.value)} className="input" /></Lbl>
-            <Lbl t="WhatsApp"><input required inputMode="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} className="input" /></Lbl>
-            <Lbl t="E-mail"><input type="email" inputMode="email" value={form.email} onChange={(e) => set("email", e.target.value)} className="input" /></Lbl>
+            <Lbl t="Nome completo" c="md:col-span-2">
+              <input
+                required
+                value={form.name}
+                onChange={(e) => set("name", e.target.value)}
+                className="input"
+              />
+            </Lbl>
+            <Lbl t="WhatsApp">
+              <input
+                required
+                inputMode="tel"
+                value={form.phone}
+                onChange={(e) => set("phone", e.target.value)}
+                className="input"
+              />
+            </Lbl>
+            <Lbl t="E-mail">
+              <input
+                type="email"
+                inputMode="email"
+                value={form.email}
+                onChange={(e) => set("email", e.target.value)}
+                className="input"
+              />
+            </Lbl>
             <Lbl t="CEP">
               <div className="flex gap-2">
-                <input inputMode="numeric" value={form.cep} onChange={(e) => set("cep", e.target.value)} className="input flex-1" />
-                <button onClick={fetchCep} aria-label="Buscar CEP" className="inline-flex h-11 min-w-11 items-center justify-center rounded-xl border border-border px-3"><Search className="h-4 w-4" /></button>
+                <input
+                  inputMode="numeric"
+                  value={form.cep}
+                  onChange={(e) => set("cep", e.target.value)}
+                  className="input flex-1"
+                />
+                <button
+                  onClick={fetchCep}
+                  aria-label="Buscar CEP"
+                  className="inline-flex h-11 min-w-11 items-center justify-center rounded-xl border border-border px-3"
+                >
+                  <Search className="h-4 w-4" />
+                </button>
               </div>
             </Lbl>
-            <Lbl t="Número"><input inputMode="numeric" value={form.number} onChange={(e) => set("number", e.target.value)} className="input" /></Lbl>
-            <Lbl t="Rua" c="md:col-span-2"><input value={form.street} onChange={(e) => set("street", e.target.value)} className="input" /></Lbl>
-            <Lbl t="Cidade"><input value={form.city} onChange={(e) => set("city", e.target.value)} className="input" /></Lbl>
-            <Lbl t="UF"><input value={form.state} onChange={(e) => set("state", e.target.value)} className="input" /></Lbl>
+            <Lbl t="Número">
+              <input
+                inputMode="numeric"
+                value={form.number}
+                onChange={(e) => set("number", e.target.value)}
+                className="input"
+              />
+            </Lbl>
+            <Lbl t="Rua" c="md:col-span-2">
+              <input
+                value={form.street}
+                onChange={(e) => set("street", e.target.value)}
+                className="input"
+              />
+            </Lbl>
+            <Lbl t="Cidade">
+              <input
+                value={form.city}
+                onChange={(e) => set("city", e.target.value)}
+                className="input"
+              />
+            </Lbl>
+            <Lbl t="UF">
+              <input
+                value={form.state}
+                onChange={(e) => set("state", e.target.value)}
+                className="input"
+              />
+            </Lbl>
           </div>
         </div>
 
@@ -228,21 +382,47 @@ function CheckoutPage() {
             <h3 className="font-display text-lg">Resumo</h3>
             <ul className="mt-3 space-y-2 text-sm">
               {items.map((i, k) => (
-                <li key={k} className="flex justify-between gap-3"><span className="line-clamp-1">{i.qty}x {i.name}</span><span className="shrink-0">{brl(i.unit * i.qty)}</span></li>
+                <li key={k} className="flex justify-between gap-3">
+                  <span className="line-clamp-1">
+                    {i.qty}x {i.name}
+                  </span>
+                  <span className="shrink-0">{brl(i.unit * i.qty)}</span>
+                </li>
               ))}
             </ul>
 
             <div className="mt-4 border-t border-border pt-4">
               {voucher ? (
                 <div className="flex items-center justify-between gap-2 rounded-xl bg-primary/10 px-3 py-2 text-sm">
-                  <span className="flex items-center gap-2 truncate"><Ticket className="h-4 w-4 text-primary" /><code className="font-mono text-xs">{voucherCode.toUpperCase()}</code><span className="text-xs text-muted-foreground truncate">aplicado</span></span>
-                  <button onClick={removeVoucher} aria-label="Remover voucher" className="rounded-full p-1 hover:bg-background"><XIcon className="h-4 w-4" /></button>
+                  <span className="flex items-center gap-2 truncate">
+                    <Ticket className="h-4 w-4 text-primary" />
+                    <code className="font-mono text-xs">{voucherCode.toUpperCase()}</code>
+                    <span className="text-xs text-muted-foreground truncate">aplicado</span>
+                  </span>
+                  <button
+                    onClick={removeVoucher}
+                    aria-label="Remover voucher"
+                    className="rounded-full p-1 hover:bg-background"
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="flex gap-2">
-                    <input value={voucherCode} onChange={(e) => setVoucherCode(e.target.value.toUpperCase())} placeholder="CUPOM" className="input flex-1 uppercase" />
-                    <button onClick={applyVoucher} disabled={applying || !voucherCode.trim()} className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-border px-3 text-sm disabled:opacity-50"><Ticket className="h-4 w-4" /> Aplicar</button>
+                    <input
+                      value={voucherCode}
+                      onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                      placeholder="CUPOM"
+                      className="input flex-1 uppercase"
+                    />
+                    <button
+                      onClick={applyVoucher}
+                      disabled={applying || !voucherCode.trim()}
+                      className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-border px-3 text-sm disabled:opacity-50"
+                    >
+                      <Ticket className="h-4 w-4" /> Aplicar
+                    </button>
                   </div>
 
                   {/* Seus Cupons Ativos (Lista de Cupons do Usuário) */}
@@ -257,10 +437,11 @@ function CheckoutPage() {
                           const isVoucherPercent = v.reward?.kind === "voucher_percent";
                           const isVoucherValue = v.reward?.kind === "voucher_valor";
                           const isFreeShipping = v.reward?.kind === "voucher_frete";
-                          
+
                           let benefitText = "";
                           if (isVoucherPercent) benefitText = `${v.reward?.voucher_percent}% OFF`;
-                          else if (isVoucherValue) benefitText = `${brl(v.reward?.voucher_value ?? 0)} OFF`;
+                          else if (isVoucherValue)
+                            benefitText = `${brl(v.reward?.voucher_value ?? 0)} OFF`;
                           else if (isFreeShipping) benefitText = "Frete Grátis";
                           else benefitText = "Brinde";
 
@@ -271,7 +452,12 @@ function CheckoutPage() {
                                 setVoucherCode(v.voucher_code || "");
                                 // Auto-aplicar cupom
                                 setApplying(true);
-                                evaluateVoucher(v.voucher_code || "", customer?.id || null, subtotal, shipping).then((res) => {
+                                evaluateVoucher(
+                                  v.voucher_code || "",
+                                  customer?.id || null,
+                                  subtotal,
+                                  shipping,
+                                ).then((res) => {
                                   setApplying(false);
                                   if (res.ok) {
                                     setVoucher(res);
@@ -284,8 +470,12 @@ function CheckoutPage() {
                               className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-background hover:bg-secondary/40 p-2.5 text-left text-xs transition-all active:scale-[0.98] cursor-pointer"
                             >
                               <div className="min-w-0 flex-1">
-                                <div className="font-mono font-bold text-foreground">{v.voucher_code}</div>
-                                <div className="text-[10px] text-muted-foreground truncate">{v.reward?.name}</div>
+                                <div className="font-mono font-bold text-foreground">
+                                  {v.voucher_code}
+                                </div>
+                                <div className="text-[10px] text-muted-foreground truncate">
+                                  {v.reward?.name}
+                                </div>
                               </div>
                               <span className="shrink-0 bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded text-[10px]">
                                 {benefitText}
@@ -301,17 +491,46 @@ function CheckoutPage() {
             </div>
 
             <div className="mt-4 space-y-1 text-sm">
-              <div className="flex justify-between"><span>Subtotal</span><span>{brl(subtotal)}</span></div>
-              <div className="flex justify-between"><span>Frete{voucher?.freeShipping && <span className="ml-1 text-xs text-primary">(grátis)</span>}</span><span>{voucher?.freeShipping ? <s className="text-muted-foreground">{brl(shipping)}</s> : brl(shipping)}</span></div>
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{brl(subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>
+                  Frete
+                  {voucher?.freeShipping && (
+                    <span className="ml-1 text-xs text-primary">(grátis)</span>
+                  )}
+                </span>
+                <span>
+                  {voucher?.freeShipping ? (
+                    <s className="text-muted-foreground">{brl(shipping)}</s>
+                  ) : (
+                    brl(shipping)
+                  )}
+                </span>
+              </div>
               {discount > 0 && (
-                <div className="flex justify-between text-primary"><span>Desconto</span><span>−{brl(discount)}</span></div>
+                <div className="flex justify-between text-primary">
+                  <span>Desconto</span>
+                  <span>−{brl(discount)}</span>
+                </div>
               )}
-              <div className="flex justify-between border-t border-border pt-2 font-display text-xl"><span>Total</span><span className="text-primary">{brl(total)}</span></div>
+              <div className="flex justify-between border-t border-border pt-2 font-display text-xl">
+                <span>Total</span>
+                <span className="text-primary">{brl(total)}</span>
+              </div>
             </div>
-            <button onClick={placeOrder} disabled={placing} className="mt-5 hidden min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 font-medium text-primary-foreground disabled:opacity-60 md:inline-flex">
+            <button
+              onClick={placeOrder}
+              disabled={placing}
+              className="mt-5 hidden min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 font-medium text-primary-foreground disabled:opacity-60 md:inline-flex"
+            >
               <CreditCard className="h-4 w-4" /> {placing ? "Finalizando..." : "Confirmar pedido"}
             </button>
-            <p className="mt-3 hidden text-center text-[11px] text-muted-foreground md:block">Pagamento via Mercado Pago será enviado por WhatsApp.</p>
+            <p className="mt-3 hidden text-center text-[11px] text-muted-foreground md:block">
+              Pagamento via Mercado Pago será enviado por WhatsApp.
+            </p>
           </div>
         </aside>
       </div>
@@ -323,7 +542,11 @@ function CheckoutPage() {
             <p className="text-[11px] text-muted-foreground">Total</p>
             <p className="font-display text-xl text-primary leading-none">{brl(total)}</p>
           </div>
-          <button onClick={placeOrder} disabled={placing} className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60">
+          <button
+            onClick={placeOrder}
+            disabled={placing}
+            className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
+          >
             <CreditCard className="h-4 w-4" /> {placing ? "Finalizando..." : "Confirmar"}
           </button>
         </div>
@@ -335,6 +558,10 @@ function CheckoutPage() {
 }
 
 function Lbl({ t, c = "", children }: { t: string; c?: string; children: React.ReactNode }) {
-  return <label className={`block ${c}`}><span className="mb-1.5 block text-sm font-medium">{t}</span>{children}</label>;
+  return (
+    <label className={`block ${c}`}>
+      <span className="mb-1.5 block text-sm font-medium">{t}</span>
+      {children}
+    </label>
+  );
 }
-

@@ -48,7 +48,8 @@ export function makeDocPDF(d: DocData): jsPDF {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.text(`Emissão: ${dateBR(d.date ?? new Date())}`, W - 40, y + 14, { align: "right" });
-  if (d.validUntil) doc.text(`Validade: ${dateBR(d.validUntil)}`, W - 40, y + 28, { align: "right" });
+  if (d.validUntil)
+    doc.text(`Validade: ${dateBR(d.validUntil)}`, W - 40, y + 28, { align: "right" });
 
   y += 50;
   doc.setDrawColor(220);
@@ -62,9 +63,18 @@ export function makeDocPDF(d: DocData): jsPDF {
   doc.setFont("helvetica", "normal");
   y += 14;
   doc.text(d.customer?.name ?? d.requester ?? "—", 40, y);
-  if (d.customer?.phone) { y += 12; doc.text(`Tel: ${d.customer.phone}`, 40, y); }
-  if (d.customer?.email) { y += 12; doc.text(`E-mail: ${d.customer.email}`, 40, y); }
-  if (d.consultant) { y += 12; doc.text(`Consultor(a): ${d.consultant}`, 40, y); }
+  if (d.customer?.phone) {
+    y += 12;
+    doc.text(`Tel: ${d.customer.phone}`, 40, y);
+  }
+  if (d.customer?.email) {
+    y += 12;
+    doc.text(`E-mail: ${d.customer.email}`, 40, y);
+  }
+  if (d.consultant) {
+    y += 12;
+    doc.text(`Consultor(a): ${d.consultant}`, 40, y);
+  }
   y += 22;
 
   // Itens
@@ -84,7 +94,10 @@ export function makeDocPDF(d: DocData): jsPDF {
     y += 14;
     doc.setFont("helvetica", "normal");
     for (const it of d.items) {
-      if (y > 760) { doc.addPage(); y = 56; }
+      if (y > 760) {
+        doc.addPage();
+        y = 56;
+      }
       const desc = `${it.product_name}${it.color ? ` · ${it.color}` : ""}${it.size ? ` · ${it.size}` : ""}`;
       doc.text(String(it.quantity), 40, y);
       doc.text(desc, 80, y, { maxWidth: W - 280 });
@@ -117,11 +130,14 @@ export function makeDocPDF(d: DocData): jsPDF {
   y += 30;
 
   if (d.notes) {
-    doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-    doc.text("Observações", 40, y); y += 14;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("Observações", 40, y);
+    y += 14;
     doc.setFont("helvetica", "normal");
     const lines = doc.splitTextToSize(d.notes, W - 80);
-    doc.text(lines, 40, y); y += lines.length * 12 + 6;
+    doc.text(lines, 40, y);
+    y += lines.length * 12 + 6;
   }
 
   if (d.publicUrl) {
@@ -137,4 +153,3 @@ export function downloadDocPDF(d: DocData) {
   const doc = makeDocPDF(d);
   doc.save(`${d.kind}-${d.code}.pdf`);
 }
-

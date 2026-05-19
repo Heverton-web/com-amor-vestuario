@@ -47,14 +47,15 @@ export async function runDiagnostics(): Promise<ApiHealthStatus[]> {
   // 2. Diagnóstico do N8N
   const startN8n = performance.now();
   try {
-    const { data: n8nSettings } = await supabase
+    const { data: n8nSettings } = (await supabase
       .from("integration_settings" as any)
       .select("webhook_url")
       .eq("provider", "n8n")
-      .maybeSingle() as any;
+      .maybeSingle()) as any;
 
-    const webhookUrl = n8nSettings?.webhook_url || "http://localhost:5678/webhook/comamor-vestuario";
-    
+    const webhookUrl =
+      n8nSettings?.webhook_url || "http://localhost:5678/webhook/comamor-vestuario";
+
     // Tentativa leve de ping (HEAD ou GET) - tratamos erros de CORS como "online" se houver resposta HTTP ou falha de rede específica
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
@@ -103,11 +104,11 @@ export async function runDiagnostics(): Promise<ApiHealthStatus[]> {
   // 3. Diagnóstico do Mercado Pago
   const startMp = performance.now();
   try {
-    const { data: mpSettings } = await supabase
+    const { data: mpSettings } = (await supabase
       .from("integration_settings" as any)
       .select("mode, public_key")
       .eq("provider", "mercado_pago")
-      .maybeSingle() as any;
+      .maybeSingle()) as any;
 
     const mpMode = mpSettings?.mode || "sandbox";
     const hasKeys = !!mpSettings?.public_key;
@@ -120,14 +121,14 @@ export async function runDiagnostics(): Promise<ApiHealthStatus[]> {
       provider: "mercado_pago",
       status: hasKeys ? "online" : "warning",
       latencyMs: latencyMp,
-      message: hasKeys 
+      message: hasKeys
         ? `Integração configurada em modo ${mpMode.toUpperCase()}`
         : "Chaves de API ausentes no banco. Operando com Mocks locais.",
       details: {
         mode: mpMode,
         hasPublicKey: hasKeys,
-        publicKeyMascarada: mpSettings?.public_key 
-          ? `***...${mpSettings.public_key.slice(-4)}` 
+        publicKeyMascarada: mpSettings?.public_key
+          ? `***...${mpSettings.public_key.slice(-4)}`
           : "Nenhuma",
       },
     });
@@ -142,11 +143,11 @@ export async function runDiagnostics(): Promise<ApiHealthStatus[]> {
   // 4. Diagnóstico do Melhor Envio
   const startMe = performance.now();
   try {
-    const { data: meSettings } = await supabase
+    const { data: meSettings } = (await supabase
       .from("integration_settings" as any)
       .select("mode, private_key")
       .eq("provider", "melhor_envio")
-      .maybeSingle() as any;
+      .maybeSingle()) as any;
 
     const meMode = meSettings?.mode || "sandbox";
     const hasToken = !!meSettings?.private_key;

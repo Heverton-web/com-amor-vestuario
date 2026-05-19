@@ -20,7 +20,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { NumInput } from "@/features/core/components/num-input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/features/core/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/features/core/components/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/produtos")({
   component: ProductsPage,

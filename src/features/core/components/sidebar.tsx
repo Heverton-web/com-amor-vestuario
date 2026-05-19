@@ -16,7 +16,12 @@ import {
   SheetTitle,
 } from "@/features/core/components/sheet";
 import { Skeleton } from "@/features/core/components/skeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/features/core/components/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/features/core/components/tooltip";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -742,4 +747,3 @@ export {
   SidebarTrigger,
   useSidebar,
 };
-

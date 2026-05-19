@@ -49,18 +49,21 @@ export interface LedgerEntry {
 
 export function kindLabel(k: RewardKind): string {
   switch (k) {
-    case "produto_fisico": return "Produto";
-    case "voucher_valor": return "Vale em R$";
-    case "voucher_percent": return "Vale % off";
-    case "voucher_frete": return "Frete grátis";
+    case "produto_fisico":
+      return "Produto";
+    case "voucher_valor":
+      return "Vale em R$";
+    case "voucher_percent":
+      return "Vale % off";
+    case "voucher_frete":
+      return "Frete grátis";
   }
 }
 
 export function rewardSummary(r: RewardItem): string {
   if (r.kind === "voucher_valor" && r.voucher_value)
     return `R$ ${r.voucher_value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} de desconto`;
-  if (r.kind === "voucher_percent" && r.voucher_percent)
-    return `${r.voucher_percent}% de desconto`;
+  if (r.kind === "voucher_percent" && r.voucher_percent) return `${r.voucher_percent}% de desconto`;
   if (r.kind === "voucher_frete") return "Frete grátis";
   return "Produto físico";
 }
@@ -71,7 +74,7 @@ export async function fetchActiveRewards(): Promise<RewardItem[]> {
     .select("*")
     .eq("active", true)
     .order("points_cost", { ascending: true });
-  
+
   const rawRewards = (data ?? []) as unknown as RewardItem[];
   const rewards = rawRewards.filter((r) => {
     if (r.expires_at && new Date(r.expires_at).getTime() <= Date.now()) {
@@ -96,8 +99,8 @@ export async function fetchActiveRewards(): Promise<RewardItem[]> {
         description: "Vale desconto de R$ 50 aplicável em compras acima de R$ 200.",
         kind: "voucher_valor",
         points_cost: 300,
-        voucher_value: 50.00,
-        voucher_min_order: 200.00,
+        voucher_value: 50.0,
+        voucher_min_order: 200.0,
         stock: 50,
         active: true,
       },
@@ -125,7 +128,7 @@ export async function fetchActiveRewards(): Promise<RewardItem[]> {
         points_cost: 2000,
         stock: 8,
         active: true,
-      }
+      },
     ];
 
     try {
@@ -152,7 +155,7 @@ export async function fetchMyCustomer(userId: string) {
     .select("*")
     .eq("user_id", userId)
     .maybeSingle();
-  
+
   if (byUserId) return byUserId;
 
   // 2. Se não encontrou, tenta buscar pelo e-mail do usuário autenticado atual
@@ -181,9 +184,10 @@ export async function fetchMyCustomer(userId: string) {
 
     // 3. Se ainda assim não existir o cliente, auto-criamos um cliente Demo com 1500 pontos de saldo!
     const mockEmail = email || "demo@comamor.app";
-    const mockName = mockEmail.split("@")[0].toUpperCase() === "ADMIN" 
-      ? "Administrador Com Amor" 
-      : "Mariana Silva (Demo)";
+    const mockName =
+      mockEmail.split("@")[0].toUpperCase() === "ADMIN"
+        ? "Administrador Com Amor"
+        : "Mariana Silva (Demo)";
 
     const { data: inserted, error: insErr } = await supabase
       .from("customers")
@@ -251,7 +255,8 @@ export async function evaluateVoucher(
   const r = red as unknown as (Redemption & { reward: RewardItem }) | null;
   if (!r) return { ok: false, error: "Voucher não encontrado" };
   if (r.status !== "resgatado") return { ok: false, error: `Voucher ${r.status}` };
-  if (r.valid_until && new Date(r.valid_until) < new Date()) return { ok: false, error: "Voucher expirado" };
+  if (r.valid_until && new Date(r.valid_until) < new Date())
+    return { ok: false, error: "Voucher expirado" };
   if (customerId && r.customer_id !== customerId)
     return { ok: false, error: "Voucher pertence a outro cliente" };
   const rw = r.reward;
@@ -261,17 +266,23 @@ export async function evaluateVoucher(
   let discount = 0;
   let freeShipping = false;
   if (rw.kind === "voucher_valor") discount = Math.min(subtotal, Number(rw.voucher_value ?? 0));
-  else if (rw.kind === "voucher_percent") discount = subtotal * (Number(rw.voucher_percent ?? 0) / 100);
-  else if (rw.kind === "voucher_frete") { freeShipping = true; discount = shipping; }
+  else if (rw.kind === "voucher_percent")
+    discount = subtotal * (Number(rw.voucher_percent ?? 0) / 100);
+  else if (rw.kind === "voucher_frete") {
+    freeShipping = true;
+    discount = shipping;
+  }
 
   return { ok: true, redemption: r, discount, freeShipping };
 }
 
 export async function markVoucherUsed(redemptionId: string, orderId: string) {
-  await supabase.from("redemptions" as never).update({
-    status: "utilizado",
-    used_in_order_id: orderId,
-    used_at: new Date().toISOString(),
-  } as never).eq("id", redemptionId);
+  await supabase
+    .from("redemptions" as never)
+    .update({
+      status: "utilizado",
+      used_in_order_id: orderId,
+      used_at: new Date().toISOString(),
+    } as never)
+    .eq("id", redemptionId);
 }
-

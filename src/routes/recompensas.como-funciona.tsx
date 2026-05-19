@@ -1,10 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Sparkles, MessageCircle, ArrowLeft, ShieldCheck, Ticket, Gift, ArrowRight } from "lucide-react";
+import {
+  Sparkles,
+  MessageCircle,
+  ArrowLeft,
+  ShieldCheck,
+  Ticket,
+  Gift,
+  ArrowRight,
+} from "lucide-react";
 import { useBranding } from "@/features/core/services/branding";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/features/core/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/features/core/components/dialog";
 
 export const Route = createFileRoute("/recompensas/como-funciona")({
   component: ComoFuncionaPage,
@@ -31,15 +46,17 @@ function ComoFuncionaPage() {
         title: `Interesse Clube: ${joinName}`,
         contact_name: joinName,
         contact_whatsapp: joinPhone,
-        description: `${joinName} clicou em "Quero Fazer Parte" na página explicativa do Clube Com Amor.`
+        description: `${joinName} clicou em "Quero Fazer Parte" na página explicativa do Clube Com Amor.`,
       });
       if (error) throw error;
 
       toast.success("Dados salvos no CRM! Direcionando para o WhatsApp...");
-      const text = encodeURIComponent(`Olá! Vi a página explicativa do Clube Com Amor e quero fazer parte para começar a acumular pontos.`);
+      const text = encodeURIComponent(
+        `Olá! Vi a página explicativa do Clube Com Amor e quero fazer parte para começar a acumular pontos.`,
+      );
       const cleanPhone = branding.whatsapp ? branding.whatsapp.replace(/\D/g, "") : "5599999999999";
       window.open(`https://wa.me/${cleanPhone}?text=${text}`, "_blank");
-      
+
       setShowJoinDialog(false);
       setJoinName("");
       setJoinPhone("");
@@ -58,17 +75,20 @@ function ComoFuncionaPage() {
     {
       icon: <ShieldCheck className="h-6 w-6" />,
       title: "1. Cadastro Simples",
-      description: "Ao realizar sua primeira compra física ou online no atelier, seu cadastro no Clube Com Amor é criado automaticamente com seu WhatsApp.",
+      description:
+        "Ao realizar sua primeira compra física ou online no atelier, seu cadastro no Clube Com Amor é criado automaticamente com seu WhatsApp.",
     },
     {
       icon: <Ticket className="h-6 w-6" />,
       title: "2. Acumule R$ 1 = 1 Ponto",
-      description: "Toda compra gera pontos imediatamente. Não importa a coleção, cada real gasto é revertido em pontos para você usar quando preferir.",
+      description:
+        "Toda compra gera pontos imediatamente. Não importa a coleção, cada real gasto é revertido em pontos para você usar quando preferir.",
     },
     {
       icon: <Gift className="h-6 w-6" />,
       title: "3. Resgate Prêmios Reais",
-      description: "Troque seus pontos acumulados por descontos em novos pedidos, frete grátis ou peças físicas exclusivas fabricadas no nosso atelier.",
+      description:
+        "Troque seus pontos acumulados por descontos em novos pedidos, frete grátis ou peças físicas exclusivas fabricadas no nosso atelier.",
     },
   ];
 
@@ -85,14 +105,19 @@ function ComoFuncionaPage() {
       {/* Título de Entrada */}
       <div className="text-center md:text-left mb-10 md:mb-12">
         <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-border bg-card/85 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:text-xs backdrop-blur-sm shadow-sm">
-          <Sparkles className="h-3.5 w-3.5 text-primary" style={{ color: branding.primary_color }} />
+          <Sparkles
+            className="h-3.5 w-3.5 text-primary"
+            style={{ color: branding.primary_color }}
+          />
           O segredo da fidelidade premium
         </span>
         <h1 className="mt-4 font-display text-4xl font-semibold leading-tight md:text-5xl">
           Como funciona o Clube Com Amor?
         </h1>
         <p className="mt-3 max-w-2xl text-base text-muted-foreground leading-relaxed">
-          Pensado exclusivamente para quem valoriza a alta costura e o caimento perfeito, o Clube Com Amor é a nossa forma de agradecer e presentear quem apoia nossa jornada de moda afetiva.
+          Pensado exclusivamente para quem valoriza a alta costura e o caimento perfeito, o Clube
+          Com Amor é a nossa forma de agradecer e presentear quem apoia nossa jornada de moda
+          afetiva.
         </p>
       </div>
 
@@ -105,7 +130,10 @@ function ComoFuncionaPage() {
           >
             <div
               className="inline-flex h-12 w-12 items-center justify-center rounded-2xl mb-4 transition-colors"
-              style={{ backgroundColor: `${branding.primary_color}10`, color: branding.primary_color }}
+              style={{
+                backgroundColor: `${branding.primary_color}10`,
+                color: branding.primary_color,
+              }}
             >
               {s.icon}
             </div>
@@ -123,16 +151,31 @@ function ComoFuncionaPage() {
         <h3 className="font-display text-xl font-medium mb-4">Vantagens Exclusivas do Clube</h3>
         <ul className="space-y-3.5 text-sm md:text-base">
           <li className="flex items-start gap-2.5">
-            <span className="text-primary mt-1" style={{ color: branding.primary_color }}>✦</span>
-            <span><strong>Acesso Antecipado</strong>: Descubra novas coleções e tecidos importados antes de todo mundo.</span>
+            <span className="text-primary mt-1" style={{ color: branding.primary_color }}>
+              ✦
+            </span>
+            <span>
+              <strong>Acesso Antecipado</strong>: Descubra novas coleções e tecidos importados antes
+              de todo mundo.
+            </span>
           </li>
           <li className="flex items-start gap-2.5">
-            <span className="text-primary mt-1" style={{ color: branding.primary_color }}>✦</span>
-            <span><strong>Ajustes sem Custo</strong>: Clientes fidelidade ativos contam com pequenos ajustes de alta costura inclusos nas peças.</span>
+            <span className="text-primary mt-1" style={{ color: branding.primary_color }}>
+              ✦
+            </span>
+            <span>
+              <strong>Ajustes sem Custo</strong>: Clientes fidelidade ativos contam com pequenos
+              ajustes de alta costura inclusos nas peças.
+            </span>
           </li>
           <li className="flex items-start gap-2.5">
-            <span className="text-primary mt-1" style={{ color: branding.primary_color }}>✦</span>
-            <span><strong>Pontos Sem Expiração Rápida</strong>: Seus pontos duram até 12 meses inteiros para você resgatar com calma.</span>
+            <span className="text-primary mt-1" style={{ color: branding.primary_color }}>
+              ✦
+            </span>
+            <span>
+              <strong>Pontos Sem Expiração Rápida</strong>: Seus pontos duram até 12 meses inteiros
+              para você resgatar com calma.
+            </span>
           </li>
         </ul>
       </div>
@@ -141,7 +184,9 @@ function ComoFuncionaPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t border-border/60 pt-8">
         <div>
           <h4 className="font-display text-lg font-medium">Ficou com alguma dúvida?</h4>
-          <p className="text-xs text-muted-foreground mt-0.5">Fale diretamente com nossa consultoria humana de estilo.</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Fale diretamente com nossa consultoria humana de estilo.
+          </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
@@ -165,11 +210,15 @@ function ComoFuncionaPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" style={{ color: branding.primary_color }} />
+              <Sparkles
+                className="h-5 w-5 text-primary"
+                style={{ color: branding.primary_color }}
+              />
               Fazer Parte do Clube Com Amor
             </DialogTitle>
             <DialogDescription>
-              Preencha os campos abaixo para registrar seu interesse. Salvando seus dados, você será direcionado ao nosso WhatsApp oficial para iniciar seu acúmulo de pontos!
+              Preencha os campos abaixo para registrar seu interesse. Salvando seus dados, você será
+              direcionado ao nosso WhatsApp oficial para iniciar seu acúmulo de pontos!
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleJoinSubmit} className="space-y-4 py-2">

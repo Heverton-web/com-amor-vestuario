@@ -13,13 +13,7 @@ const reasons = [
   { id: "entrega", label: "Entrega" },
 ];
 
-export function ContactDialog({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function ContactDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [name, setName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [reason, setReason] = useState("orcamento");
@@ -48,7 +42,9 @@ export function ContactDialog({
     setTimeout(() => {
       setSent(false);
       onClose();
-      setName(""); setWhatsapp(""); setReason("orcamento");
+      setName("");
+      setWhatsapp("");
+      setReason("orcamento");
     }, 1800);
   };
 
@@ -91,7 +87,10 @@ export function ContactDialog({
               <p className="text-muted-foreground">Em breve falamos com você.</p>
             </div>
           ) : (
-            <form onSubmit={submit} className="space-y-4 px-5 pb-6 pt-5 sm:space-y-5 sm:px-8 sm:pb-8 sm:pt-6">
+            <form
+              onSubmit={submit}
+              className="space-y-4 px-5 pb-6 pt-5 sm:space-y-5 sm:px-8 sm:pb-8 sm:pt-6"
+            >
               <div>
                 <label className="mb-1.5 block text-sm font-medium">Nome</label>
                 <input
@@ -116,9 +115,7 @@ export function ContactDialog({
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium">
-                  Motivo do contato
-                </label>
+                <label className="mb-1.5 block text-sm font-medium">Motivo do contato</label>
                 <div className="grid grid-cols-2 gap-2">
                   {reasons.map((r) => (
                     <button
@@ -151,4 +148,3 @@ export function ContactDialog({
     </div>
   );
 }
-

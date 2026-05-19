@@ -40,7 +40,9 @@ async function loadImage(url: string): Promise<string | null> {
       r.onerror = () => resolve(null);
       r.readAsDataURL(blob);
     });
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export async function makeReceiptPDF(d: ReceiptData): Promise<jsPDF> {
@@ -56,10 +58,14 @@ export async function makeReceiptPDF(d: ReceiptData): Promise<jsPDF> {
   doc.setFontSize(9);
   doc.setTextColor(110);
   let ly = y + 14;
-  if (d.issuer_doc) { doc.text(`CNPJ/CPF: ${d.issuer_doc}`, 40, ly); ly += 12; }
+  if (d.issuer_doc) {
+    doc.text(`CNPJ/CPF: ${d.issuer_doc}`, 40, ly);
+    ly += 12;
+  }
   if (d.issuer_address) {
     const lines = doc.splitTextToSize(d.issuer_address, 320);
-    doc.text(lines, 40, ly); ly += lines.length * 11;
+    doc.text(lines, 40, ly);
+    ly += lines.length * 11;
   }
 
   // Cabeçalho do recibo (direita)
@@ -104,7 +110,11 @@ export async function makeReceiptPDF(d: ReceiptData): Promise<jsPDF> {
   if (d.signature_mode === "imagem" && d.signature_url) {
     const img = await loadImage(d.signature_url);
     if (img) {
-      try { doc.addImage(img, "PNG", W / 2 - 90, y - 40, 180, 50); } catch { /* ignore */ }
+      try {
+        doc.addImage(img, "PNG", W / 2 - 90, y - 40, 180, 50);
+      } catch {
+        /* ignore */
+      }
     }
   }
   doc.setDrawColor(60);
@@ -126,4 +136,3 @@ export async function downloadReceiptPDF(d: ReceiptData) {
   const doc = await makeReceiptPDF(d);
   doc.save(`Recibo-${d.code}.pdf`);
 }
-

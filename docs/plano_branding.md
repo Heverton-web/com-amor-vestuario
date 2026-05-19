@@ -24,7 +24,7 @@ Este documento detalha o plano técnico para refatorar e elevar a aba de **Brand
      - Logo de Recibos & Faturamento
 
 4. **Paletas Sazonais & Personalizadas (One-Click Themes):**
-   - **Sazonalidades:** Paletas prontas divididas em *Festividades* (Dia das Mães, Natal, Ano Novo) e *Estações* (Primavera/Verão, Outono/Inverno).
+   - **Sazonalidades:** Paletas prontas divididas em _Festividades_ (Dia das Mães, Natal, Ano Novo) e _Estações_ (Primavera/Verão, Outono/Inverno).
    - **Criador de Paleta Própria:** Permite ajustar as cores nos seletores visuais, definir um nome exclusivo e salvar a paleta na sua lista de coleções pessoais, persistindo no banco de dados.
 
 5. **Indicador de Completude da Marca (Completeness Score):**
@@ -37,6 +37,7 @@ Este documento detalha o plano técnico para refatorar e elevar a aba de **Brand
 ### [Component] [admin.branding.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/_authenticated/admin.branding.tsx)
 
 #### **Principais alterações:**
+
 - **Estruturação de Layout de Duas Colunas:**
   - Coluna Esquerda (~60%): Barra de progresso de completude, seletor de abas modernas e formulário dinâmico baseado na aba selecionada com grids melhorados.
   - Coluna Direita (~40%): Mockup físico interativo do celular com renderização de cabeçalho, hero banner com botão nas cores ativas, seção "Sobre o Atelier" e rodapé de contatos.
@@ -50,8 +51,10 @@ Este documento detalha o plano técnico para refatorar e elevar a aba de **Brand
 ## 🧪 Verification Plan
 
 ### Automated Tests
+
 - Execução de `npx tsc --noEmit` para certificar que todas as tipagens das propriedades de `Branding` continuam perfeitamente integradas sem quebras.
 - Rodar `npm run build` para garantir que o compilador otimize os novos subcomponentes e estilos com performance impecável e sem warnings de PostCSS.
 
 ### Manual Verification
+
 - O usuário e desenvolvedores poderão validar visualmente todas as interações abrindo o endereço `/admin/branding` e alterando textos e paletas de cores, observando a renderização imediata no simulador.

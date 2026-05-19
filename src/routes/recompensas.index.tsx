@@ -5,10 +5,24 @@ import { Sparkles, LogIn, Gift, HelpCircle, MessageCircle } from "lucide-react";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { useAuth } from "@/features/core/integrations/auth";
 import { useBranding } from "@/features/core/services/branding";
-import { fetchActiveRewards, fetchMyCustomer, genVoucherCode, kindLabel, rewardSummary, type RewardItem } from "@/features/fidelidade/services/rewards";
+import {
+  fetchActiveRewards,
+  fetchMyCustomer,
+  genVoucherCode,
+  kindLabel,
+  rewardSummary,
+  type RewardItem,
+} from "@/features/fidelidade/services/rewards";
 import { RewardCard } from "@/features/fidelidade/components/RewardCard";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/features/core/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/features/core/components/dialog";
 
 export const Route = createFileRoute("/recompensas/")({
   component: RecompensasIndexPage,
@@ -43,22 +57,26 @@ function RecompensasIndexPage() {
         title: `Interesse Clube: ${joinName}`,
         contact_name: joinName,
         contact_whatsapp: joinPhone,
-        description: `${joinName} clicou em "Quero Fazer Parte" na página inicial do Clube Com Amor.`
+        description: `${joinName} clicou em "Quero Fazer Parte" na página inicial do Clube Com Amor.`,
       });
       if (error) throw error;
 
       toast.success("Dados salvos no CRM! Direcionando para o WhatsApp...");
-      const text = encodeURIComponent(`Olá! Quero fazer parte do Clube Com Amor da Com Amor Vestuário e começar a acumular pontos.`);
+      const text = encodeURIComponent(
+        `Olá! Quero fazer parte do Clube Com Amor da Com Amor Vestuário e começar a acumular pontos.`,
+      );
       const cleanPhone = branding.whatsapp ? branding.whatsapp.replace(/\D/g, "") : "5599999999999";
       window.open(`https://wa.me/${cleanPhone}?text=${text}`, "_blank");
-      
+
       setShowJoinDialog(false);
       setJoinName("");
       setJoinPhone("");
     } catch (err) {
       console.error(err);
       toast.error("Ocorreu um erro ao salvar no CRM, mas estamos te direcionando ao WhatsApp...");
-      const text = encodeURIComponent(`Olá! Quero fazer parte do Clube Com Amor da Com Amor Vestuário.`);
+      const text = encodeURIComponent(
+        `Olá! Quero fazer parte do Clube Com Amor da Com Amor Vestuário.`,
+      );
       const cleanPhone = branding.whatsapp ? branding.whatsapp.replace(/\D/g, "") : "5599999999999";
       window.open(`https://wa.me/${cleanPhone}?text=${text}`, "_blank");
     } finally {
@@ -81,7 +99,7 @@ function RecompensasIndexPage() {
         .select("balance")
         .eq("customer_id", customer.id)
         .maybeSingle();
-      return ((data as { balance?: number } | null)?.balance) ?? 0;
+      return (data as { balance?: number } | null)?.balance ?? 0;
     },
     enabled: !!customer?.id,
   });
@@ -93,7 +111,11 @@ function RecompensasIndexPage() {
 
       // Validar estoque do produto principal se for físico
       if (reward.kind === "produto_fisico" && reward.product_id) {
-        const { data: prod } = await supabase.from("products").select("stock").eq("id", reward.product_id).single();
+        const { data: prod } = await supabase
+          .from("products")
+          .select("stock")
+          .eq("id", reward.product_id)
+          .single();
         if (!prod || prod.stock <= 0) throw new Error("Produto sem estoque físico no momento");
       } else if (reward.stock <= 0) {
         throw new Error("Sem estoque");
@@ -178,7 +200,8 @@ function RecompensasIndexPage() {
           .eq("id", redemption.id);
       } else {
         // Se for um voucher, decrementa o estoque virtual do próprio item de recompensa
-        await supabase.from("reward_items" as never)
+        await supabase
+          .from("reward_items" as never)
           .update({ stock: reward.stock - 1 } as never)
           .eq("id", reward.id);
       }
@@ -204,14 +227,21 @@ function RecompensasIndexPage() {
       <div className="grid items-center gap-6 md:grid-cols-2">
         <div>
           <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-border bg-card/85 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:text-xs backdrop-blur-sm shadow-sm animate-pulse-subtle">
-            <Sparkles className="h-3.5 w-3.5 text-primary" style={{ color: branding.primary_color }} />
+            <Sparkles
+              className="h-3.5 w-3.5 text-primary"
+              style={{ color: branding.primary_color }}
+            />
             Programa de fidelidade
           </span>
           <h1 className="mt-4 font-display text-4xl leading-tight md:text-5xl">
-            {branding.rewards_label === "Loja de Recompensas" ? "Clube Com Amor" : branding.rewards_label}
+            {branding.rewards_label === "Loja de Recompensas"
+              ? "Clube Com Amor"
+              : branding.rewards_label}
           </h1>
           <p className="mt-3 max-w-prose text-muted-foreground">
-            A cada R$ 1 em compras no atelier ou online, você ganha 1 ponto no seu cadastro. Troque seus pontos acumulados por peças exclusivas de alta costura e vouchers de desconto especiais!
+            A cada R$ 1 em compras no atelier ou online, você ganha 1 ponto no seu cadastro. Troque
+            seus pontos acumulados por peças exclusivas de alta costura e vouchers de desconto
+            especiais!
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -233,36 +263,77 @@ function RecompensasIndexPage() {
         <div className="rounded-3xl border border-border bg-card p-6 md:p-8 relative overflow-hidden shadow-sm">
           {user && customer ? (
             <>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Seu saldo</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                Seu saldo
+              </div>
               <div className="mt-1 font-display text-5xl text-primary">{balance ?? 0}</div>
               <div className="text-sm text-muted-foreground">pontos disponíveis</div>
-              <div className="mt-4 text-sm">Olá, <strong>{customer.name}</strong>!</div>
+              <div className="mt-4 text-sm">
+                Olá, <strong>{customer.name}</strong>!
+              </div>
             </>
           ) : (
             <>
               <div className="absolute right-0 top-0 translate-x-6 -translate-y-6 opacity-[0.03] pointer-events-none">
-                <Sparkles className="h-32 w-32 text-primary" style={{ color: branding.primary_color }} />
+                <Sparkles
+                  className="h-32 w-32 text-primary"
+                  style={{ color: branding.primary_color }}
+                />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary" style={{ color: branding.primary_color }}>
+              <span
+                className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary"
+                style={{ color: branding.primary_color }}
+              >
                 ✦ BENEFÍCIOS EXCLUSIVOS ✦
               </span>
-              <h3 className="mt-2 font-display text-lg font-medium text-foreground">Sua fidelidade premiada</h3>
+              <h3 className="mt-2 font-display text-lg font-medium text-foreground">
+                Sua fidelidade premiada
+              </h3>
               <ul className="mt-4 space-y-3.5 text-xs text-muted-foreground leading-normal">
                 <li className="flex items-start gap-2.5">
-                  <span className="text-primary font-bold mt-0.5" style={{ color: branding.primary_color }}>✦</span>
-                  <span><strong>1 Ponto por Real</strong>: Toda compra física ou online acumula pontos automaticamente.</span>
+                  <span
+                    className="text-primary font-bold mt-0.5"
+                    style={{ color: branding.primary_color }}
+                  >
+                    ✦
+                  </span>
+                  <span>
+                    <strong>1 Ponto por Real</strong>: Toda compra física ou online acumula pontos
+                    automaticamente.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <span className="text-primary font-bold mt-0.5" style={{ color: branding.primary_color }}>✦</span>
-                  <span><strong>Moda e Alta Costura</strong>: Troque seus pontos por peças confeccionadas sob medida.</span>
+                  <span
+                    className="text-primary font-bold mt-0.5"
+                    style={{ color: branding.primary_color }}
+                  >
+                    ✦
+                  </span>
+                  <span>
+                    <strong>Moda e Alta Costura</strong>: Troque seus pontos por peças
+                    confeccionadas sob medida.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <span className="text-primary font-bold mt-0.5" style={{ color: branding.primary_color }}>✦</span>
-                  <span><strong>Vouchers Especiais</strong>: Resgate descontos e frete grátis para suas próximas compras.</span>
+                  <span
+                    className="text-primary font-bold mt-0.5"
+                    style={{ color: branding.primary_color }}
+                  >
+                    ✦
+                  </span>
+                  <span>
+                    <strong>Vouchers Especiais</strong>: Resgate descontos e frete grátis para suas
+                    próximas compras.
+                  </span>
                 </li>
               </ul>
               <p className="mt-5 text-[10px] text-muted-foreground/80 leading-normal border-t border-border/60 pt-3">
-                Para consultar seu saldo e resgatar suas recompensas, acesse sua conta através do botão <strong className="text-primary" style={{ color: branding.primary_color }}>"Entrar"</strong> no cabeçalho acima.
+                Para consultar seu saldo e resgatar suas recompensas, acesse sua conta através do
+                botão{" "}
+                <strong className="text-primary" style={{ color: branding.primary_color }}>
+                  "Entrar"
+                </strong>{" "}
+                no cabeçalho acima.
               </p>
             </>
           )}
@@ -275,7 +346,9 @@ function RecompensasIndexPage() {
             key={f}
             onClick={() => setFilter(f)}
             className={`min-h-11 rounded-full px-4 text-sm transition-colors ${
-              filter === f ? "bg-primary text-primary-foreground" : "border border-border bg-card hover:bg-secondary"
+              filter === f
+                ? "bg-primary text-primary-foreground"
+                : "border border-border bg-card hover:bg-secondary"
             }`}
           >
             {f === "todos" ? "Todos" : f === "produto" ? "Produtos" : "Vouchers"}
@@ -285,7 +358,12 @@ function RecompensasIndexPage() {
 
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
         {filtered.map((r) => (
-          <RewardCard key={r.id} reward={r} balance={user ? (balance ?? 0) : null} onRedeem={setConfirming} />
+          <RewardCard
+            key={r.id}
+            reward={r}
+            balance={user ? (balance ?? 0) : null}
+            onRedeem={setConfirming}
+          />
         ))}
       </div>
 
@@ -303,25 +381,38 @@ function RecompensasIndexPage() {
             <DialogDescription>
               {confirming && (
                 <>
-                  Você está prestes a resgatar <strong>{confirming.name}</strong> ({rewardSummary(confirming)})
-                  por <strong>{confirming.points_cost} pontos</strong>.
+                  Você está prestes a resgatar <strong>{confirming.name}</strong> (
+                  {rewardSummary(confirming)}) por <strong>{confirming.points_cost} pontos</strong>.
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
           {confirming && user && customer && (
             <div className="space-y-2 rounded-xl bg-secondary/40 p-4 text-sm">
-              <div className="flex justify-between"><span>Saldo atual</span><strong>{balance ?? 0} pts</strong></div>
-              <div className="flex justify-between"><span>Custo do resgate</span><strong>− {confirming.points_cost} pts</strong></div>
-              <div className="flex justify-between border-t border-border pt-2"><span>Saldo após resgate</span><strong>{(balance ?? 0) - confirming.points_cost} pts</strong></div>
+              <div className="flex justify-between">
+                <span>Saldo atual</span>
+                <strong>{balance ?? 0} pts</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>Custo do resgate</span>
+                <strong>− {confirming.points_cost} pts</strong>
+              </div>
+              <div className="flex justify-between border-t border-border pt-2">
+                <span>Saldo após resgate</span>
+                <strong>{(balance ?? 0) - confirming.points_cost} pts</strong>
+              </div>
               <div className="pt-2 text-xs text-muted-foreground">
-                Validade do {kindLabel(confirming.kind).toLowerCase()}: {branding.redemption_days_default} dias
+                Validade do {kindLabel(confirming.kind).toLowerCase()}:{" "}
+                {branding.redemption_days_default} dias
               </div>
             </div>
           )}
           <DialogFooter>
             {!user ? (
-              <Link to="/recompensas/login" className="min-h-11 rounded-full bg-primary px-5 py-2.5 text-sm text-primary-foreground">
+              <Link
+                to="/recompensas/login"
+                className="min-h-11 rounded-full bg-primary px-5 py-2.5 text-sm text-primary-foreground"
+              >
                 Entrar para resgatar
               </Link>
             ) : (
@@ -342,11 +433,16 @@ function RecompensasIndexPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" style={{ color: branding.primary_color }} />
+              <Sparkles
+                className="h-5 w-5 text-primary"
+                style={{ color: branding.primary_color }}
+              />
               Fazer Parte do Clube Com Amor
             </DialogTitle>
             <DialogDescription>
-              Preencha os campos abaixo para registrar seu interesse no Clube. Nós salvaremos seus dados no nosso CRM e te redirecionaremos para o nosso WhatsApp oficial de atendimento para concluir os detalhes!
+              Preencha os campos abaixo para registrar seu interesse no Clube. Nós salvaremos seus
+              dados no nosso CRM e te redirecionaremos para o nosso WhatsApp oficial de atendimento
+              para concluir os detalhes!
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleJoinSubmit} className="space-y-4 py-2">
@@ -397,4 +493,3 @@ function RecompensasIndexPage() {
     </section>
   );
 }
-

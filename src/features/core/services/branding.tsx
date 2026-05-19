@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/features/core/integrations/supabase/client";
 
 export type Branding = {
@@ -49,10 +42,10 @@ export type Branding = {
   issuer_city: string;
   signature_url: string | null;
   // Loja de Recompensas
-  points_per_real: number;          // R$ por ponto (default 10)
-  redemption_days_default: number;  // validade do resgate em dias
-  rewards_label: string;            // nome da página pública
-  n8n_rewards_webhook: string;      // webhook n8n para WhatsApp (mock se vazio)
+  points_per_real: number; // R$ por ponto (default 10)
+  redemption_days_default: number; // validade do resgate em dias
+  rewards_label: string; // nome da página pública
+  n8n_rewards_webhook: string; // webhook n8n para WhatsApp (mock se vazio)
   custom_palettes?: {
     name: string;
     primary: string;
@@ -89,8 +82,7 @@ export const DEFAULT_BRANDING: Branding = {
   hero_subtitle:
     "Peças autorais, coleções de atacado e fardamento corporativo costurados com cuidado de quem ama o ofício.",
   hero_image_url: null,
-  about_title:
-    "Uma pequena confecção com olhar grande sobre o que veste você.",
+  about_title: "Uma pequena confecção com olhar grande sobre o que veste você.",
   about_text:
     "A Com Amor Vestuário nasceu numa sala pequena, com uma máquina, três cores de linha e muita vontade de fazer roupa que durasse mais que uma estação.",
   about_image_url: null,
@@ -128,17 +120,20 @@ export const DEFAULT_BRANDING: Branding = {
   ],
   testimonials: [
     {
-      quote: "O acabamento é de outro mundo. Sinto o cuidado em cada costura — comprei uma peça, voltei para mais três.",
+      quote:
+        "O acabamento é de outro mundo. Sinto o cuidado em cada costura — comprei uma peça, voltei para mais três.",
       name: "Beatriz Lima",
       role: "Cliente varejo",
     },
     {
-      quote: "Fizemos o fardamento da nossa equipe inteira. Pontualidade impecável e qualidade que valoriza nossa marca.",
+      quote:
+        "Fizemos o fardamento da nossa equipe inteira. Pontualidade impecável e qualidade que valoriza nossa marca.",
       name: "Ricardo Sales",
       role: "Solaris Tecnologia",
     },
     {
-      quote: "Atendimento humano de verdade. Me ajudaram a escolher tamanho pelo WhatsApp e a peça caiu perfeita.",
+      quote:
+        "Atendimento humano de verdade. Me ajudaram a escolher tamanho pelo WhatsApp e a peça caiu perfeita.",
       name: "Luana Pires",
       role: "Cliente varejo",
     },
@@ -159,15 +154,20 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   async function load() {
-    const { data } = await (supabase as unknown as {
-      from: (t: string) => {
-        select: (c: string) => {
-          eq: (k: string, v: number) => {
-            maybeSingle: () => Promise<{ data: { data: Partial<Branding> } | null }>;
+    const { data } = await (
+      supabase as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (
+              k: string,
+              v: number,
+            ) => {
+              maybeSingle: () => Promise<{ data: { data: Partial<Branding> } | null }>;
+            };
           };
         };
-      };
-    })
+      }
+    )
       .from("site_settings")
       .select("data")
       .eq("id", 1)
@@ -206,11 +206,15 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
       refresh: load,
       save: async (next) => {
         const merged = { ...branding, ...next };
-        const { error } = await (supabase as unknown as {
-          from: (t: string) => {
-            upsert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
-          };
-        })
+        const { error } = await (
+          supabase as unknown as {
+            from: (t: string) => {
+              upsert: (
+                row: Record<string, unknown>,
+              ) => Promise<{ error: { message: string } | null }>;
+            };
+          }
+        )
           .from("site_settings")
           .upsert({ id: 1, data: merged, updated_at: new Date().toISOString() });
         if (error) return { error: error.message };
@@ -221,9 +225,7 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     [branding, loading],
   );
 
-  return (
-    <BrandingCtx.Provider value={value}>{children}</BrandingCtx.Provider>
-  );
+  return <BrandingCtx.Provider value={value}>{children}</BrandingCtx.Provider>;
 }
 
 export function useBranding() {
@@ -231,4 +233,3 @@ export function useBranding() {
   if (!ctx) throw new Error("useBranding must be used inside BrandingProvider");
   return ctx;
 }
-

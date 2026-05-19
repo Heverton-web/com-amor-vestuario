@@ -11,9 +11,9 @@ const ME_PRODUCTION_AUTH_URL = "https://melhorenvio.com.br/oauth/authorize";
 export function startMelhorEnvioOAuth(clientId: string, redirectUri: string, isSandbox = true) {
   const baseUrl = isSandbox ? ME_SANDBOX_AUTH_URL : ME_PRODUCTION_AUTH_URL;
   const scopes = "shipping-calculate shipping-cancel shipping-checkout shipping-label";
-  
+
   const authUrl = `${baseUrl}?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes)}`;
-  
+
   window.location.href = authUrl;
 }
 
@@ -22,10 +22,10 @@ export function startMelhorEnvioOAuth(clientId: string, redirectUri: string, isS
  * e salva o resultado nas configurações de integração no banco.
  */
 export async function saveMelhorEnvioTokens(
-  code: string, 
-  clientId: string, 
-  clientSecret: string, 
-  isSandbox = true
+  code: string,
+  clientId: string,
+  clientSecret: string,
+  isSandbox = true,
 ): Promise<{ success: boolean; message: string }> {
   try {
     // 1. Simula a chamada POST para o token endpoint (ou executa real no backend se tivéssemos proxy)
@@ -34,22 +34,25 @@ export async function saveMelhorEnvioTokens(
     const mockAccessToken = `me_access_token_mock_${Math.random().toString(36).substring(7)}`;
     const mockRefreshToken = `me_refresh_token_mock_${Math.random().toString(36).substring(7)}`;
 
-    const { error } = await supabase
-      .from("integration_settings" as any)
-      .upsert({
+    const { error } = await supabase.from("integration_settings" as any).upsert(
+      {
         provider: "melhor_envio",
         mode: isSandbox ? "sandbox" : "production",
-        api_url: isSandbox ? "https://sandbox.melhorenvio.com.br" : "https://api.melhorenvio.com.br",
+        api_url: isSandbox
+          ? "https://sandbox.melhorenvio.com.br"
+          : "https://api.melhorenvio.com.br",
         public_key: mockRefreshToken, // Guardamos o refresh token aqui
-        private_key: mockAccessToken,  // Guardamos o access token aqui
+        private_key: mockAccessToken, // Guardamos o access token aqui
         updated_at: new Date().toISOString(),
-      }, { onConflict: "provider" });
+      },
+      { onConflict: "provider" },
+    );
 
     if (error) throw error;
 
-    return { 
-      success: true, 
-      message: "Tokens do Melhor Envio gerados e salvos com sucesso no banco de dados!" 
+    return {
+      success: true,
+      message: "Tokens do Melhor Envio gerados e salvos com sucesso no banco de dados!",
     };
   } catch (err: any) {
     console.error("Falha ao salvar tokens do Melhor Envio:", err);
@@ -61,9 +64,9 @@ export async function saveMelhorEnvioTokens(
  * Simulação do Mercado Pago: Atualiza o status do pedido e dispara webhook correspondente no N8N.
  */
 export async function simulateMercadoPagoPayment(
-  orderId: string, 
+  orderId: string,
   status: "pago" | "recusado" | "reembolsado",
-  useRealSandbox = false
+  useRealSandbox = false,
 ): Promise<{ success: boolean; message: string; webhookLog?: any }> {
   try {
     // 1. Carrega dados do pedido para montar um payload rico de webhook
@@ -152,38 +155,51 @@ export interface FreightOption {
 }
 
 export async function simulateMelhorEnvioFreight(
-  postalCode: string, 
-  useRealSandbox = false
+  postalCode: string,
+  useRealSandbox = false,
 ): Promise<{ success: boolean; options: FreightOption[]; message: string }> {
   try {
     if (useRealSandbox) {
       // 1. Busca chaves salvas para bater no Sandbox Real do Melhor Envio
-      const { data: meSettings } = await supabase
+      const { data: meSettings } = (await supabase
         .from("integration_settings" as any)
         .select("private_key, mode")
         .eq("provider", "melhor_envio")
-        .maybeSingle() as any;
+        .maybeSingle()) as any;
 
       if (!meSettings?.private_key) {
-        throw new Error("Tokens do Melhor Envio não encontrados. Salve-os ou utilize a simulação local (Mock).");
+        throw new Error(
+          "Tokens do Melhor Envio não encontrados. Salve-os ou utilize a simulação local (Mock).",
+        );
       }
 
       // Tenta efetuar chamada HTTP real à API de testes do Melhor Envio
-      const response = await fetch("https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${meSettings.private_key}`,
+      const response = await fetch(
+        "https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${meSettings.private_key}`,
+          },
+          body: JSON.stringify({
+            from: { postal_code: "01001000" }, // Centro SP
+            to: { postal_code: postalCode },
+            products: [
+              {
+                id: "test",
+                width: 15,
+                height: 15,
+                length: 15,
+                weight: 0.5,
+                insurance_value: 100,
+                quantity: 1,
+              },
+            ],
+          }),
         },
-        body: JSON.stringify({
-          from: { postal_code: "01001000" }, // Centro SP
-          to: { postal_code: postalCode },
-          products: [
-            { id: "test", width: 15, height: 15, length: 15, weight: 0.5, insurance_value: 100, quantity: 1 }
-          ],
-        }),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`API Melhor Envio retornou status ${response.status}`);
@@ -211,40 +227,52 @@ export async function simulateMelhorEnvioFreight(
     } else {
       // 2. Simulação local 100% Mock (AMBOS modos suportados como solicitado!)
       await new Promise((resolve) => setTimeout(resolve, 500)); // Simula latência
-      
+
       const mockOptions: FreightOption[] = [
         {
           id: 1,
           name: "Jadlog Package (Mock)",
-          price: 14.90,
-          custom_price: 12.50,
+          price: 14.9,
+          custom_price: 12.5,
           delivery_time: 4,
-          company: { name: "Jadlog", picture: "https://sandbox.melhorenvio.com.br/images/shipping/jadlog.png" }
+          company: {
+            name: "Jadlog",
+            picture: "https://sandbox.melhorenvio.com.br/images/shipping/jadlog.png",
+          },
         },
         {
           id: 2,
           name: "Jadlog Comodidade (Mock)",
-          price: 18.20,
-          custom_price: 15.90,
+          price: 18.2,
+          custom_price: 15.9,
           delivery_time: 2,
-          company: { name: "Jadlog", picture: "https://sandbox.melhorenvio.com.br/images/shipping/jadlog.png" }
+          company: {
+            name: "Jadlog",
+            picture: "https://sandbox.melhorenvio.com.br/images/shipping/jadlog.png",
+          },
         },
         {
           id: 3,
           name: "Sedex Central (Mock)",
-          price: 24.50,
-          custom_price: 22.00,
+          price: 24.5,
+          custom_price: 22.0,
           delivery_time: 1,
-          company: { name: "Correios", picture: "https://sandbox.melhorenvio.com.br/images/shipping/correios.png" }
+          company: {
+            name: "Correios",
+            picture: "https://sandbox.melhorenvio.com.br/images/shipping/correios.png",
+          },
         },
         {
           id: 4,
           name: "PAC Encomenda (Mock)",
-          price: 11.20,
-          custom_price: 9.90,
+          price: 11.2,
+          custom_price: 9.9,
           delivery_time: 6,
-          company: { name: "Correios", picture: "https://sandbox.melhorenvio.com.br/images/shipping/correios.png" }
-        }
+          company: {
+            name: "Correios",
+            picture: "https://sandbox.melhorenvio.com.br/images/shipping/correios.png",
+          },
+        },
       ];
 
       return {

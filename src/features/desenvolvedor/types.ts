@@ -2,8 +2,8 @@
 
 export interface IntegrationSettings {
   id?: string;
-  provider: 'supabase' | 'melhor_envio' | 'mercado_pago' | 'n8n';
-  mode: 'sandbox' | 'production';
+  provider: "supabase" | "melhor_envio" | "mercado_pago" | "n8n";
+  mode: "sandbox" | "production";
   api_url: string | null;
   public_key: string | null;
   private_key: string | null;
@@ -20,13 +20,13 @@ export interface WebhookLog {
   status_code: number | null;
   response_body: string | null;
   duration_ms: number | null;
-  status: 'success' | 'failed';
+  status: "success" | "failed";
   created_at: string;
 }
 
 export interface ApiHealthStatus {
-  provider: 'supabase' | 'melhor_envio' | 'mercado_pago' | 'n8n';
-  status: 'online' | 'offline' | 'warning' | 'loading';
+  provider: "supabase" | "melhor_envio" | "mercado_pago" | "n8n";
+  status: "online" | "offline" | "warning" | "loading";
   latencyMs?: number;
   message?: string;
   details?: any;

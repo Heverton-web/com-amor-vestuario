@@ -1,11 +1,31 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Package, Users, FileText, ShoppingBag,
-  Kanban, BarChart3, Link2, Receipt, LogOut, Heart, Palette,
-  ShieldCheck, Menu, FileSpreadsheet, ReceiptText, Gift, Terminal,
+  LayoutDashboard,
+  Package,
+  Users,
+  FileText,
+  ShoppingBag,
+  Kanban,
+  BarChart3,
+  Link2,
+  Receipt,
+  LogOut,
+  Heart,
+  Palette,
+  ShieldCheck,
+  Menu,
+  FileSpreadsheet,
+  ReceiptText,
+  Gift,
+  Terminal,
 } from "lucide-react";
 import { useAuth } from "@/features/core/integrations/auth";
-import { ADMIN_PAGES, ADMIN_CATEGORIES, SUPERADMIN_PAGE, pageKeyForPath } from "@/features/core/utils/admin-pages";
+import {
+  ADMIN_PAGES,
+  ADMIN_CATEGORIES,
+  SUPERADMIN_PAGE,
+  pageKeyForPath,
+} from "@/features/core/utils/admin-pages";
 import { useState, type ReactNode } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/features/core/components/sheet";
 
@@ -27,7 +47,11 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   dev: Terminal,
 };
 
-export function AdminShell({ title, children, actions }: {
+export function AdminShell({
+  title,
+  children,
+  actions,
+}: {
   title: string;
   children: ReactNode;
   actions?: ReactNode;
@@ -54,9 +78,10 @@ export function AdminShell({ title, children, actions }: {
               {cat.label}
             </div>
             {items.map((n) => {
-              const active = n.path === "/admin"
-                ? loc.pathname === n.path
-                : loc.pathname === n.path || loc.pathname.startsWith(n.path + "/");
+              const active =
+                n.path === "/admin"
+                  ? loc.pathname === n.path
+                  : loc.pathname === n.path || loc.pathname.startsWith(n.path + "/");
               const Icon = ICONS[n.key] ?? LayoutDashboard;
               return (
                 <Link
@@ -94,7 +119,10 @@ export function AdminShell({ title, children, actions }: {
     <div className="border-t border-border p-3">
       <div className="px-3 py-2 text-xs text-muted-foreground truncate">{user?.email}</div>
       <button
-        onClick={async () => { await signOut(); navigate({ to: "/" }); }}
+        onClick={async () => {
+          await signOut();
+          navigate({ to: "/" });
+        }}
         className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-foreground/70 hover:bg-muted"
       >
         <LogOut className="h-4 w-4" /> Sair
@@ -135,13 +163,15 @@ export function AdminShell({ title, children, actions }: {
           </div>
         </header>
         <div className="p-4 md:p-10">
-          {allowed ? children : (
+          {allowed ? (
+            children
+          ) : (
             <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-8 text-center md:p-10">
               <ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
               <h2 className="mt-4 font-display text-2xl">Página restrita</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Sua conta não tem permissão para acessar esta página. Solicite ao
-                superadmin para liberar o acesso.
+                Sua conta não tem permissão para acessar esta página. Solicite ao superadmin para
+                liberar o acesso.
               </p>
             </div>
           )}
@@ -150,4 +180,3 @@ export function AdminShell({ title, children, actions }: {
     </div>
   );
 }
-

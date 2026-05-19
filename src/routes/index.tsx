@@ -21,8 +21,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Com Amor Vestuário" },
       {
         property: "og:description",
-        content:
-          "Roupa que veste história, não só o corpo. Varejo, atacado e fardamento.",
+        content: "Roupa que veste história, não só o corpo. Varejo, atacado e fardamento.",
       },
     ],
   }),
@@ -48,4 +47,3 @@ function Index() {
     </div>
   );
 }
-

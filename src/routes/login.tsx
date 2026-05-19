@@ -28,9 +28,8 @@ function LoginPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const res = mode === "signin"
-      ? await signIn(email, password)
-      : await signUp(email, password, name);
+    const res =
+      mode === "signin" ? await signIn(email, password) : await signUp(email, password, name);
     setLoading(false);
     if (res.error) {
       toast.error(res.error);
@@ -186,4 +185,3 @@ function LoginPage() {
     </div>
   );
 }
-

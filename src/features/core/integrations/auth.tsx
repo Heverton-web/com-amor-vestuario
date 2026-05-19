@@ -35,14 +35,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isSuper = !!superRes.data;
     setIsSuperAdmin(isSuper);
     setIsStaff(
-      isSuper ||
-        !!rolesRes.data?.some((r) => r.role === "admin" || r.role === "consultor"),
+      isSuper || !!rolesRes.data?.some((r) => r.role === "admin" || r.role === "consultor"),
     );
     setPages(new Set(pagesRes.data?.map((p) => p.page_key) ?? []));
   }
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
@@ -71,9 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isStaff,
     isSuperAdmin,
     pages,
-    canAccess: (key: string) => 
-      isSuperAdmin || 
-      pages.has(key) || 
+    canAccess: (key: string) =>
+      isSuperAdmin ||
+      pages.has(key) ||
       (key === "dev" && (import.meta.env.DEV ? isStaff : user?.email === "admin@comamor.app")),
     refreshAccess: async () => {
       if (user) await loadAccess(user.id);
@@ -106,4 +107,3 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be inside AuthProvider");
   return ctx;
 }
-

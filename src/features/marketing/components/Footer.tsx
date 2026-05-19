@@ -20,7 +20,9 @@ export function Footer() {
               ) : (
                 <>
                   <span className="font-display text-3xl font-medium">{branding.brand_name}</span>
-                  <span className="text-xs uppercase tracking-[0.25em] opacity-70">{branding.brand_suffix}</span>
+                  <span className="text-xs uppercase tracking-[0.25em] opacity-70">
+                    {branding.brand_suffix}
+                  </span>
                 </>
               )}
             </div>
@@ -32,10 +34,26 @@ export function Footer() {
           <div>
             <h4 className="font-display text-lg">Navegue</h4>
             <ul className="mt-4 space-y-2 text-cream/70">
-              <li><a href="#sobre" className="hover:text-cream">Sobre</a></li>
-              <li><a href="#galeria" className="hover:text-cream">Galeria</a></li>
-              <li><a href="#depoimentos" className="hover:text-cream">Depoimentos</a></li>
-              <li><a href={branding.cta_footer_shop_url} className="hover:text-cream">{branding.cta_footer_shop_label}</a></li>
+              <li>
+                <a href="#sobre" className="hover:text-cream">
+                  Sobre
+                </a>
+              </li>
+              <li>
+                <a href="#galeria" className="hover:text-cream">
+                  Galeria
+                </a>
+              </li>
+              <li>
+                <a href="#depoimentos" className="hover:text-cream">
+                  Depoimentos
+                </a>
+              </li>
+              <li>
+                <a href={branding.cta_footer_shop_url} className="hover:text-cream">
+                  {branding.cta_footer_shop_label}
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -58,11 +76,13 @@ export function Footer() {
         </div>
 
         <div className="mt-16 flex flex-col items-start justify-between gap-3 border-t border-cream/10 pt-6 text-sm text-cream/60 md:flex-row md:items-center">
-          <p>© {new Date().getFullYear()} {branding.brand_name} {branding.brand_suffix}. Todos os direitos reservados.</p>
+          <p>
+            © {new Date().getFullYear()} {branding.brand_name} {branding.brand_suffix}. Todos os
+            direitos reservados.
+          </p>
           <p>Feito com cuidado — peça por peça.</p>
         </div>
       </div>
     </footer>
   );
 }
-

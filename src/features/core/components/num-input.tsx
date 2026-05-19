@@ -5,8 +5,10 @@ import { cn } from "@/features/core/utils/utils";
  * Input numérico "limpável": permite apagar o conteúdo (string vazia)
  * sem que o estado força "0" de volta. Mantém estado externo como número.
  */
-export interface NumInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> {
+export interface NumInputProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "value" | "onChange" | "type"
+> {
   value: number;
   onValueChange: (n: number) => void;
   allowDecimal?: boolean;
@@ -34,8 +36,8 @@ export const NumInput = React.forwardRef<HTMLInputElement, NumInputProps>(
         onChange={(e) => {
           let v = e.target.value.replace(",", ".");
           // Aceita apenas dígitos, ponto e sinal
-          if (allowDecimal) v = v.replace(/[^0-9.\-]/g, "");
-          else v = v.replace(/[^0-9\-]/g, "");
+          if (allowDecimal) v = v.replace(/[^0-9.-]/g, "");
+          else v = v.replace(/[^0-9-]/g, "");
           setText(v);
           if (v === "" || v === "-" || v === ".") {
             lastEmittedRef.current = 0;
@@ -65,4 +67,3 @@ export const NumInput = React.forwardRef<HTMLInputElement, NumInputProps>(
   },
 );
 NumInput.displayName = "NumInput";
-

@@ -8,10 +8,9 @@ Esta proposta detalha a análise do fluxo atual de gerenciamento de estoque para
 
 Analisando a estrutura do banco de dados e as rotas frontend, identificamos os seguintes pontos críticos na lógica atual:
 
-1. **Estoques Duplicados e Desconectados:** 
+1. **Estoques Duplicados e Desconectados:**
    Hoje, a tabela `reward_items` gerencia um campo `stock` próprio. Ao criar uma recompensa de `produto_fisico` vinculada a um produto cadastrado na tabela `products`, o administrador precisa digitar manualmente o estoque. Se o estoque real do produto mudar no cadastro principal ou em uma venda, o estoque da recompensa fica desatualizado, gerando divergências e riscos de vender sem estoque real.
-   
-2. **Resgate sem Pedido de Entrega ("Limbo Operacional"):** 
+2. **Resgate sem Pedido de Entrega ("Limbo Operacional"):**
    Quando o cliente resgata um produto físico, o sistema cria apenas uma linha na tabela `redemptions` e reduz o `stock` isolado da recompensa. **Nenhum pedido convencional (`orders`) é gerado no sistema.** Consequentemente:
    - O time de expedição não visualiza o item a ser enviado no painel de Pedidos ou no Kanban.
    - Não há como embalar, etiquetar ou rastrear essa entrega.
@@ -40,12 +39,14 @@ graph TD
 ```
 
 ### 1. Sincronização Inteligente de Estoque na Realocação ("Estoque Único")
-- **Regra:** *Quando realocamos um produto físico para a loja de recompensas, a quantidade em estoque deve permanecer a mesma.*
-- **Solução:** Em vez de mantermos o estoque na tabela `reward_items`, o catálogo público e o painel administrativo lerão o estoque diretamente da tabela `products` via relacionamento (`product_id`). 
+
+- **Regra:** _Quando realocamos um produto físico para a loja de recompensas, a quantidade em estoque deve permanecer a mesma._
+- **Solução:** Em vez de mantermos o estoque na tabela `reward_items`, o catálogo público e o painel administrativo lerão o estoque diretamente da tabela `products` via relacionamento (`product_id`).
 - **Vantagem:** Consistência absoluta de inventário. Qualquer alteração no estoque do produto convencional atualiza instantaneamente a Loja de Recompensas, e vice-versa.
 
 ### 2. Automação no Resgate com Status "Separado"
-- **Regra:** *Caso o produto seja resgatado, ficará com o status 'separado'.*
+
+- **Regra:** _Caso o produto seja resgatado, ficará com o status 'separado'._
 - **Solução:** No momento do resgate de um produto físico na Loja de Recompensas, criamos automaticamente um pedido na tabela `public.orders` com o status `'separado'` e valor total igual a `R$ 0,00` (pago com pontos).
 - **Ações Automatizadas:**
   1. Insere o registro em `public.redemptions` com status `'resgatado'`.
@@ -54,7 +55,8 @@ graph TD
   4. Insere em `public.kanban_cards` o card correspondente no quadro de Pedidos na coluna **Separado**, alertando instantaneamente a expedição.
 
 ### 3. Baixa Centralizada no Faturamento
-- **Regra:** *Só haverá baixa do estoque quando o pedido for faturado.*
+
+- **Regra:** _Só haverá baixa do estoque quando o pedido for faturado._
 - **Solução:** Remover as baixas de estoque manuais espalhadas pelo frontend (no checkout e nos resgates) e implementar uma **Trigger única e centralizada no banco de dados (PostgreSQL)**.
 - **Como funciona:** A trigger monitora a tabela `public.orders`. Sempre que o status de qualquer pedido transicionar para `'pago'` (Faturado/Pago), a trigger faz a baixa das quantidades na tabela `public.products` automaticamente para todos os itens vinculados em `public.order_items`.
 - **Vantagem:** Evita erros humanos, falhas de rede do navegador e garante que a baixa ocorra de forma idêntica para vendas da Loja Virtual, pedidos manuais e resgates de recompensas.
@@ -93,13 +95,13 @@ DECLARE
 BEGIN
   -- Só faz a baixa quando o status transiciona para 'pago' (Faturado)
   IF NEW.status = 'pago' AND OLD.status <> 'pago' THEN
-    FOR item IN 
-      SELECT product_id, quantity 
-      FROM public.order_items 
+    FOR item IN
+      SELECT product_id, quantity
+      FROM public.order_items
       WHERE order_id = NEW.id AND product_id IS NOT NULL
     LOOP
-      UPDATE public.products 
-      SET stock = GREATEST(0, stock - item.quantity) 
+      UPDATE public.products
+      SET stock = GREATEST(0, stock - item.quantity)
       WHERE id = item.product_id;
     END LOOP;
   END IF;
@@ -117,112 +119,122 @@ CREATE OR REPLACE TRIGGER trg_deduct_stock_on_invoice
 No arquivo [recompensas.index.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/recompensas.index.tsx), vamos atualizar a lógica de mutação de resgate para criar o pedido com status `separado` e card de Kanban quando for um produto físico.
 
 #### Código de Mutação Sugerido:
+
 ```typescript
-  const redeem = useMutation({
-    mutationFn: async (reward: RewardItem) => {
-      if (!customer) throw new Error("Faça login para resgatar");
-      if ((balance ?? 0) < reward.points_cost) throw new Error("Pontos insuficientes");
-      
-      // Buscar estoque do produto convencional se for físico para validar
-      if (reward.kind === "produto_fisico" && reward.product_id) {
-        const { data: prod } = await supabase.from("products").select("stock").eq("id", reward.product_id).single();
-        if (!prod || prod.stock <= 0) throw new Error("Produto sem estoque físico no momento");
-      } else if (reward.stock <= 0) {
-        throw new Error("Sem estoque");
-      }
+const redeem = useMutation({
+  mutationFn: async (reward: RewardItem) => {
+    if (!customer) throw new Error("Faça login para resgatar");
+    if ((balance ?? 0) < reward.points_cost) throw new Error("Pontos insuficientes");
 
-      const validUntil = new Date();
-      validUntil.setDate(validUntil.getDate() + (branding.redemption_days_default || 30));
-      const voucherCode = reward.kind !== "produto_fisico" ? genVoucherCode() : null;
+    // Buscar estoque do produto convencional se for físico para validar
+    if (reward.kind === "produto_fisico" && reward.product_id) {
+      const { data: prod } = await supabase
+        .from("products")
+        .select("stock")
+        .eq("id", reward.product_id)
+        .single();
+      if (!prod || prod.stock <= 0) throw new Error("Produto sem estoque físico no momento");
+    } else if (reward.stock <= 0) {
+      throw new Error("Sem estoque");
+    }
 
-      // 1. Inserir resgate na tabela redemptions
-      const { data: red, error } = await supabase
-        .from("redemptions" as never)
+    const validUntil = new Date();
+    validUntil.setDate(validUntil.getDate() + (branding.redemption_days_default || 30));
+    const voucherCode = reward.kind !== "produto_fisico" ? genVoucherCode() : null;
+
+    // 1. Inserir resgate na tabela redemptions
+    const { data: red, error } = await supabase
+      .from("redemptions" as never)
+      .insert({
+        customer_id: customer.id,
+        reward_item_id: reward.id,
+        points_spent: reward.points_cost,
+        voucher_code: voucherCode,
+        valid_until: validUntil.toISOString().slice(0, 10),
+      } as never)
+      .select()
+      .single();
+    if (error) throw error;
+    const redemption = red as unknown as { id: string; code: string };
+
+    // 2. Debitar os pontos do ledger do cliente
+    await supabase.from("points_ledger" as never).insert({
+      customer_id: customer.id,
+      delta: -reward.points_cost,
+      reason: "resgate",
+      redemption_id: redemption.id,
+      description: `Resgate: ${reward.name}`,
+    } as never);
+
+    // 3. SE for produto físico, gera automaticamente o PEDIDO com status 'separado'
+    if (reward.kind === "produto_fisico" && reward.product_id) {
+      // Criar o pedido (orders) com total 0.00 e status 'separado'
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
         .insert({
           customer_id: customer.id,
-          reward_item_id: reward.id,
-          points_spent: reward.points_cost,
-          voucher_code: voucherCode,
-          valid_until: validUntil.toISOString().slice(0, 10),
-        } as never)
+          status: "separado", // <-- Regra solicitada: status 'separado'
+          source: "recompensa",
+          subtotal: 0,
+          shipping: 0,
+          total: 0,
+          notes: `Resgate de Recompensa ${redemption.code}: ${reward.name}`,
+        })
         .select()
         .single();
-      if (error) throw error;
-      const redemption = red as unknown as { id: string; code: string };
 
-      // 2. Debitar os pontos do ledger do cliente
-      await supabase.from("points_ledger" as never).insert({
+      if (orderErr) throw orderErr;
+
+      // Associar o item físico ao pedido
+      await supabase.from("order_items").insert({
+        order_id: order.id,
+        product_id: reward.product_id,
+        product_name: reward.name,
+        quantity: 1,
+        unit_price: 0,
+        total: 0,
+        color: reward.product_variant?.color || null,
+        size: reward.product_variant?.size || null,
+      });
+
+      // Criar o card no Kanban de Pedidos (Estágio 'separado')
+      await supabase.from("kanban_cards").insert({
+        board: "pedidos",
+        stage: "separado",
+        title: `Resgate: ${order.code} · ${customer.name}`,
         customer_id: customer.id,
-        delta: -reward.points_cost,
-        reason: "resgate",
-        redemption_id: redemption.id,
-        description: `Resgate: ${reward.name}`,
-      } as never);
+        order_id: order.id,
+        amount: 0,
+        contact_name: customer.name,
+        contact_whatsapp: customer.phone || "",
+      });
 
-      // 3. SE for produto físico, gera automaticamente o PEDIDO com status 'separado'
-      if (reward.kind === "produto_fisico" && reward.product_id) {
-        // Criar o pedido (orders) com total 0.00 e status 'separado'
-        const { data: order, error: orderErr } = await supabase
-          .from("orders")
-          .insert({
-            customer_id: customer.id,
-            status: "separado", // <-- Regra solicitada: status 'separado'
-            source: "recompensa",
-            subtotal: 0,
-            shipping: 0,
-            total: 0,
-            notes: `Resgate de Recompensa ${redemption.code}: ${reward.name}`,
-          })
-          .select()
-          .single();
-
-        if (orderErr) throw orderErr;
-
-        // Associar o item físico ao pedido
-        await supabase.from("order_items").insert({
-          order_id: order.id,
-          product_id: reward.product_id,
-          product_name: reward.name,
-          quantity: 1,
-          unit_price: 0,
-          total: 0,
-          color: reward.product_variant?.color || null,
-          size: reward.product_variant?.size || null,
-        });
-
-        // Criar o card no Kanban de Pedidos (Estágio 'separado')
-        await supabase.from("kanban_cards").insert({
-          board: "pedidos",
-          stage: "separado",
-          title: `Resgate: ${order.code} · ${customer.name}`,
-          customer_id: customer.id,
-          order_id: order.id,
-          amount: 0,
-          contact_name: customer.name,
-          contact_whatsapp: customer.phone || "",
-        });
-
-        // Vincular o ID do pedido gerado de volta no registro de resgate
-        await supabase
-          .from("redemptions" as never)
-          .update({ used_in_order_id: order.id, status: "utilizado", used_at: new Date().toISOString() } as never)
-          .eq("id", redemption.id);
-      } else {
-        // Se for um voucher, decrementa o estoque virtual do próprio item de recompensa
-        await supabase.from("reward_items" as never)
-          .update({ stock: reward.stock - 1 } as never)
-          .eq("id", reward.id);
-      }
-    },
-    onSuccess: () => {
-      toast.success("Resgate realizado com sucesso!");
-      qc.invalidateQueries({ queryKey: ["rewards-public"] });
-      qc.invalidateQueries({ queryKey: ["my-balance"] });
-      qc.invalidateQueries({ queryKey: ["my-redemptions"] });
-      setConfirming(null);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
+      // Vincular o ID do pedido gerado de volta no registro de resgate
+      await supabase
+        .from("redemptions" as never)
+        .update({
+          used_in_order_id: order.id,
+          status: "utilizado",
+          used_at: new Date().toISOString(),
+        } as never)
+        .eq("id", redemption.id);
+    } else {
+      // Se for um voucher, decrementa o estoque virtual do próprio item de recompensa
+      await supabase
+        .from("reward_items" as never)
+        .update({ stock: reward.stock - 1 } as never)
+        .eq("id", reward.id);
+    }
+  },
+  onSuccess: () => {
+    toast.success("Resgate realizado com sucesso!");
+    qc.invalidateQueries({ queryKey: ["rewards-public"] });
+    qc.invalidateQueries({ queryKey: ["my-balance"] });
+    qc.invalidateQueries({ queryKey: ["my-redemptions"] });
+    setConfirming(null);
+  },
+  onError: (e: Error) => toast.error(e.message),
+});
 ```
 
 ---

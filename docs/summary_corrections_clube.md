@@ -5,145 +5,157 @@ Este documento detalha as atualizações de alta fidelidade e correções críti
 ---
 
 ## 1. Eliminação de Cabeçalhos Redundantes & Navegação Fluida
-* **Página de Login (`/recompensas/login`)**: Removido o cabeçalho (`<header>`) duplicado interno. A rota agora herda de forma limpa o leiaute global da rota pai `/recompensas`.
-* **Página de Minha Conta (`/recompensas/minha-conta`)**: Removido o cabeçalho redundante da página interna. 
-* **Cabeçalho Global Unificado**: Restruturamos o cabeçalho em `src/routes/recompensas.tsx` para apresentar um fluxo de navegação integrado e reativo:
-  * **Se Deslogado**: Apresenta de forma universal o botão **"Loja"** (retorno ao e-commerce principal `/loja`) ao lado do botão principal "Entrar".
-  * **Se Logado**: Apresenta de forma universal o botão **"Loja"** (retorno ao e-commerce principal `/loja`) ao lado dos estados de botões emparelhados ao lado do botão **"Sair"**:
-    * **Botão "Minha conta"** (com ícone do usuário): Exibido quando você estiver navegando pelo catálogo de prêmios.
-    * **Botão "Clube"** (com ícone de faísca/brilho): Exibido quando você estiver na página de perfil/extrato (`/recompensas/minha-conta`), facilitando o retorno imediato ao catálogo principal de fidelidade.
+
+- **Página de Login (`/recompensas/login`)**: Removido o cabeçalho (`<header>`) duplicado interno. A rota agora herda de forma limpa o leiaute global da rota pai `/recompensas`.
+- **Página de Minha Conta (`/recompensas/minha-conta`)**: Removido o cabeçalho redundante da página interna.
+- **Cabeçalho Global Unificado**: Restruturamos o cabeçalho em `src/routes/recompensas.tsx` para apresentar um fluxo de navegação integrado e reativo:
+  - **Se Deslogado**: Apresenta de forma universal o botão **"Loja"** (retorno ao e-commerce principal `/loja`) ao lado do botão principal "Entrar".
+  - **Se Logado**: Apresenta de forma universal o botão **"Loja"** (retorno ao e-commerce principal `/loja`) ao lado dos estados de botões emparelhados ao lado do botão **"Sair"**:
+    - **Botão "Minha conta"** (com ícone do usuário): Exibido quando você estiver navegando pelo catálogo de prêmios.
+    - **Botão "Clube"** (com ícone de faísca/brilho): Exibido quando você estiver na página de perfil/extrato (`/recompensas/minha-conta`), facilitando o retorno imediato ao catálogo principal de fidelidade.
 
 ---
 
 ## 2. Acesso à Loja no Cartão de Voucher Ativo
-* **Botão "Usar na loja"**: Adicionamos um botão de destaque **"Usar na loja"** em cada card de cupom ativo dentro da aba `"Vouchers ativos"`. O cliente agora pode copiar o código gerado com um clique e imediatamente pressionar o botão para retornar ao e-commerce na rota correta **`/loja`** para usar o seu desconto.
+
+- **Botão "Usar na loja"**: Adicionamos um botão de destaque **"Usar na loja"** em cada card de cupom ativo dentro da aba `"Vouchers ativos"`. O cliente agora pode copiar o código gerado com um clique e imediatamente pressionar o botão para retornar ao e-commerce na rota correta **`/loja`** para usar o seu desconto.
 
 ---
 
 ## 3. Suavização Visual & UX da Loja Virtual
-* **Fundo Suave do Hero**: Suavizamos o plano de fundo do banner de cabeçalho (hero) na página [/loja](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/loja.tsx). A classe de cor de fundo foi atualizada de `bg-accent/30` para **`bg-accent/10`**, proporcionando um tom pastel extremamente sofisticado, leve e integrado ao visual da marca.
-* **Filtros Sticky no Topo**: Tornamos o painel lateral de **"Filtros"** flutuante e fixo (`sticky top-20 h-fit self-start`) no desktop. Conforme o usuário rola a lista de produtos, os filtros acompanham a navegação perfeitamente, posicionados com elegância logo abaixo do cabeçalho fixo.
-* **Filtros Retráteis (Accordion)**: Transformamos cada seção de filtragem ("Faixa de preço", "Cor", "Tamanho") em um accordion interativo. Cada cabeçalho possui um botão de toggle com chevrons dinâmicos (`ChevronDown` / `ChevronUp`), permitindo abrir e fechar as opções para uma navegação extremamente limpa e moderna.
+
+- **Fundo Suave do Hero**: Suavizamos o plano de fundo do banner de cabeçalho (hero) na página [/loja](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/loja.tsx). A classe de cor de fundo foi atualizada de `bg-accent/30` para **`bg-accent/10`**, proporcionando um tom pastel extremamente sofisticado, leve e integrado ao visual da marca.
+- **Filtros Sticky no Topo**: Tornamos o painel lateral de **"Filtros"** flutuante e fixo (`sticky top-20 h-fit self-start`) no desktop. Conforme o usuário rola a lista de produtos, os filtros acompanham a navegação perfeitamente, posicionados com elegância logo abaixo do cabeçalho fixo.
+- **Filtros Retráteis (Accordion)**: Transformamos cada seção de filtragem ("Faixa de preço", "Cor", "Tamanho") em um accordion interativo. Cada cabeçalho possui um botão de toggle com chevrons dinâmicos (`ChevronDown` / `ChevronUp`), permitindo abrir e fechar as opções para uma navegação extremamente limpa e moderna.
 
 ---
 
 ## 4. Design Ultra-Premium no Painel Administrativo de Fidelidade
-* **Melhorias Visuais na Aba "Resgates"**:
-  * **Ícones de Tipo de Recompensa**: Adicionamos badges visuais elegantes com ícone de `Gift` (para produtos físicos) e `Ticket` (para cupons virtuais).
-  * **Códigos Monospaçados e Copiáveis**: Os códigos de resgate e de cupons (`voucher_code`) são exibidos em cápsulas monospaçadas modernas, com botões de clique único para copiar e aviso visual instantâneo (`toast.success`).
-  * **Badges de Status Dinâmicos**: O seletor de status foi reestilizado com cores dinâmicas para cada estado do cupom (`Resgatado`, `Utilizado`, `Expirado`, `Cancelado`).
-  * **Dados de Pontos Ganhos/Gastos**: O valor de pontos consumidos é exibido com clareza em uma tag vermelha arredondada (`-80 pts`).
 
-* **Melhorias Visuais na Aba "Pontos"**:
-  * **Extrato Dinâmico com Setas de Direção**: Lançamentos recentes agora trazem ícones circulares que mudam de cor e formato: verde com `ArrowUpRight` (para ganho de pontos) e vermelho com `ArrowDownLeft` (para consumo de pontos).
-  * **Saldos dos Clientes**: Apresentados em cartões com design editorial e espaçamentos nobres. O saldo total de pontos de cada cliente é exibido em destaque em uma tag da marca (`1500 pts`).
-  * **Status de Acesso & Ações**: O indicador de convite exibe um badge verde refinado (`Acesso ativo`) ou neutro (`Sem acesso`), acompanhado de um botão arredondado moderno com ícone integrado para `Convidar` ou `Resetar senha` com interações suaves.
+- **Melhorias Visuais na Aba "Resgates"**:
+  - **Ícones de Tipo de Recompensa**: Adicionamos badges visuais elegantes com ícone de `Gift` (para produtos físicos) e `Ticket` (para cupons virtuais).
+  - **Códigos Monospaçados e Copiáveis**: Os códigos de resgate e de cupons (`voucher_code`) são exibidos em cápsulas monospaçadas modernas, com botões de clique único para copiar e aviso visual instantâneo (`toast.success`).
+  - **Badges de Status Dinâmicos**: O seletor de status foi reestilizado com cores dinâmicas para cada estado do cupom (`Resgatado`, `Utilizado`, `Expirado`, `Cancelado`).
+  - **Dados de Pontos Ganhos/Gastos**: O valor de pontos consumidos é exibido com clareza em uma tag vermelha arredondada (`-80 pts`).
+
+- **Melhorias Visuais na Aba "Pontos"**:
+  - **Extrato Dinâmico com Setas de Direção**: Lançamentos recentes agora trazem ícones circulares que mudam de cor e formato: verde com `ArrowUpRight` (para ganho de pontos) e vermelho com `ArrowDownLeft` (para consumo de pontos).
+  - **Saldos dos Clientes**: Apresentados em cartões com design editorial e espaçamentos nobres. O saldo total de pontos de cada cliente é exibido em destaque em uma tag da marca (`1500 pts`).
+  - **Status de Acesso & Ações**: O indicador de convite exibe um badge verde refinado (`Acesso ativo`) ou neutro (`Sem acesso`), acompanhado de um botão arredondado moderno com ícone integrado para `Convidar` ou `Resetar senha` com interações suaves.
 
 ---
 
 ## 5. Correção de Acesso Mock & Resiliência do Supabase
-* **Resiliência do Cliente Admin**: Modificamos a inicialização do `supabaseAdmin` in `client.server.ts`. Caso a chave privada `SUPABASE_SERVICE_ROLE_KEY` não esteja declarada no ambiente local, o cliente não trava mais a inicialização da aplicação: exibe um aviso em console (`console.warn`) e faz fallback seguro para a chave pública.
-* **Ignorando Provisionamento Travado**: As funções `ensureSuperAdmin` e `ensureDemoAdmin` agora detectam a ausência da chave de serviço e saltam a etapa administrativa, retornando as credenciais esperadas em vez de quebrar a página de login com alertas.
-* **Auto-Signup na Tela de Login**: Aprimoramos o fluxo do botão **"Entrar como demo (administrador)"**. Se o usuário `admin@comamor.app` não existir no banco do Supabase Auth remoto, a aplicação executa o cadastro público em tempo de execução e realiza o login imediatamente.
+
+- **Resiliência do Cliente Admin**: Modificamos a inicialização do `supabaseAdmin` in `client.server.ts`. Caso a chave privada `SUPABASE_SERVICE_ROLE_KEY` não esteja declarada no ambiente local, o cliente não trava mais a inicialização da aplicação: exibe um aviso em console (`console.warn`) e faz fallback seguro para a chave pública.
+- **Ignorando Provisionamento Travado**: As funções `ensureSuperAdmin` e `ensureDemoAdmin` agora detectam a ausência da chave de serviço e saltam a etapa administrativa, retornando as credenciais esperadas em vez de quebrar a página de login com alertas.
+- **Auto-Signup na Tela de Login**: Aprimoramos o fluxo do botão **"Entrar como demo (administrador)"**. Se o usuário `admin@comamor.app` não existir no banco do Supabase Auth remoto, a aplicação executa o cadastro público em tempo de execução e realiza o login imediatamente.
 
 ---
 
 ## 6. Padronização Global do Nome "Clube Com Amor"
-* **Menu Lateral Administrativo**: Atualizamos as chaves de menu e categorias em `src/features/core/utils/admin-pages.ts`. A antiga seção e botão `"Loja de Recompensas"` foram alterados em definitivo para **"Clube Com Amor"** (renderizado com destaque no painel e barra lateral).
-* **Parâmetros de Branding**: Alteramos o rótulo padrão de recompensas (`rewards_label`) em `branding.tsx` para `"Clube Com Amor"`.
-* **Fluxo de Convites**: Atualizamos os modelos e payloads de mensagens gerados em `portal.functions.ts` para que tanto os convites via e-mail quanto WhatsApp mencionem oficialmente o **"Clube Com Amor"**.
+
+- **Menu Lateral Administrativo**: Atualizamos as chaves de menu e categorias em `src/features/core/utils/admin-pages.ts`. A antiga seção e botão `"Loja de Recompensas"` foram alterados em definitivo para **"Clube Com Amor"** (renderizado com destaque no painel e barra lateral).
+- **Parâmetros de Branding**: Alteramos o rótulo padrão de recompensas (`rewards_label`) em `branding.tsx` para `"Clube Com Amor"`.
+- **Fluxo de Convites**: Atualizamos os modelos e payloads de mensagens gerados em `portal.functions.ts` para que tanto os convites via e-mail quanto WhatsApp mencionem oficialmente o **"Clube Com Amor"**.
 
 ---
 
 ## 7. Escolha e Aplicação de Cupons Ativos no Checkout
-* **Listagem Direta no Resumo**: Se o cliente estiver logado e possuir cupons ativos (resgatados no Clube), o checkout exibe automaticamente uma seção dedicada chamada **"Seus Cupons Disponíveis"** logo abaixo do campo de inserção manual de cupons.
-* **Badges de Benefício Claros**: Cada cupom disponível é listado em um card interativo contendo seu código monospaçado e um badge do benefício formatado com precisão (ex: `10% OFF`, `R$ 50,00 OFF`, `Frete Grátis`, `Brinde`).
-* **Auto-Aplicação Instantânea**: O cliente pode aplicar qualquer cupom com um único clique. O sistema insere o código do cupom no campo, valida com o servidor e atualiza o resumo de valores da compra em tempo real, eliminando a digitação ou cópia manual.
-* **Preenchimento Inteligente de Dados**: Quando o cliente faz login, o checkout agora detecta seus dados cadastrais (nome, e-mail, WhatsApp, CEP, endereço) e **auto-preenche os campos de entrega e faturamento**, incluindo o cálculo automático do frete.
+
+- **Listagem Direta no Resumo**: Se o cliente estiver logado e possuir cupons ativos (resgatados no Clube), o checkout exibe automaticamente uma seção dedicada chamada **"Seus Cupons Disponíveis"** logo abaixo do campo de inserção manual de cupons.
+- **Badges de Benefício Claros**: Cada cupom disponível é listado em um card interativo contendo seu código monospaçado e um badge do benefício formatado com precisão (ex: `10% OFF`, `R$ 50,00 OFF`, `Frete Grátis`, `Brinde`).
+- **Auto-Aplicação Instantânea**: O cliente pode aplicar qualquer cupom com um único clique. O sistema insere o código do cupom no campo, valida com o servidor e atualiza o resumo de valores da compra em tempo real, eliminando a digitação ou cópia manual.
+- **Preenchimento Inteligente de Dados**: Quando o cliente faz login, o checkout agora detecta seus dados cadastrais (nome, e-mail, WhatsApp, CEP, endereço) e **auto-preenche os campos de entrega e faturamento**, incluindo o cálculo automático do frete.
 
 ---
 
 ## 8. Criação Dedicada de Recompensas no Admin (Novo Produto e Novo Voucher)
-* **Substituição do Botão Genérico**: Substituímos o antigo botão genérico `+ Nova Recompensa` por dois botões modernos e estilizados posicionados lado a lado: **"Novo produto"** e **"Novo voucher"**.
-* **Ícones e Estilos Distintos**:
-  * O botão **"Novo produto"** utiliza o ícone `Gift` em um estilo secundário premium (`bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20`).
-  * O botão **"Novo voucher"** utiliza o ícone `Ticket` em estilo primário sólido (`bg-primary text-primary-foreground`).
-* **Auto-Seleção e Fluxo Inteligente**:
-  * Ao clicar em **"Novo produto"**, o modal abre automaticamente pré-configurado com a categoria **"Produto físico"** selecionada e exibe o título dinâmico **"Novo produto"**.
-  * Ao clicar em **"Novo voucher"**, o modal abre automaticamente pré-configurado com a categoria de cupom de desconto (**"Voucher R$"**) e exibe o título dinâmico **"Novo voucher"**.
+
+- **Substituição do Botão Genérico**: Substituímos o antigo botão genérico `+ Nova Recompensa` por dois botões modernos e estilizados posicionados lado a lado: **"Novo produto"** e **"Novo voucher"**.
+- **Ícones e Estilos Distintos**:
+  - O botão **"Novo produto"** utiliza o ícone `Gift` em um estilo secundário premium (`bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20`).
+  - O botão **"Novo voucher"** utiliza o ícone `Ticket` em estilo primário sólido (`bg-primary text-primary-foreground`).
+- **Auto-Seleção e Fluxo Inteligente**:
+  - Ao clicar em **"Novo produto"**, o modal abre automaticamente pré-configurado com a categoria **"Produto físico"** selecionada e exibe o título dinâmico **"Novo produto"**.
+  - Ao clicar em **"Novo voucher"**, o modal abre automaticamente pré-configurado com a categoria de cupom de desconto (**"Voucher R$"**) e exibe o título dinâmico **"Novo voucher"**.
 
 ---
 
 ## 9. Redesenho Visual Ultra-Premium do Modal de Recompensas
-* **Posicionamento e Herança Absoluta do Estoque**:
-  * O seletor de **"Produto Vinculado (Estoque)"** foi movido para o **topo absoluto do modal** de produtos.
-  * O modal agora herda **todas as informações do estoque em tempo real** (Nome, Descrição, URL da imagem e Estoque disponível).
-  * Como todos esses dados são herdados automaticamente da tabela `products` do Supabase, **ocultamos todos os campos de texto manuais redundantes** (`Nome`, `Descrição` e `URL da imagem`) para produtos físicos.
-* **Geração 100% Automática de Nomes de Vouchers**:
-  * **Eliminação de Input Manual**: O campo de input manual `"Nome da recompensa"` foi **completamente removido** da interface de vouchers.
-  * **Cálculo em Tempo Real**: O nome do voucher é calculado e formatado automaticamente no formato exato solicitado:
-    * Se tipo Valor (`voucher_valor`): `"Vale R$ XX,XX de desconto"` (com formatação monetária brasileira de centavos).
-    * Se tipo Percentual (`voucher_percent`): `"Desconto de XX%"`.
-    * Se tipo Frete Grátis (`voucher_frete`): `"Frete grátis"`.
-* **Card Superior de Preview da Recompensa**:
-  * Adicionamos um card visual estonteante no topo de ambos os fluxos (`bg-primary/5 border border-primary/20`) contendo a tag `"Nome da Recompensa"`, o nome calculado em tempo real com tipografia premium e o ícone correspondente (`Gift` para produtos, `Ticket` para vouchers) fornecendo feedback interativo imediato.
-* **Card de Preview Dinâmico do Estoque**:
-  * Ao selecionar um produto vinculado, exibimos um card de visualização elegante (`bg-secondary/30 border border-border`), contendo a miniatura da imagem do produto, nome e sua descrição completa, perfeitamente sincronizados e em modo somente-leitura.
-* **Uploader Interativo Premium de Imagens (Opcional)**:
-  * **Integração com Supabase Storage**: Implementamos um uploader interativo com suporte a clique e arraste para envio de arquivos de imagem locais diretamente para o bucket de storage do Supabase.
-  * **Feedback Visual e Estados de Loading**: O uploader exibe um spinner animado e efeito pulse de carregamento enquanto o upload está em andamento.
-  * **Card de Sucesso e Remoção**: Após a conclusão, renderiza um card com miniatura da imagem enviada, badge verde de status `"Pronto"` com ícone `Check` e botão de remoção rápida.
-  * **Flexibilidade Total (URL Alternativa)**: Mantivemos o campo de inserção manual de URL abaixo do uploader interativo, permitindo usar tanto arquivos locais quanto links externos perfeitamente.
-* **Validade Ultra-Precisa (Data, Hora e Minutos)**:
-  * **Input Completo**: Substituímos o seletor simples de data por um campo de data e hora local completo (`type="datetime-local"`), permitindo configurar a expiração da recompensa com precisão exata de dia, mês, ano, hora e minuto.
-  * **Exibição Dinâmica no Painel**: Atualizamos os cards da listagem no dashboard administrativo para utilizar o formatador `dateTimeBR`, exibindo o horário exato de expiração no formato brasileiro (ex: `"Expira 18/05/2026 às 14:30"`).
-* **Segmentador de Abas de Alta Fidelidade**: Para vouchers, substituímos o seletor nativo por um controle segmentado de abas horizontais premium (`Valor (R$)` | `Percentual (%)` | `Frete grátis`) com transições suaves, sombras sutis e estados ativos impecáveis.
-* **Refinamento Estético Global**:
-  * **Efeito de Fundo Imersivo**: Adicionamos sobreposição escura com desfoque de fundo (`backdrop-blur-sm bg-black/60`) e animações de escala suave ao abrir o modal.
-  * **Tipografia e Campos Elegantes**: Inputs estilizados com bordas sutis e fundo translúcido, agrupados de forma inteligente em grids de colunas responsivas para maior aproveitamento de espaço.
-  * **Botões de Ação Redondos**: Cancelar e Criar/Salvar remodelados com pílulas arredondadas de alta fidelidade e micro-interações de clique.
+
+- **Posicionamento e Herança Absoluta do Estoque**:
+  - O seletor de **"Produto Vinculado (Estoque)"** foi movido para o **topo absoluto do modal** de produtos.
+  - O modal agora herda **todas as informações do estoque em tempo real** (Nome, Descrição, URL da imagem e Estoque disponível).
+  - Como todos esses dados são herdados automaticamente da tabela `products` do Supabase, **ocultamos todos os campos de texto manuais redundantes** (`Nome`, `Descrição` e `URL da imagem`) para produtos físicos.
+- **Geração 100% Automática de Nomes de Vouchers**:
+  - **Eliminação de Input Manual**: O campo de input manual `"Nome da recompensa"` foi **completamente removido** da interface de vouchers.
+  - **Cálculo em Tempo Real**: O nome do voucher é calculado e formatado automaticamente no formato exato solicitado:
+    - Se tipo Valor (`voucher_valor`): `"Vale R$ XX,XX de desconto"` (com formatação monetária brasileira de centavos).
+    - Se tipo Percentual (`voucher_percent`): `"Desconto de XX%"`.
+    - Se tipo Frete Grátis (`voucher_frete`): `"Frete grátis"`.
+- **Card Superior de Preview da Recompensa**:
+  - Adicionamos um card visual estonteante no topo de ambos os fluxos (`bg-primary/5 border border-primary/20`) contendo a tag `"Nome da Recompensa"`, o nome calculado em tempo real com tipografia premium e o ícone correspondente (`Gift` para produtos, `Ticket` para vouchers) fornecendo feedback interativo imediato.
+- **Card de Preview Dinâmico do Estoque**:
+  - Ao selecionar um produto vinculado, exibimos um card de visualização elegante (`bg-secondary/30 border border-border`), contendo a miniatura da imagem do produto, nome e sua descrição completa, perfeitamente sincronizados e em modo somente-leitura.
+- **Uploader Interativo Premium de Imagens (Opcional)**:
+  - **Integração com Supabase Storage**: Implementamos um uploader interativo com suporte a clique e arraste para envio de arquivos de imagem locais diretamente para o bucket de storage do Supabase.
+  - **Feedback Visual e Estados de Loading**: O uploader exibe um spinner animado e efeito pulse de carregamento enquanto o upload está em andamento.
+  - **Card de Sucesso e Remoção**: Após a conclusão, renderiza um card com miniatura da imagem enviada, badge verde de status `"Pronto"` com ícone `Check` e botão de remoção rápida.
+  - **Flexibilidade Total (URL Alternativa)**: Mantivemos o campo de inserção manual de URL abaixo do uploader interativo, permitindo usar tanto arquivos locais quanto links externos perfeitamente.
+- **Validade Ultra-Precisa (Data, Hora e Minutos)**:
+  - **Input Completo**: Substituímos o seletor simples de data por um campo de data e hora local completo (`type="datetime-local"`), permitindo configurar a expiração da recompensa com precisão exata de dia, mês, ano, hora e minuto.
+  - **Exibição Dinâmica no Painel**: Atualizamos os cards da listagem no dashboard administrativo para utilizar o formatador `dateTimeBR`, exibindo o horário exato de expiração no formato brasileiro (ex: `"Expira 18/05/2026 às 14:30"`).
+- **Segmentador de Abas de Alta Fidelidade**: Para vouchers, substituímos o seletor nativo por um controle segmentado de abas horizontais premium (`Valor (R$)` | `Percentual (%)` | `Frete grátis`) com transições suaves, sombras sutis e estados ativos impecáveis.
+- **Refinamento Estético Global**:
+  - **Efeito de Fundo Imersivo**: Adicionamos sobreposição escura com desfoque de fundo (`backdrop-blur-sm bg-black/60`) e animações de escala suave ao abrir o modal.
+  - **Tipografia e Campos Elegantes**: Inputs estilizados com bordas sutis e fundo translúcido, agrupados de forma inteligente em grids de colunas responsivas para maior aproveitamento de espaço.
+  - **Botões de Ação Redondos**: Cancelar e Criar/Salvar remodelados com pílulas arredondadas de alta fidelidade e micro-interações de clique.
 
 ## 10. Saída Automática de Recompensas Encerradas com Reativação e Prorrogação pelo Admin
-* **Saída Automática do Clube (Fidelidade do Cliente)**:
-  * Integramos um filtro reativo em tempo real no carregamento de recompensas públicas (`fetchActiveRewards`).
-  * Recompensas cuja validade expirou (`expires_at` no passado) **saem automaticamente e imediatamente** da vitrine do clube de fidelidade do cliente, garantindo um feed limpo, moderno e livre de itens indisponíveis.
-* **Destaque Visual e Indicadores Dinâmicos de Tempo Restante**:
-  * O administrador retém visibilidade completa de todas as recompensas (ativas, inativas ou expiradas).
-  * Criamos um **layout exclusivo de alta fidelidade** para recompensas especiais no painel administrativo:
-    * **Recompensas Expiradas (Encerradas)**: Exibem bordas avermelhadas estilizadas (`border-rose-200 dark:border-rose-950/60 bg-rose-50/5`), indicador animado vermelho de `"Encerrado"`, e texto realçado.
-    * **Recompensas Inativas**: Exibem badge amarelo `"Inativo"` com opacidade reduzida.
-  * **Visualizadores de Tempo Restante**: Adicionamos badges coloridos inteligentes em cada card no painel do administrador calculando o prazo dinamicamente:
-    * Se expirado: Badge vermelho `"Encerrado"`.
-    * Se expira em 2 dias ou menos: Badge amarelo pulsante de atenção (`"Falta 1d 5h"`, `"Falta 23h 10m"`).
-    * Se expira no futuro distante: Badge verde de status saudável (`"Falta 15d 3h"`, etc.).
-* **Fluxo de Prorrogação Ultra-Rápido**:
-  * **Botão "Prorrogar" Direto**: Adicionamos um botão de atalho `Prorrogar` com ícone `Clock` ao lado de cada card no painel.
-  * **Diálogo de Prazos Rápidos**: Ao clicar, abre-se uma linda Dialog modal contendo botões de prorrogação rápida em lote:
-    * `+ 3 Dias` | `+ 7 Dias` | `+ 15 Dias` | `+ 30 Dias` | `+ 90 Dias` | `Sem expiração (Vitalício)`.
-  * **Data Customizada**: Disponibiliza também um input de `datetime-local` no rodapé da Dialog para que o admin defina uma data/hora milimétrica personalizada se preferir, salvando instantaneamente no banco de dados e atualizando o feed em tempo real com feedbacks visuais de sucesso.
-* **Barra de Filtros de Resgates Ultra-Premium (Local Indicado pelo Admin)**:
-  * Posicionamos no topo da aba de **Resgates** uma elegante barra de filtros horizontais segmentada em 3 colunas responsivas, onde os filtros de **Cliente** e **Recompensa** utilizam elementos `<select>` nativos que mapeiam dinamicamente os registros reais do banco, garantindo alta usabilidade e precisão sem necessidade de digitação.
-  * **Feedback de Resultados Inexistentes**: Caso nenhum resgate atenda aos filtros selecionados, exibe-se um card explicativo indicando `"Nenhum resgate encontrado com os filtros selecionados"` com design coerente ao restante do projeto.
-* **Painel de Análises Inteligente (Aba "Análises")**:
-  * Adicionamos a aba **"Análises"** na navegação principal do CRM do Clube Com Amor.
-  * **Três Cards de Métricas (KPIs)**:
-    * *Total de Resgates*: Número total de transações de troca efetuadas no período.
-    * *Pontos Utilizados*: Volume absoluto de pontos convertidos por clientes.
-    * *Distribuição de Resgates*: Gráfico de barra de equilíbrio dinâmico e bilíngue (Produto Físico vs. Cupom/Voucher) com cálculo percentual em tempo real.
-  * **Barra de Filtros Multidimensional**:
-    * Inputs de *Data Inicial* e *Data Final* permitindo filtrar as análises por qualquer período customizado.
-    * Filtros inteligentes baseados em `<select>` dropdowns dinâmicos para seleção estrita de *Cliente* e de *Recompensa*, otimizando a experiência em telas de todos os tamanhos.
-    * Botão geral de *Limpar Todos os Filtros* quando aplicados.
-  * **Rankings de Alta Performance (Top 5)**:
-    * *Top Clientes que mais Resgatam*: Lista ordenada com pódios estilizados, quantidade de trocas e total de pontos investidos (livre de emojis).
-    * *Recompensas Mais Resgatadas*: Lista de itens físicos ou digitais que lideram a preferência de troca no clube de fidelidade (livre de emojis).
+
+- **Saída Automática do Clube (Fidelidade do Cliente)**:
+  - Integramos um filtro reativo em tempo real no carregamento de recompensas públicas (`fetchActiveRewards`).
+  - Recompensas cuja validade expirou (`expires_at` no passado) **saem automaticamente e imediatamente** da vitrine do clube de fidelidade do cliente, garantindo um feed limpo, moderno e livre de itens indisponíveis.
+- **Destaque Visual e Indicadores Dinâmicos de Tempo Restante**:
+  - O administrador retém visibilidade completa de todas as recompensas (ativas, inativas ou expiradas).
+  - Criamos um **layout exclusivo de alta fidelidade** para recompensas especiais no painel administrativo:
+    - **Recompensas Expiradas (Encerradas)**: Exibem bordas avermelhadas estilizadas (`border-rose-200 dark:border-rose-950/60 bg-rose-50/5`), indicador animado vermelho de `"Encerrado"`, e texto realçado.
+    - **Recompensas Inativas**: Exibem badge amarelo `"Inativo"` com opacidade reduzida.
+  - **Visualizadores de Tempo Restante**: Adicionamos badges coloridos inteligentes em cada card no painel do administrador calculando o prazo dinamicamente:
+    - Se expirado: Badge vermelho `"Encerrado"`.
+    - Se expira em 2 dias ou menos: Badge amarelo pulsante de atenção (`"Falta 1d 5h"`, `"Falta 23h 10m"`).
+    - Se expira no futuro distante: Badge verde de status saudável (`"Falta 15d 3h"`, etc.).
+- **Fluxo de Prorrogação Ultra-Rápido**:
+  - **Botão "Prorrogar" Direto**: Adicionamos um botão de atalho `Prorrogar` com ícone `Clock` ao lado de cada card no painel.
+  - **Diálogo de Prazos Rápidos**: Ao clicar, abre-se uma linda Dialog modal contendo botões de prorrogação rápida em lote:
+    - `+ 3 Dias` | `+ 7 Dias` | `+ 15 Dias` | `+ 30 Dias` | `+ 90 Dias` | `Sem expiração (Vitalício)`.
+  - **Data Customizada**: Disponibiliza também um input de `datetime-local` no rodapé da Dialog para que o admin defina uma data/hora milimétrica personalizada se preferir, salvando instantaneamente no banco de dados e atualizando o feed em tempo real com feedbacks visuais de sucesso.
+- **Barra de Filtros de Resgates Ultra-Premium (Local Indicado pelo Admin)**:
+  - Posicionamos no topo da aba de **Resgates** uma elegante barra de filtros horizontais segmentada em 3 colunas responsivas, onde os filtros de **Cliente** e **Recompensa** utilizam elementos `<select>` nativos que mapeiam dinamicamente os registros reais do banco, garantindo alta usabilidade e precisão sem necessidade de digitação.
+  - **Feedback de Resultados Inexistentes**: Caso nenhum resgate atenda aos filtros selecionados, exibe-se um card explicativo indicando `"Nenhum resgate encontrado com os filtros selecionados"` com design coerente ao restante do projeto.
+- **Painel de Análises Inteligente (Aba "Análises")**:
+  - Adicionamos a aba **"Análises"** na navegação principal do CRM do Clube Com Amor.
+  - **Três Cards de Métricas (KPIs)**:
+    - _Total de Resgates_: Número total de transações de troca efetuadas no período.
+    - _Pontos Utilizados_: Volume absoluto de pontos convertidos por clientes.
+    - _Distribuição de Resgates_: Gráfico de barra de equilíbrio dinâmico e bilíngue (Produto Físico vs. Cupom/Voucher) com cálculo percentual em tempo real.
+  - **Barra de Filtros Multidimensional**:
+    - Inputs de _Data Inicial_ e _Data Final_ permitindo filtrar as análises por qualquer período customizado.
+    - Filtros inteligentes baseados em `<select>` dropdowns dinâmicos para seleção estrita de _Cliente_ e de _Recompensa_, otimizando a experiência em telas de todos os tamanhos.
+    - Botão geral de _Limpar Todos os Filtros_ quando aplicados.
+  - **Rankings de Alta Performance (Top 5)**:
+    - _Top Clientes que mais Resgatam_: Lista ordenada com pódios estilizados, quantidade de trocas e total de pontos investidos (livre de emojis).
+    - _Recompensas Mais Resgatadas_: Lista de itens físicos ou digitais que lideram a preferência de troca no clube de fidelidade (livre de emojis).
 
 ---
 
 ## 11. Diretriz de Ausência de Emojis (Visual Premium Clean)
-* **Zero Emojis**: Em conformidade com a identidade visual sóbria, elegante e de alto padrão, removemos todos os caracteres emojis (incluindo pódios, chamas e fogos) do painel de análises administrativo e demais componentes visuais, substituindo-os por ícones vetoriais modernos (`User`, `Gift`, `Ticket`, `Clock`, etc.) que complementam a tipografia de grife.
+
+- **Zero Emojis**: Em conformidade com a identidade visual sóbria, elegante e de alto padrão, removemos todos os caracteres emojis (incluindo pódios, chamas e fogos) do painel de análises administrativo e demais componentes visuais, substituindo-os por ícones vetoriais modernos (`User`, `Gift`, `Ticket`, `Clock`, etc.) que complementam a tipografia de grife.
 
 ---
 
 ## 12. Validação de Integridade
-* **Tipagem Estrita**: Executamos o compilador TypeScript `npx tsc --noEmit` e validamos que a aplicação compila com **zero erros** de tipos.
+
+- **Tipagem Estrita**: Executamos o compilador TypeScript `npx tsc --noEmit` e validamos que a aplicação compila com **zero erros** de tipos.

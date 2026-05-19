@@ -27,7 +27,12 @@ export const ADMIN_PAGES: AdminPageDef[] = [
   { key: "faturas", label: "Faturas", path: "/admin/faturas", category: "vendas" },
   { key: "recibos", label: "Recibos", path: "/admin/recibos", category: "vendas" },
   { key: "nfe", label: "Nota Fiscal", path: "/admin/nfe", category: "vendas" },
-  { key: "recompensas", label: "Clube Com Amor", path: "/admin/recompensas", category: "recompensas" },
+  {
+    key: "recompensas",
+    label: "Clube Com Amor",
+    path: "/admin/recompensas",
+    category: "recompensas",
+  },
   { key: "clientes", label: "Clientes", path: "/admin/clientes", category: "acompanhamento" },
   { key: "kanban", label: "CRM (Kanban)", path: "/admin/kanban", category: "acompanhamento" },
   { key: "analises", label: "Análises", path: "/admin/analises", category: "analise" },

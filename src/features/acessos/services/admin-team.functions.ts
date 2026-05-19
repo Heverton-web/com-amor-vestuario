@@ -17,62 +17,50 @@ async function assertSuperadmin(userId: string) {
 }
 
 // Idempotent: ensure the superadmin user exists with the correct password.
-export const ensureSuperAdmin = createServerFn({ method: "POST" }).handler(
-  async () => {
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.warn("SUPABASE_SERVICE_ROLE_KEY missing. Skipping superadmin provisioning.");
-      return { email: SUPERADMIN_EMAIL };
-    }
-
-    const { data: list } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 200,
-    });
-    let user = list?.users.find(
-      (u) => u.email?.toLowerCase() === SUPERADMIN_EMAIL.toLowerCase(),
-    );
-
-    if (!user) {
-      const { data: created, error } =
-        await supabaseAdmin.auth.admin.createUser({
-          email: SUPERADMIN_EMAIL,
-          password: SUPERADMIN_PASSWORD,
-          email_confirm: true,
-          user_metadata: { full_name: "Heverton (Superadmin)" },
-        });
-      if (error) throw new Error(error.message);
-      user = created.user!;
-    } else {
-      await supabaseAdmin.auth.admin.updateUserById(user.id, {
-        password: SUPERADMIN_PASSWORD,
-        email_confirm: true,
-      });
-    }
-
-    await supabaseAdmin
-      .from("superadmins")
-      .upsert({ user_id: user.id }, { onConflict: "user_id" });
-
-    // Also give the admin role so existing is_staff()-based RLS works.
-    await supabaseAdmin
-      .from("user_roles")
-      .upsert(
-        { user_id: user.id, role: "admin" },
-        { onConflict: "user_id,role" },
-      );
-
-    // Ensure superadmin sees every page (and the catalog evolves cleanly).
-    const rows = ALL_PAGE_KEYS.map((page_key) => ({
-      user_id: user!.id,
-      page_key,
-    }));
-    await supabaseAdmin
-      .from("admin_page_access")
-      .upsert(rows, { onConflict: "user_id,page_key" });
-
+export const ensureSuperAdmin = createServerFn({ method: "POST" }).handler(async () => {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.warn("SUPABASE_SERVICE_ROLE_KEY missing. Skipping superadmin provisioning.");
     return { email: SUPERADMIN_EMAIL };
-  },
-);
+  }
+
+  const { data: list } = await supabaseAdmin.auth.admin.listUsers({
+    page: 1,
+    perPage: 200,
+  });
+  let user = list?.users.find((u) => u.email?.toLowerCase() === SUPERADMIN_EMAIL.toLowerCase());
+
+  if (!user) {
+    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
+      email: SUPERADMIN_EMAIL,
+      password: SUPERADMIN_PASSWORD,
+      email_confirm: true,
+      user_metadata: { full_name: "Heverton (Superadmin)" },
+    });
+    if (error) throw new Error(error.message);
+    user = created.user!;
+  } else {
+    await supabaseAdmin.auth.admin.updateUserById(user.id, {
+      password: SUPERADMIN_PASSWORD,
+      email_confirm: true,
+    });
+  }
+
+  await supabaseAdmin.from("superadmins").upsert({ user_id: user.id }, { onConflict: "user_id" });
+
+  // Also give the admin role so existing is_staff()-based RLS works.
+  await supabaseAdmin
+    .from("user_roles")
+    .upsert({ user_id: user.id, role: "admin" }, { onConflict: "user_id,role" });
+
+  // Ensure superadmin sees every page (and the catalog evolves cleanly).
+  const rows = ALL_PAGE_KEYS.map((page_key) => ({
+    user_id: user!.id,
+    page_key,
+  }));
+  await supabaseAdmin.from("admin_page_access").upsert(rows, { onConflict: "user_id,page_key" });
+
+  return { email: SUPERADMIN_EMAIL };
+});
 
 interface AdminUserRow {
   user_id: string;
@@ -92,9 +80,7 @@ export const listAdminUsers = createServerFn({ method: "POST" })
       .from("user_roles")
       .select("user_id, role")
       .in("role", ["admin", "consultor"]);
-    const { data: supers } = await supabaseAdmin
-      .from("superadmins")
-      .select("user_id");
+    const { data: supers } = await supabaseAdmin.from("superadmins").select("user_id");
     const { data: access } = await supabaseAdmin
       .from("admin_page_access")
       .select("user_id, page_key");
@@ -118,8 +104,7 @@ export const listAdminUsers = createServerFn({ method: "POST" })
       result.push({
         user_id: id,
         email: data.user.email ?? "",
-        full_name:
-          (data.user.user_metadata?.full_name as string | undefined) ?? null,
+        full_name: (data.user.user_metadata?.full_name as string | undefined) ?? null,
         is_superadmin: superSet.has(id),
         pages: pagesByUser.get(id) ?? [],
         created_at: data.user.created_at,
@@ -132,12 +117,7 @@ export const listAdminUsers = createServerFn({ method: "POST" })
 export const createAdminUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: {
-      email: string;
-      password: string;
-      full_name: string;
-      pages: string[];
-    }) => input,
+    (input: { email: string; password: string; full_name: string; pages: string[] }) => input,
   )
   .handler(async ({ context, data }) => {
     await assertSuperadmin(context.userId);
@@ -157,18 +137,13 @@ export const createAdminUser = createServerFn({ method: "POST" })
 
     await supabaseAdmin
       .from("user_roles")
-      .upsert(
-        { user_id: user.id, role: "admin" },
-        { onConflict: "user_id,role" },
-      );
+      .upsert({ user_id: user.id, role: "admin" }, { onConflict: "user_id,role" });
 
     if (data.pages.length > 0) {
-      await supabaseAdmin
-        .from("admin_page_access")
-        .upsert(
-          data.pages.map((page_key) => ({ user_id: user.id, page_key })),
-          { onConflict: "user_id,page_key" },
-        );
+      await supabaseAdmin.from("admin_page_access").upsert(
+        data.pages.map((page_key) => ({ user_id: user.id, page_key })),
+        { onConflict: "user_id,page_key" },
+      );
     }
 
     return { user_id: user.id };
@@ -176,25 +151,18 @@ export const createAdminUser = createServerFn({ method: "POST" })
 
 export const updateAdminAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: { user_id: string; pages: string[]; password?: string | null }) =>
-      input,
-  )
+  .inputValidator((input: { user_id: string; pages: string[]; password?: string | null }) => input)
   .handler(async ({ context, data }) => {
     await assertSuperadmin(context.userId);
 
     if (data.password && data.password.length >= 6) {
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(
-        data.user_id,
-        { password: data.password },
-      );
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
+        password: data.password,
+      });
       if (error) throw new Error(error.message);
     }
 
-    await supabaseAdmin
-      .from("admin_page_access")
-      .delete()
-      .eq("user_id", data.user_id);
+    await supabaseAdmin.from("admin_page_access").delete().eq("user_id", data.user_id);
 
     if (data.pages.length > 0) {
       await supabaseAdmin.from("admin_page_access").insert(
@@ -232,4 +200,3 @@ export const deleteAdminUser = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
-

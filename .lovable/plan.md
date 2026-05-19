@@ -35,10 +35,12 @@ Tabelas novas:
 View `customer_points_balance` (sum do ledger por cliente) para leitura rápida.
 
 RLS:
+
 - `reward_items`: leitura pública dos ativos; staff gerencia.
 - `points_ledger` e `redemptions`: cliente vê apenas o próprio (via `auth.uid()` → join com `customers.user_id`); staff vê tudo.
 
 Trigger:
+
 - `on orders status → pago/finalizado`: insere crédito no ledger (idempotente por `order_id`).
 - `on redemptions insert`: insere débito no ledger e decrementa `reward_items.stock`.
 
@@ -55,6 +57,7 @@ Trigger:
 - Página `/recompensas/login` — login simples (e-mail + senha) usando Supabase Auth.
 
 ### Área do cliente — `/recompensas/minha-conta`
+
 - Cards: saldo atual, total acumulado, total resgatado.
 - **Tabs:**
   - **Meus Resgates**: lista de cards com código, item, validade, status (badges), código do voucher copiável.
@@ -66,11 +69,13 @@ Trigger:
 ## 4. Frontend admin — nova categoria "Recompensas"
 
 Sidebar (nova categoria entre Vendas e Acompanhamento):
+
 - **Recompensas → Catálogo** (`/admin/recompensas`): CRUD de `reward_items` com modal de criação (campos: imagens via storage `product-images`, nome, tipo, pontos, estoque, expiração, código, e — se produto físico — picker de produto existente + variação).
 - **Recompensas → Resgates** (`/admin/recompensas/resgates`): tabela de `redemptions` com filtros por status, ações (marcar utilizado, cancelar/estornar pontos, exportar CSV).
 - **Recompensas → Pontos** (`/admin/recompensas/pontos`): visualização do ledger por cliente + ação "ajuste manual" (crédito/débito com motivo).
 
 Na página existente `/admin/produtos`:
+
 - Coluna nova "Reservado p/ recompensas" e botão "Realocar p/ recompensas" — abre modal pedindo quantidade e cria/atualiza um `reward_items` vinculado àquele produto.
 
 ---
@@ -103,6 +108,7 @@ Fluxo no primeiro pedido do cliente (loja ou consultor):
 ## 7. Dados mock (seed)
 
 Insert via `supabase--insert` após migration:
+
 - 6 `reward_items` reaproveitando 3 produtos reais (blusa, vestido, camiseta) + 3 vouchers (R$ 50 off, 10% off, frete grátis).
 - Para 3-4 customers existentes:
   - 4-6 créditos no ledger (simulando pedidos antigos), totalizando 150-400 pts cada.
@@ -114,6 +120,7 @@ Insert via `supabase--insert` após migration:
 ## 8. Arquivos a criar/editar
 
 **Novos:**
+
 - `supabase/migrations/<ts>_rewards_module.sql`
 - `src/lib/rewards.functions.ts` (server fns: list, redeem, validateVoucher, adminCrud, ensurePortalAccount, sendInvitation)
 - `src/lib/points.ts` (helpers cliente)
@@ -127,6 +134,7 @@ Insert via `supabase--insert` após migration:
 - `src/routes/_authenticated/admin.recompensas.pontos.tsx`
 
 **Editar:**
+
 - `src/lib/admin-pages.ts` (nova categoria + 3 páginas)
 - `src/components/admin/AdminShell.tsx` (ícones)
 - `src/routes/_authenticated/admin.produtos.tsx` (botão "Realocar p/ recompensas")

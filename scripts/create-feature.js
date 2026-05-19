@@ -39,13 +39,13 @@ fs.writeFileSync(
   path.join(newFeatureDir, "types.ts"),
   `// Tipos e Interfaces do módulo ${featureName}\n\nexport interface ${
     featureName.charAt(0).toUpperCase() + featureName.slice(1)
-  }Model {\n  id: string;\n  created_at: string;\n}\n`
+  }Model {\n  id: string;\n  created_at: string;\n}\n`,
 );
 
 // Criando o Barrel File (index.ts)
 fs.writeFileSync(
   path.join(newFeatureDir, "index.ts"),
-  `// API Pública do módulo ${featureName}\n// Tudo que for exportado aqui poderá ser usado por outros módulos.\n\nexport * from "./types";\n`
+  `// API Pública do módulo ${featureName}\n// Tudo que for exportado aqui poderá ser usado por outros módulos.\n\nexport * from "./types";\n`,
 );
 
 console.log(`✅ Feature "${featureName}" criada com sucesso!`);
