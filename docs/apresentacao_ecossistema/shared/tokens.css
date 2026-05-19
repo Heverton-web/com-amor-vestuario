@@ -79,7 +79,7 @@ body::before {
 }
 
 .masthead .issue-tag {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--ink-muted);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -93,14 +93,14 @@ body::before {
   border-top: 1px solid var(--border-light);
   padding-top: 20px;
   width: 100%;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink-muted);
   letter-spacing: 0.05em;
 }
 
 /* Kicker (etiqueta superior curta) */
 .kicker {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--brand-red);
   letter-spacing: 0.15em;
@@ -146,7 +146,7 @@ h2 {
 .subtitle {
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: 32px;
+  font-size: 36px;
   color: var(--ink-muted);
   line-height: 1.3;
   margin-top: 6px;
@@ -191,7 +191,7 @@ h2 {
 }
 
 .feature-card p {
-  font-size: 16px;
+  font-size: 19px;
   line-height: 1.6;
   color: var(--ink-muted);
 }
@@ -202,7 +202,7 @@ h2 {
 }
 
 .text-content p {
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1.7;
   color: var(--ink-muted);
   margin-bottom: 20px;
