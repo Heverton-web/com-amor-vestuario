@@ -433,9 +433,9 @@ function ProductForm({
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-3xl overflow-y-auto max-h-[95vh] p-0 border-none bg-background shadow-2xl">
-        <form onSubmit={save} className="flex flex-col h-full">
-          <div className="p-6 border-b border-border bg-card/40 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
+      <DialogContent className="max-w-3xl p-0 overflow-hidden flex flex-col max-h-[90vh] bg-background shadow-2xl">
+        <form onSubmit={save} className="flex flex-col h-full overflow-hidden">
+          <div className="p-6 border-b border-border bg-card/40 flex items-center justify-between shrink-0">
             <div>
               <DialogTitle className="text-2xl font-display">
                 {form.id ? "Editar Produto" : "Novo Produto"}
@@ -446,7 +446,7 @@ function ProductForm({
             </div>
           </div>
 
-          <div className="p-8 space-y-10">
+          <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-10">
             {/* Seção 1: Identificação */}
             <section className="space-y-6">
               <div className="flex items-center gap-2 pb-2 border-b border-border/50">
@@ -646,7 +646,7 @@ function ProductForm({
             </div>
           </div>
 
-          <div className="p-6 border-t border-border bg-card/40 flex justify-end gap-3 sticky bottom-0 z-10 backdrop-blur-md">
+          <div className="p-6 border-t border-border bg-card/40 flex justify-end gap-3 shrink-0">
             <button
               type="button"
               onClick={onClose}

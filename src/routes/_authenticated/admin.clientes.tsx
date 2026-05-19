@@ -675,11 +675,11 @@ export function CustomerForm({
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-3xl overflow-y-auto max-h-[90vh]">
+      <DialogContent className="max-w-3xl p-0 overflow-hidden flex flex-col max-h-[90vh] bg-background">
         <DialogHeader>
           <DialogTitle>{f.id ? "Editar cliente" : "Novo cliente"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={save} className="mt-4">
+        <form onSubmit={save} className="flex-1 overflow-y-auto p-5 sm:p-8 pt-4 sm:pt-6">
           <div className="grid gap-4 md:grid-cols-2">
             <Lbl t="Tipo de pessoa">
               <select
@@ -830,7 +830,7 @@ export function CustomerForm({
             </label>
           </div>
 
-          <div className="mt-8 flex justify-end gap-3">
+          <div className="mt-8 flex justify-end gap-3 pb-2">
             <button
               type="button"
               onClick={onClose}
