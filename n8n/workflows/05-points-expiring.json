@@ -1,0 +1,30 @@
+{
+  "name": "Pontos Expirando",
+  "nodes": [
+    { "parameters": { "rule": "custom", "cronExpression": "0 10 * * 1" }, "id": "weekly-trigger", "name": "Toda Segunda 10h", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [250, 300] },
+    {
+      "parameters": { "sql": "SELECT id as customer_id, name, phone as customer_phone, email as customer_email, points_balance, points_expiry_date FROM customers WHERE points_balance > 0 AND points_expiry_date <= NOW() + INTERVAL '30 days' AND points_expiry_date > NOW()" },
+      "id": "get-expiring-points", "name": "Buscar Pontos Expirando", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [500, 300]
+    },
+    { "parameters": { "batchSize": 1 }, "id": "loop-customers", "name": "Loop Clientes", "type": "n8n-nodes-base.splitInBatches", "typeVersion": 1, "position": [750, 300] },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $json.customer_phone }}",
+        "method": "POST",
+        "bodyParameters": { "parameters": [{ "name": "text", "value": "Oi {name}! ⏰\n\nVocê tem {points_balance} pontos que vão expirar!\nValidade: {points_expiry_date}\n\nUse seus pontos agora!\nEquipe {company_name} 💕" }] }
+      },
+      "id": "send-whatsapp", "name": "Enviar WhatsApp", "type": "n8n-nodes-base.httpRequest", "typeVersion": 1, "position": [1000, 300]
+    },
+    { "parameters": { "operation": "insert", "table": "marketing_campaign_logs", "fields": { "customer_id": "={{ $json.customer_id }}", "channel": "whatsapp", "message_text": "Pontos expirando", "status": "enviado", "sent_at": "={{ $now }}" } }, "id": "log-result", "name": "Registrar Resultado", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [1250, 300] }
+  ],
+  "connections": {
+    "Toda Segunda 10h": { "main": [[{ "node": "Buscar Pontos Expirando", "type": "main", "index": 0 }]] },
+    "Buscar Pontos Expirando": { "main": [[{ "node": "Loop Clientes", "type": "main", "index": 0 }]] },
+    "Loop Clientes": { "main": [[{ "node": "Enviar WhatsApp", "type": "main", "index": 0 }]] },
+    "Enviar WhatsApp": { "main": [[{ "node": "Registrar Resultado", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["marketing", "fidelidade", "pontos"],
+  "triggerCount": 1,
+  "versionId": "1"
+}

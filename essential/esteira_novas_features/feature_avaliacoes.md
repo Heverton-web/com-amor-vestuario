@@ -23,7 +23,7 @@ Sistema para clientes avaliarem produtos adquiridos, com nota (estrelas) e comen
 | Dependência | Tipo | Motivo |
 |-------------|------|--------|
 | #2 Autenticação | Externa | Precisaconfir-mar que comprou |
-| #3 Área "Minha Conta" | Externa | Onde avalia |
+| #4 Área "Minha Conta" | Externa | Onde avalia |
 
 ## Esforço Estimado
 

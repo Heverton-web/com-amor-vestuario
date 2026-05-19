@@ -1,0 +1,26 @@
+{
+  "name": "Newsletter Semanal",
+  "nodes": [
+    { "parameters": { "rule": "custom", "cronExpression": "0 9 * * 4" }, "id": "weekly-trigger", "name": "Toda Quarta 9h", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [250, 300] },
+    {
+      "parameters": { "operation": "query", "sql": "SELECT DISTINCT c.id as customer_id, c.name, c.email as customer_email FROM customers c JOIN marketing_consents mc ON mc.customer_id = c.id WHERE mc.channel = 'email' AND mc.consented = true AND c.active = true" },
+      "id": "get-subscribers", "name": "Buscar Assinantes", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [500, 300]
+    },
+    { "parameters": { "batchSize": 1 }, "id": "loop-subscribers", "name": "Loop Assinantes", "type": "n8n-nodes-base.splitInBatches", "typeVersion": 1, "position": [750, 300] },
+    {
+      "parameters": { "operation": "sendTransactional", "email": "={{ $json.customer_email }}", "subject": "Novidades da semana - {company_name} 💕", "html": "<h1>Olá {name}!</h1><p>Novidades da semana!</p><p>Use SEMANA10 para 10% OFF!</p><p>Equipe {company_name} 💕</p>" },
+      "id": "send-newsletter", "name": "Enviar Newsletter", "type": "n8n-nodes-base.listmonk", "typeVersion": 1, "position": [1000, 300]
+    },
+    { "parameters": { "operation": "insert", "table": "marketing_campaign_logs", "fields": { "customer_id": "={{ $json.customer_id }}", "channel": "email", "message_text": "Newsletter semanal", "status": "enviado", "sent_at": "={{ $now }}" } }, "id": "log-result", "name": "Registrar Resultado", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [1250, 300] }
+  ],
+  "connections": {
+    "Toda Quarta 9h": { "main": [[{ "node": "Buscar Assinantes", "type": "main", "index": 0 }]] },
+    "Buscar Assinantes": { "main": [[{ "node": "Loop Assinantes", "type": "main", "index": 0 }]] },
+    "Loop Assinantes": { "main": [[{ "node": "Enviar Newsletter", "type": "main", "index": 0 }]] },
+    "Enviar Newsletter": { "main": [[{ "node": "Registrar Resultado", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["marketing", "newsletter", "email"],
+  "triggerCount": 1,
+  "versionId": "1"
+}

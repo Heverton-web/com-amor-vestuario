@@ -1,0 +1,53 @@
+{
+  "name": "Notificação Produto Novo",
+  "nodes": [
+    {
+      "parameters": { "operation": "watchChanges", "table": "products", "triggerField": "created_at" },
+      "id": "product-trigger",
+      "name": "Produto Criado",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "query",
+        "sql": "SELECT id as customer_id, name, phone as customer_phone FROM customers WHERE active = true AND marketing_consent @> '[{\"channel\": \"whatsapp\", \"consented\": true}]' LIMIT 50"
+      },
+      "id": "get-interested-customers",
+      "name": "Buscar Clientes Interessados",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    { "parameters": { "batchSize": 1 }, "id": "loop-customers", "name": "Loop Clientes", "type": "n8n-nodes-base.splitInBatches", "typeVersion": 1, "position": [750, 300] },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $json.customer_phone }}",
+        "method": "POST",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "text", "value": "✨ NOVIDADE! 🎉\n\nNovo produto: {product_name}\nPreço: R$ {retail_price}\nCores: {colors}\n\nCorre que vai cepat!\n\n{product_url}" }
+          ]
+        }
+      },
+      "id": "send-notification",
+      "name": "Enviar Notificação",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    },
+    { "parameters": { "amount": 15 }, "id": "wait-rate-limit", "name": "Aguardar 15s", "type": "n8n-nodes-base.wait", "typeVersion": 1, "position": [1250, 300] }
+  ],
+  "connections": {
+    "Produto Criado": { "main": [[{ "node": "Buscar Clientes Interessados", "type": "main", "index": 0 }]] },
+    "Buscar Clientes Interessados": { "main": [[{ "node": "Loop Clientes", "type": "main", "index": 0 }]] },
+    "Loop Clientes": { "main": [[{ "node": "Enviar Notificação", "type": "main", "index": 0 }]] },
+    "Enviar Notificação": { "main": [[{ "node": "Aguardar 15s", "type": "main", "index": 0 }]] },
+    "Aguardar 15s": { "main": [[{ "node": "Loop Clientes", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["marketing", "produto", "novidade"],
+  "triggerCount": 1,
+  "versionId": "1"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "Aniversário - Felíz Aniversário",
+  "nodes": [
+    { "parameters": { "rule": "custom", "cronExpression": "0 9 * * *" }, "id": "daily-trigger", "name": "Diário às 9h", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [250, 300] },
+    {
+      "parameters": { "sql": "SELECT id as customer_id, name, phone as customer_phone, email as customer_email, birth_date FROM customers WHERE EXTRACT(MONTH FROM birth_date) = EXTRACT(MONTH FROM CURRENT_DATE) AND EXTRACT(DAY FROM birth_date) = EXTRACT(DAY FROM CURRENT_DATE)" },
+      "id": "get-birthdays", "name": "Buscar Aniversariantes", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [500, 300]
+    },
+    { "parameters": { "batchSize": 1 }, "id": "loop-birthdays", "name": "Loop Clientes", "type": "n8n-nodes-base.splitInBatches", "typeVersion": 1, "position": [750, 300] },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $json.customer_phone }}",
+        "method": "POST",
+        "bodyParameters": { "parameters": [{ "name": "text", "value": "Feliz aniversário, {name}! 🎂🎉\n\nQue seu dia seja cheio de amor e alegrias!\n\nVocê ganhou 15% OFF! Use: ANIVERSARIO15\n\nEquipe {company_name} 💕" }] }
+      },
+      "id": "send-whatsapp-birthday", "name": "Enviar WhatsApp", "type": "n8n-nodes-base.httpRequest", "typeVersion": 1, "position": [1000, 300]
+    },
+    { "parameters": { "operation": "insert", "table": "marketing_campaign_logs", "fields": { "customer_id": "={{ $json.customer_id }}", "channel": "whatsapp", "message_text": "Aniversário - ANIVERSARIO15", "status": "enviado", "sent_at": "={{ $now }}" } }, "id": "log-result", "name": "Registrar Resultado", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [1250, 300] }
+  ],
+  "connections": {
+    "Diário às 9h": { "main": [[{ "node": "Buscar Aniversariantes", "type": "main", "index": 0 }]] },
+    "Buscar Aniversariantes": { "main": [[{ "node": "Loop Clientes", "type": "main", "index": 0 }]] },
+    "Loop Clientes": { "main": [[{ "node": "Enviar WhatsApp", "type": "main", "index": 0 }]] },
+    "Enviar WhatsApp": { "main": [[{ "node": "Registrar Resultado", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["marketing", "aniversario", "celebracao"],
+  "triggerCount": 1,
+  "versionId": "1"
+}

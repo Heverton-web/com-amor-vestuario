@@ -1,0 +1,114 @@
+{
+  "name": "Marketing Campaign CRUD",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "manual"
+      },
+      "id": "manual-trigger",
+      "name": "Disparador Manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "table": "marketing_campaigns",
+        "returnAll": true
+      },
+      "id": "get-campaigns",
+      "name": "Buscar Campanhas",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1
+      },
+      "id": "loop-campaigns",
+      "name": "Loop Campanhas",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "value1": "={{ $json.status }}",
+        "rules": {
+          "rules": [
+            { "value2": "ativa", "output": 0 },
+            { "value2": "rascunho", "output": 1 }
+          ]
+        },
+        "dataType": "string"
+      },
+      "id": "check-status",
+      "name": "Verificar Status",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $json.customer_phone }}",
+        "method": "POST",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "text", "value": "={{ $json.template_body }}" }
+          ]
+        }
+      },
+      "id": "send-whatsapp",
+      "name": "Enviar WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1250, 150]
+    },
+    {
+      "parameters": {
+        "operation": "sendTransactional",
+        "email": "={{ $json.customer_email }}",
+        "subject": "={{ $json.template_subject }}",
+        "html": "={{ $json.template_body }}"
+      },
+      "id": "send-email",
+      "name": "Enviar E-mail",
+      "type": "n8n-nodes-base.listmonk",
+      "typeVersion": 1,
+      "position": [1250, 450]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "marketing_campaign_logs",
+        "fields": {
+          "campaign_id": "={{ $json.campaign_id }}",
+          "customer_id": "={{ $json.customer_id }}",
+          "channel": "={{ $json.channel }}",
+          "message_text": "={{ $json.template_body }}",
+          "status": "enviado",
+          "sent_at": "={{ $now }}"
+        }
+      },
+      "id": "log-result",
+      "name": "Registrar Resultado",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1500, 300]
+    }
+  ],
+  "connections": {
+    "Disparador Manual": { "main": [[{ "node": "Buscar Campanhas", "type": "main", "index": 0 }]] },
+    "Buscar Campanhas": { "main": [[{ "node": "Loop Campanhas", "type": "main", "index": 0 }]] },
+    "Loop Campanhas": { "main": [[{ "node": "Verificar Status", "type": "main", "index": 0 }]] },
+    "Verificar Status": { "main": [[{ "node": "Enviar WhatsApp", "type": "main", "index": 0 }]] },
+    "Enviar WhatsApp": { "main": [[{ "node": "Registrar Resultado", "type": "main", "index": 0 }]] },
+    "Enviar E-mail": { "main": [[{ "node": "Registrar Resultado", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["marketing", "campanha"],
+  "triggerCount": 1,
+  "versionId": "1"
+}

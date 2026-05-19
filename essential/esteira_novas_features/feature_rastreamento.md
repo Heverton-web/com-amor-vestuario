@@ -89,7 +89,7 @@ finalizado: Entregue ao cliente
 
 ```
 ●──────●──────●──────●──────●
-realizado  separado  enviado  finalizado
+realizado  separado  enviado  finaislado
 
 [●]realizado    15/05 14:30
 [●]separado     16/05 09:15
@@ -121,8 +121,8 @@ realizado  separado  enviado  finalizado
 | finalized | "Pedido entregue! Avalie sua experiência." |
 
 ### Canais
-- WhatsApp (via Twilio ou similar)
-- E-mail (see feature_email_transacional)
+- WhatsApp (via EvolutionAPI)
+- E-mail (via ListMonk)
 
 ## Files a Modificar
 

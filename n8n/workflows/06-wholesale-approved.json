@@ -1,0 +1,25 @@
+{
+  "name": "Bem-vindo Lojista - Atacado Aprovado",
+  "nodes": [
+    { "parameters": { "operation": "watchChanges", "table": "customers", "triggerField": "wholesale_approved" }, "id": "wholesale-trigger", "name": "Atacado Aprovado", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [250, 300] },
+    { "parameters": { "value1": "={{ $json.wholesale_approved }}", "rules": { "rules": [{ "value2": "true", "output": 0 }] }, "dataType": "boolean" }, "id": "filter-approved", "name": "Filtrar: Apenas Aprovados", "type": "n8n-nodes-base.switch", "typeVersion": 1, "position": [500, 300] },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $json.phone }}",
+        "method": "POST",
+        "bodyParameters": { "parameters": [{ "name": "text", "value": "🎉 Bem-vindo, {name}!\n\nVocê agora é parceiro atacadista!\n\nSeu tier: {wholesale_tier}\nMínimo por pedido: {min_order_qty} peças\nDesconto: {discount_percent}%\n\nAcesse: {wholesale_area_url}\n\nEquipe {company_name} 💕" }] }
+      },
+      "id": "send-whatsapp-welcome", "name": "Enviar Boas-vindas WhatsApp", "type": "n8n-nodes-base.httpRequest", "typeVersion": 1, "position": [750, 200]
+    },
+    { "parameters": { "operation": "insert", "table": "marketing_campaign_logs", "fields": { "customer_id": "={{ $json.id }}", "channel": "whatsapp", "message_text": "Welcome atacadista aprovado", "status": "enviado", "sent_at": "={{ $now }}" } }, "id": "log-result", "name": "Registrar Resultado", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [1000, 300] }
+  ],
+  "connections": {
+    "Atacado Aprovado": { "main": [[{ "node": "Filtrar: Apenas Aprovados", "type": "main", "index": 0 }]] },
+    "Filtrar: Apenas Aprovados": { "main": [[{ "node": "Enviar Boas-vindas WhatsApp", "type": "main", "index": 0 }]] },
+    "Enviar Boas-vindas WhatsApp": { "main": [[{ "node": "Registrar Resultado", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["marketing", "atacado", "boas-vindas"],
+  "triggerCount": 1,
+  "versionId": "1"
+}

@@ -1,0 +1,60 @@
+{
+  "name": "Notificação Novo Pedido para Admin",
+  "nodes": [
+    {
+      "parameters": { "operation": "watchChanges", "table": "orders", "triggerField": "status" },
+      "id": "order-trigger",
+      "name": "Pedido Criado",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "value1": "={{ $json.status }}",
+        "rules": { "rules": [{ "value2": "realizado", "output": 0 }] },
+        "dataType": "string"
+      },
+      "id": "filter-new",
+      "name": "Filtrar: Apenas Novo",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "sql": "SELECT o.*, c.name as customer_name, c.phone as customer_phone FROM orders o JOIN customers c ON c.id = o.customer_id WHERE o.id = '{{ $json.id }}'"
+      },
+      "id": "get-order-details",
+      "name": "Detalhes do Pedido",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.ADMIN_PHONE }}",
+        "method": "POST",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "text", "value": "🛒 NOVO PEDIDO!\n\nCódigo: {order_code}\nCliente: {customer_name}\nTotal: R$ {total}\nItens: {item_count}\n\nAcesse o painel para confirmar!" }
+          ]
+        }
+      },
+      "id": "notify-admin",
+      "name": "Notificar Admin WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Pedido Criado": { "main": [[{ "node": "Filtrar: Apenas Novo", "type": "main", "index": 0 }]] },
+    "Filtrar: Apenas Novo": { "main": [[{ "node": "Detalhes do Pedido", "type": "main", "index": 0 }]] },
+    "Detalhes do Pedido": { "main": [[{ "node": "Notificar Admin WhatsApp", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["admin", "notificacao", "pedido"],
+  "triggerCount": 1,
+  "versionId": "1"
+}

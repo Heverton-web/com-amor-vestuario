@@ -1,0 +1,51 @@
+{
+  "name": "Alerta Estoque Baixo",
+  "nodes": [
+    {
+      "parameters": { "rule": "custom", "cronExpression": "0 8 * * *" },
+      "id": "daily-trigger",
+      "name": "Diário às 8h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "query",
+        "sql": "SELECT id, code, name, stock, images FROM products WHERE active = true AND stock <= 5 ORDER BY stock ASC LIMIT 10"
+      },
+      "id": "get-low-stock",
+      "name": "Buscar Produtos Estoque Baixo",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    { "parameters": { "batchSize": 1 }, "id": "loop-products", "name": "Loop Produtos", "type": "n8n-nodes-base.splitInBatches", "typeVersion": 1, "position": [750, 300] },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.ADMIN_PHONE }}",
+        "method": "POST",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "text", "value": "⚠️ ALERTA ESTOQUE!\n\nProduto: {name}\nCódigo: {code}\nEstoque: {stock} unidades\n\nConsidere reabastecer!" }
+          ]
+        }
+      },
+      "id": "notify-admin",
+      "name": "Notificar Admin",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Diário às 8h": { "main": [[{ "node": "Buscar Produtos Estoque Baixo", "type": "main", "index": 0 }]] },
+    "Buscar Produtos Estoque Baixo": { "main": [[{ "node": "Loop Produtos", "type": "main", "index": 0 }]] },
+    "Loop Produtos": { "main": [[{ "node": "Notificar Admin", "type": "main", "index": 0 }]] },
+    "Notificar Admin": { "main": [[{ "node": "Loop Produtos", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["admin", "estoque", "alerta"],
+  "triggerCount": 1,
+  "versionId": "1"
+}

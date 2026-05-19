@@ -1,0 +1,32 @@
+{
+  "name": "Carrinho Abandonado",
+  "nodes": [
+    { "parameters": { "rule": "custom", "cronExpression": "*/30 * * * *" }, "id": "schedule-trigger", "name": "A cada 30 Minutos", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [250, 300] },
+    {
+      "parameters": {
+        "sql": "SELECT c.id as customer_id, c.name, c.phone as customer_phone, c.email as customer_email, SUM(oi.total) as cart_total FROM orders o JOIN customers c ON c.id = o.customer_id JOIN order_items oi ON oi.order_id = o.id WHERE o.status = 'realizado' AND o.created_at < NOW() - INTERVAL '1 hour' GROUP BY c.id, c.name, c.phone, c.email"
+      },
+      "id": "get-abandoned-carts", "name": "Buscar Carrinhos Abandonados", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [500, 300]
+    },
+    { "parameters": { "batchSize": 1 }, "id": "loop-customers", "name": "Loop Clientes", "type": "n8n-nodes-base.splitInBatches", "typeVersion": 1, "position": [750, 300] },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $json.customer_phone }}",
+        "method": "POST",
+        "bodyParameters": { "parameters": [{ "name": "text", "value": "Oi {name}! 👋\n\nVimos que você deixou algumas peças no carrinho!\n\nUse CARRINHO10 para 10% OFF!\nVálido por 24h! ⏰\n\nEquipe {company_name} 💕" }] }
+      },
+      "id": "send-whatsapp", "name": "Enviar WhatsApp", "type": "n8n-nodes-base.httpRequest", "typeVersion": 1, "position": [1000, 300]
+    },
+    { "parameters": { "operation": "insert", "table": "marketing_campaign_logs", "fields": { "customer_id": "={{ $json.customer_id }}", "channel": "whatsapp", "message_text": "Carrinho abandonado", "status": "enviado", "sent_at": "={{ $now }}" } }, "id": "log-result", "name": "Registrar Resultado", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [1250, 300] }
+  ],
+  "connections": {
+    "A cada 30 Minutos": { "main": [[{ "node": "Buscar Carrinhos Abandonados", "type": "main", "index": 0 }]] },
+    "Buscar Carrinhos Abandonados": { "main": [[{ "node": "Loop Clientes", "type": "main", "index": 0 }]] },
+    "Loop Clientes": { "main": [[{ "node": "Enviar WhatsApp", "type": "main", "index": 0 }]] },
+    "Enviar WhatsApp": { "main": [[{ "node": "Registrar Resultado", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["marketing", "abandoned-cart", "recuperacao"],
+  "triggerCount": 1,
+  "versionId": "1"
+}

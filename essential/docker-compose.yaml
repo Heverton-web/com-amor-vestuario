@@ -1,0 +1,230 @@
+# =============================================================================
+# Docker Compose - Stack Completa para VPS (Docker Swarm)
+# Com Amor Vestuário - Automação de Marketing
+# =============================================================================
+# Uso: docker stack deploy -c docker-compose.yaml comamor
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # REVERSE PROXY - Traefik
+  # =============================================================================
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--providers.docker.swarmmode=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--api.insecure=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=seu-email@dominio.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-certificates:/letsencrypt
+      - ./traefik-dynamic.yml:/etc/traefik/dynamic/config.yml
+    networks:
+      - comamor-network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+
+  # =============================================================================
+  # N8N - Automação
+  # =============================================================================
+  n8n:
+    image: n8nio/n8n:latest
+    environment:
+      - N8N_HOST=n8n.seu-dominio.com
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.seu-dominio.com/
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - N8N_LOG_LEVEL=info
+      # Supabase
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      # EvolutionAPI
+      - EVOLUTION_API_URL=http://evolution-api:8080
+      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY}
+      # ListMonk
+      - LISTMONK_URL=http://listmonk:9000
+      - LISTMONK_API_KEY=${LISTMONK_API_KEY}
+    volumes:
+      - n8n-data:/home/node/.n8n
+      - ./n8n/workflows:/workflows
+    networks:
+      - comamor-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.n8n.rule=Host(`n8n.seu-dominio.com`)"
+        - "traefik.http.routers.n8n.entrypoints=web,websecure"
+        - "traefik.http.routers.n8n.tls.certresolver=letsencrypt"
+        - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+
+  # =============================================================================
+  # LISTMONK - Servidor de E-mail
+  # =============================================================================
+  listmonk:
+    image: listmonk/listmonk:latest
+    environment:
+      - LISTMONK_PORT=9000
+      - LISTMONK_DB_HOST=postgres
+      - LISTMONK_DB_PORT=5432
+      - LISTMONK_DB_USER=listmonk
+      - LISTMONK_DB_PASSWORD=${LISTMONK_DB_PASSWORD}
+      - LISTMONK_DB_NAME=listmonk
+      - LISTMONK_DB_SSL_MODE=disable
+    volumes:
+      - listmonk-data:/listmonk
+      - listmonk-uploads:/var/listmonk/uploads
+    networks:
+      - comamor-network
+    depends_on:
+      - postgres
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.listmonk.rule=Host(`listmonk.seu-dominio.com`)"
+        - "traefik.http.routers.listmonk.entrypoints=web,websecure"
+        - "traefik.http.routers.listmonk.tls.certresolver=letsencrypt"
+        - "traefik.http.services.listmonk.loadbalancer.server.port=9000"
+
+  # =============================================================================
+  # POSTGRESQL - Banco de dados ListMonk
+  # =============================================================================
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=listmonk
+      - POSTGRES_PASSWORD=${LISTMONK_DB_PASSWORD}
+      - POSTGRES_DB=listmonk
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - comamor-network
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 512M
+
+  # =============================================================================
+  # EVOLUTION API - WhatsApp
+  # =============================================================================
+  evolution-api:
+    image: atendee/evolution-api:latest
+    environment:
+      - SERVER_TYPE=evolution
+      - SERVER_PORT=8080
+      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY}
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgres://evolution:${EVOLUTION_DB_PASSWORD}@postgres:5432/evolution?sslmode=disable
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
+      - DATABASE_SAVE_DATA_CONTACTS=true
+      - WEBHOOK_GLOBAL_ENABLED=false
+      - WEBHOOK_GLOBAL_WEBHOOK_URL=${WEBHOOK_URL}
+      - CONFIG_SESSION_PHONE_CLIENT=SeuNomeBot
+    volumes:
+      - evolution-data:/evolution/instances
+    networks:
+      - comamor-network
+    depends_on:
+      - postgres
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.evolution.rule=Host(`evolution.seu-dominio.com`)"
+        - "traefik.http.routers.evolution.entrypoints=web,websecure"
+        - "traefik.http.routers.evolution.tls.certresolver=letsencrypt"
+        - "traefik.http.services.evolution.loadbalancer.server.port=8080"
+
+  # =============================================================================
+  # REDIS - Cache e filas (opcional para n8n)
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - comamor-network
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 256M
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  traefik-certificates:
+  n8n-data:
+  listmonk-data:
+  listmonk-uploads:
+  postgres-data:
+  evolution-data:
+  redis-data:
+
+# =============================================================================
+# REDES
+# =============================================================================
+networks:
+  comamor-network:
+    driver: overlay
+    attachable: true
+
+# =============================================================================
+# INFORMAÇÕES
+# =============================================================================
+# Substitua:
+#   - seu-email@dominio.com pelo seu e-mail para Let's Encrypt
+#   - seu-dominio.com pelo seu domínio real
+#   - todas as variáveis em ${VARIAVEL} pelos valores reais
+#
+# Variáveis necessárias no arquivo .env:
+#   - SUPABASE_URL
+#   - SUPABASE_SERVICE_ROLE_KEY
+#   - EVOLUTION_API_KEY
+#   - LISTMONK_API_KEY
+#   - LISTMONK_DB_PASSWORD
+#   - EVOLUTION_DB_PASSWORD
+#   - WEBHOOK_URL
+#
+# Para gerar as chaves:
+#   - EVOLUTION_API_KEY: openssl rand -hex 32
+#   - LISTMONK_DB_PASSWORD: openssl rand -hex 16
+#   - EVOLUTION_DB_PASSWORD: openssl rand -hex 16
+#
+# Deploy:
+#   1. Copie este arquivo para sua VPS
+#   2. Crie o arquivo .env com as variáveis
+#   3. Inicialize o swarm: docker swarm init
+#   4. Deploy: docker stack deploy -c docker-compose.yaml comamor
+#
+# Verificar status:
+#   docker service ls
+#   docker service logs comamor_n8n

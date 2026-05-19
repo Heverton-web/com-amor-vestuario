@@ -1,0 +1,53 @@
+{
+  "name": "Follow-up: Pedido Entregue",
+  "nodes": [
+    {
+      "parameters": { "operation": "watchChanges", "table": "orders", "triggerField": "status" },
+      "id": "order-trigger",
+      "name": "Status Pedido Alterado",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "value1": "={{ $json.status }}",
+        "rules": { "rules": [{ "value2": "finalizado", "output": 0 }] },
+        "dataType": "string"
+      },
+      "id": "filter-status",
+      "name": "Filtrar: Finalizado",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    { "parameters": { "amount": 3, "unit": "days" }, "id": "wait-3-days", "name": "Aguardar 3 Dias", "type": "n8n-nodes-base.wait", "typeVersion": 1, "position": [750, 300] },
+    {
+      "parameters": { "sql": "SELECT c.*, c.phone as customer_phone, c.email as customer_email FROM customers c JOIN orders o ON o.customer_id = c.id WHERE o.id = '{{ $json.order_id }}'" },
+      "id": "get-customer", "name": "Obter Dados Cliente", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $json.customer_phone }}",
+        "method": "POST",
+        "bodyParameters": { "parameters": [{ "name": "text", "value": "Olá {name}! 🎉\n\nSeu pedido foi entregue!\n\nComo foi sua experiência?\nResponda com uma foto - queremos ver você estilosa! 💕\n\nEquipe {company_name} 💕" }] }
+      },
+      "id": "send-whatsapp", "name": "Enviar WhatsApp", "type": "n8n-nodes-base.httpRequest", "typeVersion": 1, "position": [1250, 300]
+    },
+    {
+      "parameters": { "operation": "insert", "table": "marketing_campaign_logs", "fields": { "customer_id": "={{ $json.customer_id }}", "channel": "whatsapp", "message_text": "Follow-up entrega", "status": "enviado", "sent_at": "={{ $now }}" } },
+      "id": "log-result", "name": "Registrar Resultado", "type": "n8n-nodes-base.supabase", "typeVersion": 1, "position": [1500, 300]
+    }
+  ],
+  "connections": {
+    "Status Pedido Alterado": { "main": [[{ "node": "Filtrar: Finalizado", "type": "main", "index": 0 }]] },
+    "Filtrar: Finalizado": { "main": [[{ "node": "Aguardar 3 Dias", "type": "main", "index": 0 }]] },
+    "Aguardar 3 Dias": { "main": [[{ "node": "Obter Dados Cliente", "type": "main", "index": 0 }]] },
+    "Obter Dados Cliente": { "main": [[{ "node": "Enviar WhatsApp", "type": "main", "index": 0 }]] },
+    "Enviar WhatsApp": { "main": [[{ "node": "Registrar Resultado", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["marketing", "followup", "pedido"],
+  "triggerCount": 1,
+  "versionId": "1"
+}
