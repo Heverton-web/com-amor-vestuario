@@ -87,18 +87,19 @@ function OrdersPage() {
   return (
     <AdminShell
       title="Pedidos"
+      noScroll
       actions={
         <button
           onClick={() => setCreating(true)}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shrink-0"
         >
           <Plus className="h-4 w-4" /> Novo pedido
         </button>
       }
     >
-      <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
+      <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0 flex-1 overflow-y-hidden flex flex-col min-h-0">
         <div
-          className="grid gap-3 md:gap-4"
+          className="grid gap-3 md:gap-4 h-full min-h-0"
           style={{ gridTemplateColumns: `repeat(${STAGES.length}, minmax(240px, 1fr))` }}
         >
           {STAGES.map((s) => {
@@ -116,9 +117,9 @@ function OrdersPage() {
                   setDragId(null);
                   setOverStage(null);
                 }}
-                className={`rounded-2xl border bg-card p-4 transition-colors ${overStage === s.key ? "border-primary bg-primary/5" : "border-border"}`}
+                className={`rounded-2xl border bg-card p-4 transition-colors flex flex-col h-[400px] md:h-full min-h-0 ${overStage === s.key ? "border-primary bg-primary/5" : "border-border"}`}
               >
-                <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="mb-3 flex items-center justify-between gap-2 shrink-0">
                   <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
                     {s.label}
                   </h3>
@@ -126,7 +127,7 @@ function OrdersPage() {
                     {stageOrders.length}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
                   {stageOrders.map((o: any) => {
                     const idx = STAGES.findIndex((x) => x.key === s.key);
                     const next = STAGES[idx + 1];
@@ -168,7 +169,7 @@ function OrdersPage() {
                     );
                   })}
                   {!stageOrders.length && (
-                    <div className="rounded-xl border border-dashed border-border/60 px-2 py-4 text-center text-[11px] text-muted-foreground">
+                    <div className="rounded-xl border border-dashed border-border/60 px-2 py-4 text-center text-[11px] text-muted-foreground shrink-0">
                       Solte aqui
                     </div>
                   )}
@@ -178,11 +179,11 @@ function OrdersPage() {
           })}
         </div>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground md:hidden">
+      <p className="mt-3 text-xs text-muted-foreground md:hidden shrink-0">
         Arraste para o lado para ver todas as etapas →
       </p>
 
-      <p className="mt-8 text-sm text-muted-foreground">
+      <p className="mt-4 text-xs text-muted-foreground shrink-0">
         Pedidos são criados a partir da Loja Virtual (checkout), de Orçamentos aprovados, do CRM
         (Kanban Fardamento → Aprovado) ou diretamente pelo botão "Novo pedido".
       </p>
