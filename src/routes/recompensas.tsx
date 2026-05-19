@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Heart, LogIn, User as UserIcon, LogOut, Sparkles, ShoppingBag } from "lucide-react";
 import { useAuth } from "@/features/core/integrations/auth";
 import { useBranding } from "@/features/core/services/branding";
+import { BrandLogo } from "@/features/core/components/BrandLogo";
 import { fetchMyCustomer } from "@/features/fidelidade/services/rewards";
 
 export const Route = createFileRoute("/recompensas")({
@@ -26,18 +27,8 @@ function RecompensasPage() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
-          <Link to="/recompensas" className="flex items-baseline gap-2">
-            <Heart
-              className="h-4 w-4 fill-primary stroke-primary"
-              style={{ fill: branding.primary_color, stroke: branding.primary_color }}
-            />
-            <span className="font-display text-lg md:text-xl">{branding.brand_name}</span>
-            <span
-              className="text-[10px] uppercase tracking-[0.2em] text-primary"
-              style={{ color: branding.primary_color }}
-            >
-              Clube Com Amor
-            </span>
+          <Link to="/recompensas" className="shrink-0">
+            <BrandLogo environment="clube" />
           </Link>
           <div className="flex items-center gap-2">
             <Link

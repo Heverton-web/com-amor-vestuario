@@ -6,6 +6,7 @@ import { useCart } from "@/features/vendas/services/cart";
 import { brl } from "@/features/core/utils/format";
 import { priceFor, priceTier, WHOLESALE_THRESHOLD } from "@/features/vendas/services/pricing";
 import { useBranding } from "@/features/core/services/branding";
+import { BrandLogo } from "@/features/core/components/BrandLogo";
 import logo from "@/assets/logo-com-amor.png";
 import {
   ShoppingBag,
@@ -224,15 +225,8 @@ function ShopPage() {
       {/* HEADER */}
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-4 sm:h-16 sm:px-6">
-          <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
-            <img
-              src={branding.logo_url || logo}
-              alt={branding.brand_name}
-              className="h-8 w-auto object-contain"
-            />
-            <span className="hidden text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:inline">
-              loja
-            </span>
+          <Link to="/" className="shrink-0">
+            <BrandLogo environment="loja" />
           </Link>
           <div className="flex items-center gap-2">
             <Link

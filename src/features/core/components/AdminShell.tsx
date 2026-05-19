@@ -28,6 +28,7 @@ import {
 } from "@/features/core/utils/admin-pages";
 import { useState, type ReactNode } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/features/core/components/sheet";
+import { BrandLogo } from "@/features/core/components/BrandLogo";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   inicio: LayoutDashboard,
@@ -106,12 +107,8 @@ export function AdminShell({
   );
 
   const Brand = (
-    <Link to="/" className="flex items-baseline gap-2 px-6 py-5 border-b border-border">
-      <Heart className="h-4 w-4 fill-primary stroke-primary" />
-      <span className="font-display text-xl">Com Amor</span>
-      <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-        {isSuperAdmin ? "super" : "admin"}
-      </span>
+    <Link to="/" className="block px-6 py-5 border-b border-border">
+      <BrandLogo environment={isSuperAdmin ? "super" : "admin"} />
     </Link>
   );
 

@@ -7,6 +7,7 @@ import { ensureSuperAdmin } from "@/features/acessos/services/admin-team.functio
 import { useEffect } from "react";
 import { useBranding } from "@/features/core/services/branding";
 import logo from "@/assets/logo-com-amor.png";
+import { BrandLogo } from "@/features/core/components/BrandLogo";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -48,13 +49,8 @@ function LoginPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
-        <Link to="/" className="mb-10 flex items-center gap-2">
-          <img
-            src={branding.logo_url || logo}
-            alt={branding.brand_name}
-            className="h-10 w-auto object-contain"
-          />
-          <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground">admin</span>
+        <Link to="/" className="mb-10 block w-fit">
+          <BrandLogo environment="admin" />
         </Link>
 
         <div className="rounded-3xl border border-border bg-card p-8 shadow-sm">
@@ -111,35 +107,6 @@ function LoginPage() {
             <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
           </div>
 
-          <button
-            type="button"
-            disabled={loading}
-            onClick={async () => {
-              setLoading(true);
-              const email = "demo@comamor.app";
-              const password = "demo1234";
-              let res = await signIn(email, password);
-              if (res.error) {
-                const up = await signUp(email, password, "Demo Cliente");
-                if (up.error && !/already/i.test(up.error)) {
-                  setLoading(false);
-                  toast.error(up.error);
-                  return;
-                }
-                res = await signIn(email, password);
-              }
-              setLoading(false);
-              if (res.error) {
-                toast.error(res.error);
-                return;
-              }
-              toast.success("Acesso demo liberado!");
-              navigate({ to: "/admin" });
-            }}
-            className="w-full rounded-full border border-primary/40 bg-primary/10 px-5 py-3 text-sm font-medium text-primary hover:bg-primary/15 disabled:opacity-60"
-          >
-            🎁 Entrar como demo (cliente)
-          </button>
 
           <button
             type="button"
@@ -166,7 +133,7 @@ function LoginPage() {
                 setLoading(false);
               }
             }}
-            className="mt-3 w-full rounded-full border border-foreground/30 bg-foreground/5 px-5 py-3 text-sm font-medium hover:bg-foreground/10 disabled:opacity-60"
+            className="w-full rounded-full border border-foreground/30 bg-foreground/5 px-5 py-3 text-sm font-medium hover:bg-foreground/10 disabled:opacity-60"
           >
             👑 Entrar como demo (administrador)
           </button>
@@ -182,8 +149,6 @@ function LoginPage() {
           </p>
         </div>
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Cliente: <strong>demo@comamor.app</strong> / <strong>demo1234</strong>
-          <br />
           Admin: <strong>admin@comamor.app</strong> / <strong>admin1234</strong>
         </p>
       </div>

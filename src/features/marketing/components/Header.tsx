@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X, Sparkles, ShoppingBag, Phone } from "lucide-react";
 import { useBranding } from "@/features/core/services/branding";
+import { BrandLogo } from "@/features/core/components/BrandLogo";
 
 const links = [
   { href: "#sobre", label: "Sobre" },
@@ -15,19 +16,8 @@ export function Header({ onContact }: { onContact: () => void }) {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-4 sm:h-16 sm:px-6">
-        <a href="#top" className="flex items-baseline gap-2">
-          {branding.logo_url ? (
-            <img src={branding.logo_url} alt={branding.brand_name} className="h-7 w-auto sm:h-8" />
-          ) : (
-            <>
-              <span className="font-display text-2xl font-semibold tracking-tight text-foreground">
-                {branding.brand_name}
-              </span>
-              <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                {branding.brand_suffix}
-              </span>
-            </>
-          )}
+        <a href="#top">
+          <BrandLogo environment="site" />
         </a>
 
         {/* Links centrais simplificados (removido Clube e Contato) */}
