@@ -8,29 +8,59 @@ import { WebhookLog } from "../types";
 export async function dispatchWebhook(
   eventType: string,
   payload: any,
+  customWebhookUrl?: string,
 ): Promise<Omit<WebhookLog, "id" | "created_at">> {
   const start = performance.now();
 
   // 1. Busca a URL de destino configurada para o N8N nas configurações de integração
-  let webhookUrl = "http://localhost:5678/webhook/comamor-vestuario"; // Fallback padrão
+  let webhookUrl = customWebhookUrl || "";
   let environment: "development" | "production" = "development";
 
-  try {
-    const { data: n8nSettings } = (await supabase
-      .from("integration_settings" as any)
-      .select("webhook_url, mode")
-      .eq("provider", "n8n")
-      .maybeSingle()) as any;
+  if (!customWebhookUrl) {
+    try {
+      // Tenta primeiro carregar a URL específica do evento
+      const { data: specificSettings } = (await supabase
+        .from("integration_settings" as any)
+        .select("webhook_url, mode")
+        .eq("provider", `n8n:${eventType}`)
+        .maybeSingle()) as any;
 
-    if (n8nSettings?.webhook_url) {
-      webhookUrl = n8nSettings.webhook_url;
-      environment = n8nSettings.mode as any;
+      if (specificSettings?.webhook_url) {
+        webhookUrl = specificSettings.webhook_url;
+        environment = specificSettings.mode as any;
+      } else {
+        // Se não houver específica, busca a global do N8N
+        const { data: globalSettings } = (await supabase
+          .from("integration_settings" as any)
+          .select("webhook_url, mode")
+          .eq("provider", "n8n")
+          .maybeSingle()) as any;
+
+        if (globalSettings?.webhook_url) {
+          webhookUrl = globalSettings.webhook_url;
+          environment = globalSettings.mode as any;
+        } else {
+          webhookUrl = "http://localhost:5678/webhook/comamor-vestuario"; // Fallback padrão
+        }
+      }
+    } catch (err) {
+      console.warn(
+        "Não foi possível carregar a URL do webhook do banco de dados. Usando fallback padrão.",
+        err,
+      );
+      webhookUrl = "http://localhost:5678/webhook/comamor-vestuario";
     }
-  } catch (err) {
-    console.warn(
-      "Não foi possível carregar a URL do webhook do banco de dados. Usando fallback padrão.",
-      err,
-    );
+  } else {
+    try {
+      const { data: globalSettings } = (await supabase
+        .from("integration_settings" as any)
+        .select("mode")
+        .eq("provider", "n8n")
+        .maybeSingle()) as any;
+      if (globalSettings?.mode) {
+        environment = globalSettings.mode as any;
+      }
+    } catch (e) {}
   }
 
   // 2. Monta o envelope padronizado de metadados

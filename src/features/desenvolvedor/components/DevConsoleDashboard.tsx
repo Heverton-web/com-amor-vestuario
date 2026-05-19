@@ -14,6 +14,7 @@ import { Button } from "@/features/core/components/button";
 import { Input } from "@/features/core/components/input";
 import { Label } from "@/features/core/components/label";
 import { Switch } from "@/features/core/components/switch";
+import { Checkbox } from "@/features/core/components/checkbox";
 import {
   Table,
   TableBody,
@@ -83,12 +84,37 @@ export function DevConsoleDashboard() {
 
   // States para Webhook Manual
   const [manualEvent, setManualEvent] = useState("vendas.pedido_criado");
+  const [manualWebhookUrl, setManualWebhookUrl] = useState("");
+  const [saveUrlToDb, setSaveUrlToDb] = useState(false);
+  const [eventWebhooks, setEventWebhooks] = useState<Record<string, { webhook_url: string; mode: string }>>({});
   const [manualPayload, setManualPayload] = useState(
     JSON.stringify(
       {
-        order_id: "order_9988_mock",
+        id: "e2c3b88d-bf88-449e-8777-7161c960b398",
+        code: "PED-2026-0001",
+        customer_id: "aa123b45-67c8-90d1-e2f3-456789abcdef",
+        quote_id: null,
+        status: "pendente",
+        shipping: 25.0,
+        subtotal: 325.0,
         total: 350.0,
-        customer: { name: "Cliente Exemplo", email: "cliente@exemplo.com" },
+        notes: "Entregar no período da tarde.",
+        origin_kanban: null,
+        paid_at: null,
+        separated_at: null,
+        shipped_at: null,
+        finished_at: null,
+        source: "Site",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        customer: {
+          id: "aa123b45-67c8-90d1-e2f3-456789abcdef",
+          name: "Cliente Exemplo de Vendas",
+          email: "cliente@exemplo.com",
+          phone: "11988887777",
+          cpf: "123.456.789-00",
+          active: true,
+        },
       },
       null,
       2,
@@ -187,6 +213,25 @@ export function DevConsoleDashboard() {
             setN8nUrl(n8n.webhook_url || "");
             setN8nMode(n8n.mode as any);
           }
+
+          // Filtra webhooks por evento
+          const customHooks: Record<string, { webhook_url: string; mode: string }> = {};
+          data.forEach((s: any) => {
+            if (s.provider?.startsWith("n8n:")) {
+              const eventName = s.provider.replace("n8n:", "");
+              customHooks[eventName] = {
+                webhook_url: s.webhook_url || "",
+                mode: s.mode || "sandbox"
+              };
+            }
+          });
+          setEventWebhooks(customHooks);
+
+          // Define a URL manual inicial para o primeiro evento selecionado
+          const initialEvent = "vendas.pedido_criado";
+          const specificHook = customHooks[initialEvent];
+          setManualWebhookUrl(specificHook?.webhook_url || n8n?.webhook_url || "");
+
           const me = data.find((s: any) => s.provider === "melhor_envio");
           if (me) {
             setMeClientId(me.public_key || "");
@@ -209,6 +254,14 @@ export function DevConsoleDashboard() {
             setN8nUrl(parsed.n8n.webhook_url);
             setN8nMode(parsed.n8n.mode);
           }
+
+          const customHooks = parsed.eventWebhooks || {};
+          setEventWebhooks(customHooks);
+
+          const initialEvent = "vendas.pedido_criado";
+          const specificHook = customHooks[initialEvent];
+          setManualWebhookUrl(specificHook?.webhook_url || parsed.n8n?.webhook_url || "");
+
           if (parsed.me) {
             setMeClientId(parsed.me.clientId);
             setMeMode(parsed.me.mode);
@@ -329,7 +382,19 @@ export function DevConsoleDashboard() {
         throw new Error("O Payload fornecido não é um JSON válido.");
       }
 
-      return dispatchWebhook(manualEvent, parsedPayload);
+      if (saveUrlToDb && manualWebhookUrl) {
+        const providerName = `n8n:${manualEvent}`;
+        await saveSettingsMutation.mutateAsync({
+          provider: providerName,
+          settings: { webhook_url: manualWebhookUrl, mode: n8nMode },
+        });
+        setEventWebhooks((prev) => ({
+          ...prev,
+          [manualEvent]: { webhook_url: manualWebhookUrl, mode: n8nMode },
+        }));
+      }
+
+      return dispatchWebhook(manualEvent, parsedPayload, manualWebhookUrl);
     },
     onSuccess: (data) => {
       toast.success(`Webhook enviado com status ${data.status_code || "Sem Conexão"}`);
@@ -848,41 +913,300 @@ export function DevConsoleDashboard() {
                     onChange={(e) => {
                       const ev = e.target.value;
                       setManualEvent(ev);
-                      // Atualiza payloads sugeridos
-                      if (ev === "vendas.pedido_criado" || ev === "vendas.pedido_pago") {
+                      const specificHook = eventWebhooks[ev];
+                      setManualWebhookUrl(specificHook?.webhook_url || n8nUrl || "");
+                      // Atualiza payloads sugeridos completos com a modelagem do banco
+                      if (
+                        ev === "vendas.pedido_criado" ||
+                        ev === "vendas.pedido_pago" ||
+                        ev === "vendas.pedido_cancelado" ||
+                        ev === "vendas.pedido_status_alterado"
+                      ) {
                         setManualPayload(
                           JSON.stringify(
                             {
-                              order_id: "order_9988_mock",
+                              id: "e2c3b88d-bf88-449e-8777-7161c960b398",
+                              code: "PED-2026-0001",
+                              customer_id: "aa123b45-67c8-90d1-e2f3-456789abcdef",
+                              quote_id: null,
+                              status: ev.split(".")[1] === "status_alterado" ? "separado" : ev.split(".")[1] === "pedido_criado" ? "pendente" : ev.split(".")[1],
+                              shipping: 25.0,
+                              subtotal: 325.0,
                               total: 350.0,
-                              status: ev.endsWith("pago") ? "pago" : "pendente",
-                              customer: { name: "Cliente Exemplo", email: "cliente@exemplo.com" },
+                              notes: "Entregar no período da tarde.",
+                              origin_kanban: null,
+                              paid_at: ev.endsWith("pago") ? new Date().toISOString() : null,
+                              separated_at: ev.endsWith("status_alterado") ? new Date().toISOString() : null,
+                              shipped_at: null,
+                              finished_at: null,
+                              source: "Site",
+                              created_at: new Date().toISOString(),
+                              updated_at: new Date().toISOString(),
+                              customer: {
+                                id: "aa123b45-67c8-90d1-e2f3-456789abcdef",
+                                name: "Cliente Exemplo de Vendas",
+                                email: "cliente@exemplo.com",
+                                phone: "11988887777",
+                                cpf: "123.456.789-00",
+                                active: true,
+                              },
                             },
                             null,
                             2,
                           ),
                         );
-                      } else if (ev === "crm.lead_adicionado") {
+                      } else if (ev === "fidelidade.pontos_acumulados") {
                         setManualPayload(
                           JSON.stringify(
                             {
-                              lead_id: "lead_uuid_123",
+                              id: "d5b91a78-22cf-4bda-a887-f27161c96001",
+                              customer_id: "aa123b45-67c8-90d1-e2f3-456789abcdef",
+                              delta: 50,
+                              description: "Compra realizada - Pedido PED-2026-0001",
+                              order_id: "e2c3b88d-bf88-449e-8777-7161c960b398",
+                              redemption_id: null,
+                              reason: "purchase",
+                              created_at: new Date().toISOString(),
+                              customer: {
+                                name: "Cliente Exemplo de Vendas",
+                                email: "cliente@exemplo.com",
+                              },
+                            },
+                            null,
+                            2,
+                          ),
+                        );
+                      } else if (
+                        ev === "fidelidade.resgate_solicitado" ||
+                        ev === "fidelidade.resgate_concluido"
+                      ) {
+                        setManualPayload(
+                          JSON.stringify(
+                            {
+                              id: "b3c8aa77-992d-45f9-b31f-e19c2fe0544d",
+                              code: "RES-2026-0422",
+                              customer_id: "aa123b45-67c8-90d1-e2f3-456789abcdef",
+                              reward_item_id: "ff887766-aa11-bb22-cc33-dd4455667788",
+                              points_spent: 500,
+                              status: ev.split(".")[1] === "resgate_solicitado" ? "solicitado" : "concluido",
+                              voucher_code: "COMAMOR50",
+                              used_at: ev.endsWith("concluido") ? new Date().toISOString() : null,
+                              used_in_order_id: ev.endsWith("concluido") ? "e2c3b88d-bf88-449e-8777-7161c960b398" : null,
+                              valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                              created_at: new Date().toISOString(),
+                              customer: {
+                                name: "Cliente Exemplo de Vendas",
+                                email: "cliente@exemplo.com",
+                                phone: "11988887777",
+                              },
+                              reward_item: {
+                                name: "Cupom R$ 50",
+                                kind: "voucher",
+                                voucher_value: 50.0,
+                                voucher_min_order: 150.0,
+                              },
+                            },
+                            null,
+                            2,
+                          ),
+                        );
+                      } else if (ev === "crm.lead_capturado") {
+                        setManualPayload(
+                          JSON.stringify(
+                            {
+                              id: "9933b8a1-ff44-4c7f-969d-4a18985d4345",
                               name: "Amanda Pereira B2B",
-                              email: "amanda@empresa.com",
-                              origin: "formulario_contato",
+                              whatsapp: "11999998888",
+                              reason: "quote_b2b",
+                              message: "Tenho interesse em orçar 50 uniformes corporativos.",
+                              utm_source: "google",
+                              utm_medium: "cpc",
+                              utm_campaign: "black_friday_b2b",
+                              created_at: new Date().toISOString(),
                             },
                             null,
                             2,
                           ),
                         );
-                      } else if (ev === "fidelidade.resgate_efetuado") {
+                      } else if (ev === "crm.cliente_criado" || ev === "crm.cliente_atualizado") {
                         setManualPayload(
                           JSON.stringify(
                             {
-                              customer_id: "cust_992",
-                              points_redeemed: 500,
-                              reward_name: "Cupom R$ 50",
-                              code: "COMAMOR50",
+                              id: "aa123b45-67c8-90d1-e2f3-456789abcdef",
+                              code: "CLI-1029",
+                              name: "Carlos Oliveira",
+                              email: "carlos@gmail.com",
+                              phone: "11988887777",
+                              landline: null,
+                              cpf: "123.456.789-00",
+                              cnpj: null,
+                              type: "pf",
+                              category: "prata",
+                              active: true,
+                              cep: "01310-200",
+                              street: "Avenida Paulista",
+                              number: "1000",
+                              complement: "Apto 152",
+                              neighborhood: "Bela Vista",
+                              city: "São Paulo",
+                              state: "SP",
+                              user_id: null,
+                              portal_invited_at: null,
+                              created_at: new Date().toISOString(),
+                              updated_at: new Date().toISOString(),
+                            },
+                            null,
+                            2,
+                          ),
+                        );
+                      } else if (
+                        ev === "financeiro.fatura_criada" ||
+                        ev === "financeiro.pagamento_confirmado"
+                      ) {
+                        setManualPayload(
+                          JSON.stringify(
+                            {
+                              id: "fat_8877_mock_uuid",
+                              code: "FAT-2026-1052",
+                              customer_id: "aa123b45-67c8-90d1-e2f3-456789abcdef",
+                              order_id: "e2c3b88d-bf88-449e-8777-7161c960b398",
+                              total: 350.0,
+                              paid_total: ev.endsWith("confirmado") ? 350.0 : 0.0,
+                              due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                              status: ev.endsWith("confirmado") ? "paga" : "pendente",
+                              payment_method: "pix",
+                              pix_qr: "base64_qr_code_placeholder",
+                              pix_copia_cola: "00020101021226870014br.gov.bcb.pix...",
+                              mp_preference_id: "pref_123456789",
+                              mp_payment_id: ev.endsWith("confirmado") ? "mp_pay_998877" : null,
+                              mp_init_point: "https://www.mercadopago.com.br/checkout/start?pref_id=...",
+                              boleto_url: null,
+                              pdf_url: null,
+                              public_token: "pt_abc123xyz",
+                              notes: "Faturamento Pix Com Amor",
+                              created_at: new Date().toISOString(),
+                              updated_at: new Date().toISOString(),
+                              customer: {
+                                name: "Cliente Exemplo de Vendas",
+                                email: "cliente@exemplo.com",
+                                phone: "11988887777",
+                              },
+                            },
+                            null,
+                            2,
+                          ),
+                        );
+                      } else if (ev === "financeiro.recibo_emitido") {
+                        setManualPayload(
+                          JSON.stringify(
+                            {
+                              id: "rec_3344_mock_uuid",
+                              code: "REC-2026-0005",
+                              customer_id: "aa123b45-67c8-90d1-e2f3-456789abcdef",
+                              invoice_id: "fat_8877_mock_uuid",
+                              order_id: "e2c3b88d-bf88-449e-8777-7161c960b398",
+                              amount: 350.0,
+                              amount_in_words: "Trezentos e cinquenta reais",
+                              reference: "Pagamento ref. Pedido PED-2026-0001",
+                              payer_name: "Carlos Oliveira",
+                              payer_doc: "123.456.789-00",
+                              payment_method: "pix",
+                              signature_mode: "automatic",
+                              signature_url: null,
+                              status: "emitido",
+                              issuer_name: "Com Amor Vestuario LTDA",
+                              issuer_doc: "12.345.678/0001-90",
+                              issuer_address: "Rua Exemplo, 123, São Paulo - SP",
+                              city: "São Paulo",
+                              paid_at: new Date().toISOString(),
+                              public_token: "rec_tok_xyz123",
+                              notes: null,
+                              created_at: new Date().toISOString(),
+                              updated_at: new Date().toISOString(),
+                            },
+                            null,
+                            2,
+                          ),
+                        );
+                      } else if (
+                        ev === "orcamento.criado" ||
+                        ev === "orcamento.aprovado" ||
+                        ev === "orcamento.rejeitado"
+                      ) {
+                        setManualPayload(
+                          JSON.stringify(
+                            {
+                              id: "orc_5544_mock_uuid",
+                              code: "ORC-2026-0099",
+                              customer_id: "aa123b45-67c8-90d1-e2f3-456789abcdef",
+                              lead_id: null,
+                              requester_name: "Carlos Uniformes",
+                              consultant_name: "Vendedora Amada",
+                              quote_date: new Date().toISOString().split("T")[0],
+                              valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                              status: ev.split(".")[1],
+                              shipping: 150.0,
+                              subtotal: 4350.0,
+                              total: 4500.0,
+                              notes: "Orçamento para fardamento de algodão egípcio.",
+                              created_at: new Date().toISOString(),
+                              updated_at: new Date().toISOString(),
+                              customer: {
+                                name: "Vendas Corporativas LTDA",
+                                cnpj: "12.345.678/0001-99",
+                                phone: "11977776666",
+                              },
+                            },
+                            null,
+                            2,
+                          ),
+                        );
+                      } else if (ev === "produtos.estoque_alterado") {
+                        setManualPayload(
+                          JSON.stringify(
+                            {
+                              id: "prod_7766_mock_uuid",
+                              code: "VEST-RED-G",
+                              name: "Vestido Com Amor Vermelho G",
+                              description: "Vestido leve e fluido com estampa artesanal.",
+                              type: "retail",
+                              retail_price: 189.9,
+                              wholesale_price: 139.9,
+                              cost_price: 65.0,
+                              stock: 18,
+                              rewards_reserved: 0,
+                              sizes: ["P", "M", "G"],
+                              colors: ["Vermelho", "Azul"],
+                              images: ["https://exemplo.com/vestido-vermelho.jpg"],
+                              active: true,
+                              stock_delta: -2,
+                              created_at: new Date().toISOString(),
+                              updated_at: new Date().toISOString(),
+                            },
+                            null,
+                            2,
+                          ),
+                        );
+                      } else if (ev === "produtos.esgotado") {
+                        setManualPayload(
+                          JSON.stringify(
+                            {
+                              id: "prod_7766_mock_uuid",
+                              code: "VEST-RED-G",
+                              name: "Vestido Com Amor Vermelho G",
+                              description: "Vestido leve e fluido com estampa artesanal.",
+                              type: "retail",
+                              retail_price: 189.9,
+                              wholesale_price: 139.9,
+                              cost_price: 65.0,
+                              stock: 0,
+                              rewards_reserved: 0,
+                              sizes: ["P", "M", "G"],
+                              colors: ["Vermelho", "Azul"],
+                              images: ["https://exemplo.com/vestido-vermelho.jpg"],
+                              active: true,
+                              created_at: new Date().toISOString(),
+                              updated_at: new Date().toISOString(),
                             },
                             null,
                             2,
@@ -892,11 +1216,62 @@ export function DevConsoleDashboard() {
                     }}
                     className="w-full bg-secondary/30 rounded-xl border border-input px-3 py-2 text-sm focus:outline-none font-mono"
                   >
-                    <option value="vendas.pedido_criado">vendas.pedido_criado</option>
-                    <option value="vendas.pedido_pago">vendas.pedido_pago</option>
-                    <option value="crm.lead_adicionado">crm.lead_adicionado</option>
-                    <option value="fidelidade.resgate_efetuado">fidelidade.resgate_efetuado</option>
+                    <optgroup label="Vendas">
+                      <option value="vendas.pedido_criado">vendas.pedido_criado</option>
+                      <option value="vendas.pedido_pago">vendas.pedido_pago</option>
+                      <option value="vendas.pedido_cancelado">vendas.pedido_cancelado</option>
+                      <option value="vendas.pedido_status_alterado">vendas.pedido_status_alterado</option>
+                    </optgroup>
+                    <optgroup label="Fidelidade">
+                      <option value="fidelidade.pontos_acumulados">fidelidade.pontos_acumulados</option>
+                      <option value="fidelidade.resgate_solicitado">fidelidade.resgate_solicitado</option>
+                      <option value="fidelidade.resgate_concluido">fidelidade.resgate_concluido</option>
+                    </optgroup>
+                    <optgroup label="CRM">
+                      <option value="crm.lead_capturado">crm.lead_capturado</option>
+                      <option value="crm.cliente_criado">crm.cliente_criado</option>
+                      <option value="crm.cliente_atualizado">crm.cliente_atualizado</option>
+                    </optgroup>
+                    <optgroup label="Financeiro">
+                      <option value="financeiro.fatura_criada">financeiro.fatura_criada</option>
+                      <option value="financeiro.pagamento_confirmado">financeiro.pagamento_confirmado</option>
+                      <option value="financeiro.recibo_emitido">financeiro.recibo_emitido</option>
+                    </optgroup>
+                    <optgroup label="Orçamentos">
+                      <option value="orcamento.criado">orcamento.criado</option>
+                      <option value="orcamento.aprovado">orcamento.aprovado</option>
+                      <option value="orcamento.rejeitado">orcamento.rejeitado</option>
+                    </optgroup>
+                    <optgroup label="Produtos">
+                      <option value="produtos.estoque_alterado">produtos.estoque_alterado</option>
+                      <option value="produtos.esgotado">produtos.esgotado</option>
+                    </optgroup>
                   </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="manual-webhook-url">URL de Destino do Webhook</Label>
+                  <Input
+                    id="manual-webhook-url"
+                    value={manualWebhookUrl}
+                    onChange={(e) => setManualWebhookUrl(e.target.value)}
+                    placeholder="http://localhost:5678/webhook/..."
+                    className="font-mono bg-secondary/30 rounded-xl"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-1 pb-1">
+                  <Checkbox
+                    id="save-url-db"
+                    checked={saveUrlToDb}
+                    onCheckedChange={(checked) => setSaveUrlToDb(!!checked)}
+                  />
+                  <Label
+                    htmlFor="save-url-db"
+                    className="text-xs text-muted-foreground cursor-pointer select-none font-normal"
+                  >
+                    Salvar esta URL no Banco de Dados
+                  </Label>
                 </div>
 
                 <div className="space-y-2">
