@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/features/core/integrations/supabase/client";
@@ -64,6 +64,12 @@ function CustomersPage() {
   const [editing, setEditing] = useState<Partial<Customer> | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
 
+  // Estados dos filtros
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"todos" | "ativo" | "inativo">("todos");
+  const [typeFilter, setTypeFilter] = useState<"todos" | "pf" | "pj">("todos");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
   const { data: customers, isLoading } = useQuery({
     queryKey: ["customers"],
     queryFn: async () => {
@@ -97,6 +103,138 @@ function CustomersPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
   });
 
+  // Filtros e ordenação aplicados reativamente
+  const filteredCustomers = useMemo(() => {
+    if (!customers) return [];
+
+    let result = [...customers];
+
+    // Filtro por texto (Nome, Código, E-mail, Telefone)
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          (c.code && c.code.toLowerCase().includes(q)) ||
+          (c.email && c.email.toLowerCase().includes(q)) ||
+          (c.phone && c.phone.toLowerCase().includes(q))
+      );
+    }
+
+    // Filtro por status
+    if (statusFilter !== "todos") {
+      const active = statusFilter === "ativo";
+      result = result.filter((c) => c.active === active);
+    }
+
+    // Filtro por tipo
+    if (typeFilter !== "todos") {
+      result = result.filter((c) => c.type === typeFilter);
+    }
+
+    // Ordenação de A-Z ou Z-A
+    result.sort((a, b) => {
+      const nameA = a.name.trim().toLowerCase();
+      const nameB = b.name.trim().toLowerCase();
+      if (sortOrder === "asc") {
+        return nameA.localeCompare(nameB);
+      } else {
+        return nameB.localeCompare(nameA);
+      }
+    });
+
+    return result;
+  }, [customers, search, statusFilter, typeFilter, sortOrder]);
+
+  // Divisão por categorias
+  const varejoCustomers = useMemo(
+    () => filteredCustomers.filter((c) => c.category === "varejo"),
+    [filteredCustomers]
+  );
+  const atacadoCustomers = useMemo(
+    () => filteredCustomers.filter((c) => c.category === "atacado"),
+    [filteredCustomers]
+  );
+  const fardamentoCustomers = useMemo(
+    () => filteredCustomers.filter((c) => c.category === "fardamento"),
+    [filteredCustomers]
+  );
+
+  const CustomerCard = ({ c }: { c: Customer }) => (
+    <div
+      key={c.id}
+      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer text-left"
+      onClick={() => setDetailId(c.id)}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/80 text-lg font-display text-muted-foreground border border-border/50">
+            {c.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <h3 className="truncate font-medium leading-tight">{c.name}</h3>
+            <p className="text-xs font-mono text-muted-foreground mt-0.5">{c.code}</p>
+          </div>
+        </div>
+        <div className="absolute right-3 top-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditing(c);
+            }}
+            className="rounded-full bg-card p-2 text-muted-foreground hover:bg-secondary shadow-sm border border-border/50 transition-colors"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm("Excluir cliente?")) del.mutate(c.id);
+            }}
+            className="rounded-full bg-card p-2 text-destructive hover:bg-destructive/10 shadow-sm border border-border/50 transition-colors"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-1.5 text-xs text-muted-foreground">
+        {c.phone && (
+          <div className="flex items-center gap-2">
+            <Phone className="h-3 w-3 opacity-70" /> {c.phone}
+          </div>
+        )}
+        {c.email && (
+          <div className="flex items-center gap-2 truncate">
+            <Mail className="h-3 w-3 opacity-70" /> {c.email}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-5 flex items-center justify-between border-t border-border/50 pt-4">
+        <div className="flex gap-1.5">
+          <span className="inline-flex items-center rounded-md bg-secondary/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            {c.type === "pf" ? (
+              <User className="mr-1 h-3 w-3" />
+            ) : (
+              <Building2 className="mr-1 h-3 w-3" />
+            )}{" "}
+            {c.type}
+          </span>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggle.mutate(c);
+          }}
+          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-colors ${c.active ? "bg-primary/10 text-primary hover:bg-primary/20" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+        >
+          {c.active ? "Ativo" : "Inativo"}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <AdminShell
       title="Clientes"
@@ -109,6 +247,52 @@ function CustomersPage() {
         </button>
       }
     >
+      {/* Barra de Filtros */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:min-w-[280px] md:min-w-[320px]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar cliente por nome, código, e-mail..."
+              className="w-full rounded-xl border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="w-full sm:w-auto rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="todos">Todos os Status</option>
+            <option value="ativo">Ativos</option>
+            <option value="inativo">Inativos</option>
+          </select>
+
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as any)}
+            className="w-full sm:w-auto rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="todos">Todos os Tipos</option>
+            <option value="pf">Pessoa Física (PF)</option>
+            <option value="pj">Pessoa Jurídica (PJ)</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <span className="text-xs font-medium text-muted-foreground">Ordenar:</span>
+          <button
+            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-sm font-medium hover:bg-secondary/40 transition-colors"
+          >
+            {sortOrder === "asc" ? "Nome (A-Z)" : "Nome (Z-A)"}
+          </button>
+        </div>
+      </div>
+
       {isLoading ? (
         <div className="flex h-40 items-center justify-center">
           <p className="text-muted-foreground animate-pulse">Carregando...</p>
@@ -118,84 +302,73 @@ function CustomersPage() {
           Nenhum cliente cadastrado.
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {customers?.map((c) => (
-            <div
-              key={c.id}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
-              onClick={() => setDetailId(c.id)}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/80 text-lg font-display text-muted-foreground border border-border/50">
-                    {c.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="truncate font-medium leading-tight">{c.name}</h3>
-                    <p className="text-xs font-mono text-muted-foreground mt-0.5">{c.code}</p>
-                  </div>
-                </div>
-                <div className="absolute right-3 top-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditing(c);
-                    }}
-                    className="rounded-full bg-card p-2 text-muted-foreground hover:bg-secondary shadow-sm border border-border/50 transition-colors"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm("Excluir cliente?")) del.mutate(c.id);
-                    }}
-                    className="rounded-full bg-card p-2 text-destructive hover:bg-destructive/10 shadow-sm border border-border/50 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+        /* Grid das Colunas com Altura Fixa em Mobile e Altura Total com Scroll em Desktop */
+        <div className="flex flex-col md:flex-row gap-6 md:h-[calc(100vh-230px)] overflow-hidden min-h-0">
+          {/* Coluna Varejo */}
+          <div className="flex-1 flex flex-col h-[420px] md:h-full min-h-0 bg-secondary/5 dark:bg-secondary/2 rounded-2xl border border-border">
+            <div className="p-4 border-b border-border bg-muted/20 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                <h3 className="font-display font-semibold text-base text-foreground">Varejo</h3>
               </div>
-
-              <div className="mt-4 space-y-1.5 text-xs text-muted-foreground">
-                {c.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-3 w-3 opacity-70" /> {c.phone}
-                  </div>
-                )}
-                {c.email && (
-                  <div className="flex items-center gap-2 truncate">
-                    <Mail className="h-3 w-3 opacity-70" /> {c.email}
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-5 flex items-center justify-between border-t border-border/50 pt-4">
-                <div className="flex gap-1.5">
-                  <span className="inline-flex items-center rounded-md bg-secondary/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                    {c.type === "pf" ? (
-                      <User className="mr-1 h-3 w-3" />
-                    ) : (
-                      <Building2 className="mr-1 h-3 w-3" />
-                    )}{" "}
-                    {c.type}
-                  </span>
-                  <span className="inline-flex items-center rounded-md bg-secondary/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                    {c.category}
-                  </span>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggle.mutate(c);
-                  }}
-                  className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-colors ${c.active ? "bg-primary/10 text-primary hover:bg-primary/20" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
-                >
-                  {c.active ? "Ativo" : "Inativo"}
-                </button>
-              </div>
+              <span className="text-xs font-mono font-medium bg-secondary px-2.5 py-0.5 rounded-full text-muted-foreground">
+                {varejoCustomers.length}
+              </span>
             </div>
-          ))}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+              {varejoCustomers.length === 0 ? (
+                <div className="text-center py-12 text-xs text-muted-foreground italic">
+                  Nenhum cliente nesta categoria
+                </div>
+              ) : (
+                varejoCustomers.map((c) => <CustomerCard key={c.id} c={c} />)
+              )}
+            </div>
+          </div>
+
+          {/* Coluna Atacado */}
+          <div className="flex-1 flex flex-col h-[420px] md:h-full min-h-0 bg-secondary/5 dark:bg-secondary/2 rounded-2xl border border-border">
+            <div className="p-4 border-b border-border bg-muted/20 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                <h3 className="font-display font-semibold text-base text-foreground">Atacado</h3>
+              </div>
+              <span className="text-xs font-mono font-medium bg-secondary px-2.5 py-0.5 rounded-full text-muted-foreground">
+                {atacadoCustomers.length}
+              </span>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+              {atacadoCustomers.length === 0 ? (
+                <div className="text-center py-12 text-xs text-muted-foreground italic">
+                  Nenhum cliente nesta categoria
+                </div>
+              ) : (
+                atacadoCustomers.map((c) => <CustomerCard key={c.id} c={c} />)
+              )}
+            </div>
+          </div>
+
+          {/* Coluna Fardamento */}
+          <div className="flex-1 flex flex-col h-[420px] md:h-full min-h-0 bg-secondary/5 dark:bg-secondary/2 rounded-2xl border border-border">
+            <div className="p-4 border-b border-border bg-muted/20 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+                <h3 className="font-display font-semibold text-base text-foreground">Fardamento</h3>
+              </div>
+              <span className="text-xs font-mono font-medium bg-secondary px-2.5 py-0.5 rounded-full text-muted-foreground">
+                {fardamentoCustomers.length}
+              </span>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+              {fardamentoCustomers.length === 0 ? (
+                <div className="text-center py-12 text-xs text-muted-foreground italic">
+                  Nenhum cliente nesta categoria
+                </div>
+              ) : (
+                fardamentoCustomers.map((c) => <CustomerCard key={c.id} c={c} />)
+              )}
+            </div>
+          </div>
         </div>
       )}
 
