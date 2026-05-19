@@ -129,7 +129,7 @@ function LoginPage() {
                 setLoading(false);
               }
             }}
-            className="w-full rounded-full border border-foreground/30 bg-foreground/5 px-5 py-3 text-sm font-medium hover:bg-foreground/10 disabled:opacity-60"
+            className="w-full rounded-full border border-foreground/30 bg-foreground/5 px-5 py-3 text-sm font-medium hover:bg-foreground/5 disabled:opacity-60"
           >
             👑 Entrar como demo (administrador)
           </button>
