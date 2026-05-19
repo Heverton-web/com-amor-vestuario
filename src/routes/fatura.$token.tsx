@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { brl, dateBR } from "@/features/core/utils/format";
-import { Heart, Copy, CheckCircle2, Clock, ExternalLink } from "lucide-react";
+import { Copy, CheckCircle2, Clock, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { useBranding } from "@/features/core/services/branding";
+import logo from "@/assets/logo-com-amor.png";
 
 export const Route = createFileRoute("/fatura/$token")({
   head: () => ({ meta: [{ title: "Fatura · Com Amor Vestuário" }] }),
@@ -13,6 +15,7 @@ export const Route = createFileRoute("/fatura/$token")({
 function PublicInvoicePage() {
   const { token } = Route.useParams();
   const qc = useQueryClient();
+  const { branding } = useBranding();
 
   const { data: invoice, isLoading } = useQuery({
     queryKey: ["public-invoice", token],
@@ -92,8 +95,11 @@ function PublicInvoicePage() {
     <div className="min-h-screen bg-background pb-12">
       <header className="border-b border-border">
         <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-4 sm:h-16 sm:px-6">
-          <Heart className="h-4 w-4 fill-primary stroke-primary" />
-          <span className="font-display text-lg font-medium">Com Amor</span>
+          <img
+            src={branding.logo_url || logo}
+            alt={branding.brand_name}
+            className="h-8 w-auto object-contain"
+          />
           <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
             fatura
           </span>

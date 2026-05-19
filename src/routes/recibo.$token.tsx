@@ -5,6 +5,7 @@ import { brl, dateBR } from "@/features/core/utils/format";
 import { Heart, FileDown, CheckCircle2, XCircle } from "lucide-react";
 import { downloadReceiptPDF } from "@/features/core/services/pdf-receipt";
 import { useBranding } from "@/features/core/services/branding";
+import logo from "@/assets/logo-com-amor.png";
 
 export const Route = createFileRoute("/recibo/$token")({
   head: () => ({ meta: [{ title: "Recibo · Com Amor Vestuário" }] }),
@@ -91,8 +92,11 @@ function PublicReceiptPage() {
     <div className="min-h-screen bg-secondary/30 px-4 py-8">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-center justify-center gap-2">
-          <Heart className="h-4 w-4 fill-primary stroke-primary" />
-          <span className="font-display text-xl">{branding.brand_name}</span>
+          <img
+            src={branding.logo_url || logo}
+            alt={branding.brand_name}
+            className="h-10 w-auto object-contain"
+          />
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">

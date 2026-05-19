@@ -5,9 +5,10 @@ import { supabase } from "@/features/core/integrations/supabase/client";
 import { useCart } from "@/features/vendas/services/cart";
 import { brl } from "@/features/core/utils/format";
 import { priceFor, priceTier, WHOLESALE_THRESHOLD } from "@/features/vendas/services/pricing";
+import { useBranding } from "@/features/core/services/branding";
+import logo from "@/assets/logo-com-amor.png";
 import {
   ShoppingBag,
-  Heart,
   Filter,
   X,
   Plus,
@@ -42,6 +43,7 @@ function ShopPage() {
   const cart = useCart();
   const totalQty = cart.totalQty();
   const tier = priceTier(totalQty);
+  const { branding } = useBranding();
 
   const [selected, setSelected] = useState<any>(null);
   const [filterPrice, setFilterPrice] = useState<[number, number]>([0, 1000]);
@@ -222,9 +224,12 @@ function ShopPage() {
       {/* HEADER */}
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-4 sm:h-16 sm:px-6">
-          <Link to="/" className="flex items-baseline gap-1.5 sm:gap-2">
-            <Heart className="h-4 w-4 fill-primary stroke-primary" />
-            <span className="font-display text-lg font-medium sm:text-xl">Com Amor</span>
+          <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
+            <img
+              src={branding.logo_url || logo}
+              alt={branding.brand_name}
+              className="h-8 w-auto object-contain"
+            />
             <span className="hidden text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:inline">
               loja
             </span>

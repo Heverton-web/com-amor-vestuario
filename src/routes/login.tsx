@@ -2,10 +2,11 @@ import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-ro
 import { useState } from "react";
 import { useAuth } from "@/features/core/integrations/auth";
 import { toast } from "sonner";
-import { Heart } from "lucide-react";
 import { ensureDemoAdmin } from "@/features/acessos/services/demo-admin.functions";
 import { ensureSuperAdmin } from "@/features/acessos/services/admin-team.functions";
 import { useEffect } from "react";
+import { useBranding } from "@/features/core/services/branding";
+import logo from "@/assets/logo-com-amor.png";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -19,6 +20,7 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const { branding } = useBranding();
 
   // Idempotently provision the superadmin account on first reach to /login.
   useEffect(() => {
@@ -46,9 +48,12 @@ function LoginPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
-        <Link to="/" className="mb-10 flex items-baseline gap-2">
-          <Heart className="h-5 w-5 fill-primary stroke-primary" />
-          <span className="font-display text-2xl font-medium">Com Amor</span>
+        <Link to="/" className="mb-10 flex items-center gap-2">
+          <img
+            src={branding.logo_url || logo}
+            alt={branding.brand_name}
+            className="h-10 w-auto object-contain"
+          />
           <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground">admin</span>
         </Link>
 

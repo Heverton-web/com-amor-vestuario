@@ -27,6 +27,7 @@ import {
   markVoucherUsed,
   type VoucherEval,
 } from "@/features/fidelidade/services/rewards";
+import { Dialog, DialogContent } from "@/features/core/components/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/pedidos")({
   component: OrdersPage,
@@ -230,23 +231,14 @@ function OrderDetailDialog({ order, onClose }: { order: any; onClose: () => void
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/60 p-0 backdrop-blur-sm md:items-center md:p-6"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-border bg-background md:rounded-3xl"
-      >
-        <div className="flex shrink-0 items-start justify-between border-b border-border px-5 py-4 sm:px-7">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden bg-background">
+        <div className="flex shrink-0 items-start justify-between border-b border-border px-5 py-4 sm:px-7 pr-12">
           <div>
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Pedido</p>
             <h3 className="font-display text-xl sm:text-2xl">{order.code}</h3>
             <p className="mt-1 text-xs text-muted-foreground">{dateTimeBR(order.created_at)}</p>
           </div>
-          <button onClick={onClose} aria-label="Fechar" className="rounded-full p-2 hover:bg-muted">
-            <X className="h-5 w-5" />
-          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-7">
@@ -316,18 +308,18 @@ function OrderDetailDialog({ order, onClose }: { order: any; onClose: () => void
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-5 py-3 sm:px-7">
-          <button onClick={onClose} className="rounded-full border border-border px-4 py-2 text-sm">
+          <button onClick={onClose} className="rounded-full border border-border px-4 py-2 text-sm hover:bg-muted transition-colors">
             Fechar
           </button>
           <button
             onClick={downloadPDF}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             <FileDown className="h-4 w-4" /> Baixar PDF
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -463,23 +455,10 @@ function NewOrderDialog({ onClose, onSaved }: { onClose: () => void; onSaved: ()
 
   return (
     <>
-      <div
-        className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 p-0 backdrop-blur-sm md:items-center md:p-4"
-        onClick={onClose}
-      >
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl border border-border bg-background shadow-2xl md:max-h-[90vh] md:rounded-3xl"
-        >
-          <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4 sm:px-7">
+      <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="max-w-3xl p-0 gap-0 overflow-hidden bg-background">
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4 sm:px-7 pr-12">
             <h3 className="font-display text-xl sm:text-2xl">Novo pedido</h3>
-            <button
-              onClick={onClose}
-              aria-label="Fechar"
-              className="rounded-full p-2 hover:bg-muted"
-            >
-              <X className="h-5 w-5" />
-            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-7">
@@ -723,20 +702,20 @@ function NewOrderDialog({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-5 py-3 sm:px-7">
             <button
               onClick={onClose}
-              className="rounded-full border border-border px-4 py-2 text-sm"
+              className="rounded-full border border-border px-4 py-2 text-sm hover:bg-muted transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={save}
               disabled={saving || !items.length}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-60 hover:bg-primary/90 transition-colors"
             >
               <Check className="h-4 w-4" /> {saving ? "Criando..." : "Criar pedido"}
             </button>
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
       {newCustomer && (
         <CustomerForm
           initial={{}}
