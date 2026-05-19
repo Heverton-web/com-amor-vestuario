@@ -2,21 +2,26 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>09 · Valores de Mercado</title>
+<title>09 · Viabilidade Financeira</title>
 <link rel="stylesheet" href="../shared/tokens.css">
 <style>
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-top: 20px;
+  }
   .table-container {
     width: 100%;
-    margin-top: 20px;
     border-collapse: collapse;
   }
   .table-container th {
     border-bottom: 2px solid var(--ink-primary);
-    padding: 16px 24px;
-    font-size: 14px;
+    padding: 12px 16px;
+    font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.05em;
     color: var(--ink-primary);
     text-align: left;
   }
@@ -25,29 +30,63 @@
   }
   .table-container td {
     border-bottom: 1px solid var(--border-light);
-    padding: 20px 24px;
-    font-size: 18px;
+    padding: 14px 16px;
+    font-size: 16px;
     color: var(--ink-muted);
   }
-  .table-container tr:hover td {
-    background-color: rgba(28, 27, 26, 0.01);
-  }
   .table-container tr.highlight-row td {
-    background-color: rgba(179, 38, 62, 0.03);
-    border-top: 1px solid rgba(179, 38, 62, 0.15);
-    border-bottom: 2px solid var(--brand-red);
-    font-weight: 500;
+    background-color: rgba(28, 27, 26, 0.03);
+    font-weight: 600;
     color: var(--ink-primary);
   }
-  .total-label {
-    font-size: 20px;
-    color: var(--brand-red);
-    font-weight: 700;
+  .proposta-card {
+    background: rgba(179, 38, 62, 0.02);
+    border: 1px solid rgba(179, 38, 62, 0.15);
+    border-top: 4px solid var(--brand-red);
+    padding: 40px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
-  .total-value {
-    font-size: 24px;
+  .proposta-card h3 {
+    font-family: var(--font-serif);
+    font-size: 36px;
     color: var(--brand-red);
-    font-weight: 700;
+    margin-bottom: 24px;
+    font-weight: 400;
+  }
+  .pricing-item {
+    margin-bottom: 24px;
+  }
+  .pricing-item .price-label {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    margin-bottom: 4px;
+  }
+  .pricing-item .price-value {
+    font-family: var(--font-serif);
+    font-size: 54px;
+    color: var(--ink-primary);
+    font-weight: 500;
+    line-height: 1;
+  }
+  .pricing-item .price-value em {
+    font-style: normal;
+    font-size: 20px;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-weight: 400;
+  }
+  .proposta-footer-note {
+    font-size: 14px;
+    color: var(--brand-red);
+    font-weight: 500;
+    margin-top: 12px;
+    border-top: 1px solid rgba(179, 38, 62, 0.1);
+    padding-top: 16px;
   }
 </style>
 </head>
@@ -58,64 +97,87 @@
     <img src="../shared/logo-com-amor.png" alt="Com Amor Logo">
     <span class="brand-text">COM AMOR</span>
   </div>
-  <div class="issue-tag">ANÁLISE DE MERCADO</div>
+  <div class="issue-tag">PROPOSTA COMERCIAL</div>
 </div>
 
-<div class="slide-content">
+<div class="slide-content text-content">
   <div class="kicker">Análise Financeira & Economia</div>
-  <h1>O Valor do <em>Ecossistema Integrado</em></h1>
-  <p class="subtitle">Comparação do custo de ferramentas fragmentadas versus a nossa solução unificada.</p>
+  <h1>Custo Oculto do <em>Frankenstein</em> vs Solução Unificada</h1>
+  <p class="subtitle">O custo acumulado de múltiplas plataformas isoladas contra o valor integrado do Ecossistema Com Amor.</p>
   
-  <table class="table-container">
-    <thead>
-      <tr>
-        <th>Módulo do Ecossistema</th>
-        <th>Ferramenta Equivalente no Mercado</th>
-        <th class="num-col">Estimativa de Custo Mensal</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>Vendas & Checkout de Alta Conversão</strong></td>
-        <td>Shopify (Plano Base) + Aplicativos de Checkout Adicionais</td>
-        <td class="num-col">R$ 450,00</td>
-      </tr>
-      <tr>
-        <td><strong>Clube de Fidelidade & Cashback</strong></td>
-        <td>Sweet Bonus / Fidelizar Mais / Dito CRM</td>
-        <td class="num-col">R$ 290,00</td>
-      </tr>
-      <tr>
-        <td><strong>CRM & Rastreamento Comercial (UTMs)</strong></td>
-        <td>ActiveCampaign / RD Station (Plano Intermediário)</td>
-        <td class="num-col">R$ 350,00</td>
-      </tr>
-      <tr>
-        <td><strong>Gestão Financeira, Recibos & Orçamentos</strong></td>
-        <td>Bling ERP / Tiny ERP (Plano Comercial)</td>
-        <td class="num-col">R$ 150,00</td>
-      </tr>
-      <tr>
-        <td><strong>Integração de Webhooks & Automação</strong></td>
-        <td>Zapier / Make (Plano Pro com volume de tarefas)</td>
-        <td class="num-col">R$ 200,00</td>
-      </tr>
-      <tr class="highlight-row">
-        <td><span class="total-label">Custo Mensal Estimado Total</span></td>
-        <td>Soluções fragmentadas + custos técnicos de manutenção de integrações</td>
-        <td class="num-col"><span class="total-value">R$ 1.440,00 /mês</span></td>
-      </tr>
-    </tbody>
-  </table>
-  
-  <p style="font-size: 16px; color: var(--ink-muted); margin-top: 24px; font-style: italic;">
-    * Além da economia de <strong>R$ 1.440,00 mensais</strong>, o Ecossistema Com Amor elimina o risco de quebra de integrações de API e centraliza a operação do lojista em um único local.
-  </p>
+  <div class="comparison-grid">
+    <div>
+      <h3 style="font-family: var(--font-serif); font-size: 28px; margin-bottom: 16px; color: var(--ink-primary); font-weight: 400;">O Custo Mensal das Ferramentas Isoladas</h3>
+      <table class="table-container">
+        <thead>
+          <tr>
+            <th>Módulo Requerido</th>
+            <th>Solução Comum</th>
+            <th class="num-col">Assinatura</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Vendas & Checkout</td>
+            <td>Shopify + Apps de Conversão</td>
+            <td class="num-col">R$ 450,00</td>
+          </tr>
+          <tr>
+            <td>Clube de Recompensas</td>
+            <td>Sweet Bonus / Fidelizar Mais</td>
+            <td class="num-col">R$ 290,00</td>
+          </tr>
+          <tr>
+            <td>CRM & UTM Tracking</td>
+            <td>ActiveCampaign / RD Station</td>
+            <td class="num-col">R$ 350,00</td>
+          </tr>
+          <tr>
+            <td>Financeiro & Faturamento</td>
+            <td>Bling / Tiny ERP</td>
+            <td class="num-col">R$ 150,00</td>
+          </tr>
+          <tr>
+            <td>Automações & Integrações</td>
+            <td>Zapier / Make (Plano Pro)</td>
+            <td class="num-col">R$ 200,00</td>
+          </tr>
+          <tr class="highlight-row">
+            <td><strong>Total Ferramentas</strong></td>
+            <td>Apenas assinaturas de software</td>
+            <td class="num-col"><strong>R$ 1.440,00 /mês</strong></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size: 13px; color: var(--ink-muted); margin-top: 12px; font-style: italic;">
+        * Nota: Este valor não inclui custos de agências ou programadores terceirizados contratados recorrentemente para corrigir erros de integração e sincronização de dados.
+      </p>
+    </div>
+    
+    <div class="proposta-card">
+      <h3>Investimento no Ecossistema</h3>
+      
+      <div class="pricing-item">
+        <div class="price-label">Setup de Implantação (Criação e Setup)</div>
+        <div class="price-value">R$ 15.000,00</div>
+      </div>
+      
+      <div class="pricing-item">
+        <div class="price-label">Manutenção, Licença e Suporte Unificado</div>
+        <div class="price-value">R$ 1.200,00<em> / mês</em></div>
+      </div>
+      
+      <div class="proposta-footer-note">
+        ✓ Economia direta imediata em assinaturas de softwares redundantes.<br>
+        ✓ Suporte técnico centralizado: um único ponto de contato para todo o ecossistema.
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="slide-footer">
-  <span>Ecossistema Com Amor · Tecnologia e Inteligência</span>
-  <span>09 / 10</span>
+  <span>Ecossistema Com Amor · Proposta Comercial</span>
+  <span>09 / 11</span>
 </div>
 
 </body>
