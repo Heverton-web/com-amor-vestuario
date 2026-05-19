@@ -17,6 +17,7 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
+  Sparkles,
 } from "lucide-react";
 import {
   Sheet,
@@ -229,18 +230,29 @@ function ShopPage() {
             </span>
           </Link>
           <div className="flex items-center gap-2">
-            <Link to="/" className="hidden text-sm text-foreground/70 hover:text-primary sm:inline">
-              ← Site
+            <Link
+              to="/"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground transition-all hover:bg-secondary cursor-pointer sm:px-4 sm:text-sm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Site</span>
+            </Link>
+            <Link
+              to="/recompensas"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground transition-all hover:bg-secondary cursor-pointer sm:px-4 sm:text-sm"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Clube</span>
             </Link>
             <button
               onClick={() => cart.setOpen(true)}
               aria-label="Abrir carrinho"
-              className="relative inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground sm:px-5"
+              className="relative inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-3 py-2 text-xs font-medium text-primary-foreground sm:px-5 sm:text-sm"
             >
               <ShoppingBag className="h-4 w-4" />
               <span className="hidden sm:inline">Carrinho</span>
               {totalQty > 0 && (
-                <span className="rounded-full bg-primary-foreground px-1.5 text-xs font-bold text-primary">
+                <span className="rounded-full bg-primary-foreground px-1.5 text-[10px] font-bold text-primary sm:text-xs">
                   {totalQty}
                 </span>
               )}

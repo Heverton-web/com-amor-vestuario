@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Sparkles, ShoppingBag, Phone } from "lucide-react";
 import { useBranding } from "@/features/core/services/branding";
 
 const links = [
@@ -44,6 +44,42 @@ export function Header({ onContact }: { onContact: () => void }) {
           ))}
         </nav>
 
+        {/* Atalhos Mobile (Visíveis apenas em mobile) */}
+        <div className="flex items-center gap-1.5 md:hidden">
+          <a
+            href="/recompensas"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-primary"
+            style={{ color: branding.primary_color }}
+            aria-label="Clube"
+          >
+            <Sparkles className="h-5 w-5" />
+          </a>
+          <a
+            href={branding.cta_shop_url}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-primary"
+            style={{ color: branding.primary_color }}
+            aria-label="Loja"
+          >
+            <ShoppingBag className="h-5 w-5" />
+          </a>
+          <button
+            onClick={onContact}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-primary"
+            style={{ color: branding.primary_color }}
+            aria-label="Contato"
+          >
+            <Phone className="h-5 w-5" />
+          </button>
+          
+          <button
+            onClick={() => setOpen(!open)}
+            className="flex h-11 w-11 items-center justify-center ml-1"
+            aria-label="Menu"
+          >
+            {open ? <X /> : <Menu />}
+          </button>
+        </div>
+
         {/* Os 3 Botões Premium alinhados no canto direito (Desktop) */}
         <div className="hidden items-center gap-3 md:flex">
           {/* Botão 1: Fale conosco (Outline) */}
@@ -73,14 +109,6 @@ export function Header({ onContact }: { onContact: () => void }) {
             <span>Clube</span>
           </a>
         </div>
-
-        <button
-          onClick={() => setOpen(!open)}
-          className="inline-flex h-11 w-11 items-center justify-center md:hidden"
-          aria-label="Menu"
-        >
-          {open ? <X /> : <Menu />}
-        </button>
       </div>
 
       {/* Menu Mobile */}

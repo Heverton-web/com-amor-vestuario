@@ -11,7 +11,7 @@ export function Hero({ onContact }: { onContact: () => void }) {
       className="relative min-h-[600px] sm:min-h-[700px] flex items-center overflow-hidden bg-background text-foreground border-b border-border/40"
     >
       {/* Container da Imagem (Lado Direito Inteiro no Desktop, Fullscreen no Mobile) */}
-      <div className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 z-0">
+      <div className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 z-0 hidden md:block">
         <img
           src={img}
           alt="Com Amor Atelier"

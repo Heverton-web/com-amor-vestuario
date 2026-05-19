@@ -65,7 +65,7 @@ export function ContactDialog({ open, onClose }: { open: boolean; onClose: () =>
           <X className="h-5 w-5" />
         </button>
 
-        <div className="shrink-0 bg-accent/40 px-5 py-5 sm:px-8 sm:py-7">
+        <div className="shrink-0 bg-accent/15 px-5 py-5 sm:px-8 sm:py-7">
           <span className="text-[10px] uppercase tracking-[0.25em] text-primary sm:text-xs">
             fale conosco
           </span>
