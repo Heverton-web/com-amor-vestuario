@@ -68,14 +68,11 @@ body::before {
 }
 
 .masthead .brand-logo-area img {
-  height: 36px;
+  height: 64px;
 }
 
 .masthead .brand-text {
-  font-size: 22px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  color: var(--ink-primary);
+  display: none;
 }
 
 .masthead .issue-tag {

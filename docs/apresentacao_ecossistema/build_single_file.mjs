@@ -36,6 +36,8 @@ const slidesManifest = [
   { file: '08-automacao.html', label: 'Automação & APIs (n8n)' },
   { file: '09-valores.html', label: 'Custo Oculto vs Unificação' },
   { file: '09b-comparativo.html', label: 'Análise de Alternativas' },
+  { file: '09c-personalizacao.html', label: 'Personalização do Ecossistema' },
+  { file: '09d-combos.html', label: 'Combos Sugeridos' },
   { file: '10-fechamento.html', label: 'Conclusão' }
 ];
 
@@ -57,6 +59,11 @@ slidesManifest.forEach((slide, index) => {
 
   // Substituir a imagem local do logo pela versão embutida em Base64
   htmlContent = htmlContent.replace(/src="\.\.\/shared\/logo-com-amor\.png"/g, `src="${logoDataUri}"`);
+
+  // Substituir a numeração estática de rodapé pela numeração dinâmica de acordo com a posição real no manifesto
+  const pageNumStr = String(index + 1).padStart(2, '0');
+  const totalNumStr = String(slidesManifest.length).padStart(2, '0');
+  htmlContent = htmlContent.replace(/<span>\d{2}[a-z]?\s*\/\s*\d{2}<\/span>/g, `<span>${pageNumStr} / ${totalNumStr}</span>`);
 
   // Converter o HTML completo do slide para Base64
   const slideBase64 = Buffer.from(htmlContent, 'utf-8').toString('base64');

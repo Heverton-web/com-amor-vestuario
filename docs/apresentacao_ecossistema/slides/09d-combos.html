@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>09d · Combos Recomendados</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  .combos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin-top: 25px;
+  }
+  .combo-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 480px;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .combo-card:hover {
+    border-color: var(--brand-red);
+    background: rgba(179, 38, 62, 0.01);
+  }
+  .combo-card.featured {
+    background: rgba(179, 38, 62, 0.02);
+    border: 2px solid var(--brand-red);
+  }
+  .combo-badge {
+    position: absolute;
+    top: -14px;
+    left: 36px;
+    background: var(--brand-red);
+    color: #F7F5F0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 4px 12px;
+    border-radius: 2px;
+  }
+  .combo-name {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    color: var(--ink-primary);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .combo-scope {
+    font-size: 13px;
+    color: var(--brand-red);
+    font-weight: 500;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .combo-desc {
+    font-size: 15px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+    margin-bottom: 30px;
+  }
+  .combo-pricing {
+    border-top: 1px solid var(--border-light);
+    padding-top: 20px;
+    margin-top: auto;
+  }
+  .combo-pricing-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .combo-pricing-row:last-child {
+    margin-bottom: 0;
+  }
+  .combo-pricing-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+  }
+  .combo-pricing-val {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    color: var(--ink-primary);
+    font-weight: 500;
+  }
+  .combo-pricing-val em {
+    font-style: normal;
+    font-size: 14px;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="brand-logo-area">
+    <img src="../shared/logo-com-amor.png" alt="Com Amor Logo">
+    <span class="brand-text">COM AMOR</span>
+  </div>
+  <div class="issue-tag">MODELOS DE ADOÇÃO</div>
+</div>
+
+<div class="slide-content text-content">
+  <div class="kicker">Eficiência e Direcionamento</div>
+  <h1>Combos de Módulos Sugeridos</h1>
+  <p class="subtitle" style="margin-bottom: 15px;">Modelos de contratação agrupados para atender às fases de maturidade do seu negócio com descontos integrados.</p>
+  
+  <div class="combos-grid">
+    <!-- Combo 1 -->
+    <div class="combo-card">
+      <div>
+        <div class="combo-name">Foco em Venda &amp; Faturamento</div>
+        <div class="combo-scope">Vendas + Financeiro</div>
+        <p class="combo-desc">A estrutura essencial para colocar a loja no ar, aceitar pagamentos digitais e automatizar a emissão de notas fiscais de maneira simples e imediata.</p>
+      </div>
+      <div class="combo-pricing">
+        <div class="combo-pricing-row">
+          <span class="combo-pricing-label">Setup Unificado</span>
+          <span class="combo-pricing-val">R$ 8.000</span>
+        </div>
+        <div class="combo-pricing-row">
+          <span class="combo-pricing-label">Mensalidade</span>
+          <span class="combo-pricing-val">R$ 590 <em>/mês</em></span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Combo 2 -->
+    <div class="combo-card">
+      <div>
+        <div class="combo-name">Foco em Conversão &amp; Tração</div>
+        <div class="combo-scope">Vendas + CRM + Automação</div>
+        <p class="combo-desc">Ideal para otimizar campanhas de tráfego, reengajar clientes com e-mail marketing, rastrear conversões detalhadamente e sincronizar mídias sociais.</p>
+      </div>
+      <div class="combo-pricing">
+        <div class="combo-pricing-row">
+          <span class="combo-pricing-label">Setup Unificado</span>
+          <span class="combo-pricing-val">R$ 10.000</span>
+        </div>
+        <div class="combo-pricing-row">
+          <span class="combo-pricing-label">Mensalidade</span>
+          <span class="combo-pricing-val">R$ 790 <em>/mês</em></span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Combo 3 -->
+    <div class="combo-card featured">
+      <div class="combo-badge">Recomendado</div>
+      <div>
+        <div class="combo-name">Ecossistema Completo</div>
+        <div class="combo-scope">Todos os 5 Módulos</div>
+        <p class="combo-desc">Unificação digital definitiva. Sincronia perfeita entre vendas, clube de cashback, CRM inteligente, automações n8n e controle financeiro integrado.</p>
+      </div>
+      <div class="combo-pricing">
+        <div class="combo-pricing-row">
+          <span class="combo-pricing-label">Setup Completo</span>
+          <span class="combo-pricing-val" style="color: var(--brand-red);">R$ 15.000</span>
+        </div>
+        <div class="combo-pricing-row">
+          <span class="combo-pricing-label">Suporte &amp; Licença</span>
+          <span class="combo-pricing-val" style="color: var(--brand-red);">R$ 1.200 <em>/mês</em></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide-footer">
+  <span>Ecossistema Com Amor · Proposta Comercial</span>
+  <span>09d / 11</span>
+</div>
+
+</body>
+</html>

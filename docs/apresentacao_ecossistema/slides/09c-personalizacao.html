@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>09c · Módulos Avulsos</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-top: 15px;
+  }
+  .module-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 480px;
+    transition: all 0.3s ease;
+  }
+  .module-card:hover {
+    border-color: var(--brand-red);
+    background: rgba(179, 38, 62, 0.01);
+  }
+  .module-card.primary {
+    border-top: 4px solid var(--brand-red);
+  }
+  .module-name {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    color: var(--ink-primary);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .module-desc {
+    font-size: 14px;
+    color: var(--ink-muted);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .price-info {
+    border-top: 1px solid var(--border-light);
+    padding-top: 16px;
+    margin-top: auto;
+  }
+  .price-block {
+    margin-bottom: 12px;
+  }
+  .price-block:last-child {
+    margin-bottom: 0;
+  }
+  .price-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    margin-bottom: 2px;
+  }
+  .price-num {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    color: var(--ink-primary);
+    font-weight: 500;
+  }
+  .price-num em {
+    font-style: normal;
+    font-size: 13px;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+  }
+  .infrastructure-tag {
+    font-size: 12px;
+    color: var(--brand-red);
+    font-weight: 500;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="brand-logo-area">
+    <img src="../shared/logo-com-amor.png" alt="Com Amor Logo">
+    <span class="brand-text">COM AMOR</span>
+  </div>
+  <div class="issue-tag">OPÇÃO SOB MEDIDA</div>
+</div>
+
+<div class="slide-content text-content">
+  <div class="kicker">Flexibilidade de Escopo</div>
+  <h1>Personalize seu <em>Ecossistema</em></h1>
+  <p class="subtitle" style="margin-bottom: 20px;">Você pode contratar os módulos separadamente, expandindo seu sistema conforme a necessidade do negócio.</p>
+  
+  <div class="modules-grid">
+    <!-- Módulo 1 -->
+    <div class="module-card primary">
+      <div>
+        <div class="module-name">Vendas &amp; Checkout</div>
+        <p class="module-desc">Loja virtual personalizada de alta conversão, painel administrativo de pedidos e catálogo digital autônomo.</p>
+      </div>
+      <div class="price-info">
+        <div class="price-block">
+          <div class="price-title">Setup de Implantação</div>
+          <div class="price-num">R$ 6.000</div>
+        </div>
+        <div class="price-block">
+          <div class="price-title">Licença &amp; VPS Inclusa</div>
+          <div class="price-num">R$ 490 <em>/mês</em></div>
+        </div>
+        <div class="infrastructure-tag">Infra VPS Dedicada</div>
+      </div>
+    </div>
+    
+    <!-- Módulo 2 -->
+    <div class="module-card">
+      <div>
+        <div class="module-name">Clube &amp; Cashback</div>
+        <p class="module-desc">Programa de fidelidade integrado com regras de cashback personalizado para incentivar recompra de clientes.</p>
+      </div>
+      <div class="price-info">
+        <div class="price-block">
+          <div class="price-title">Setup de Implantação</div>
+          <div class="price-num">R$ 3.500</div>
+        </div>
+        <div class="price-block">
+          <div class="price-title">Licença &amp; VPS Inclusa</div>
+          <div class="price-num">R$ 290 <em>/mês</em></div>
+        </div>
+        <div class="infrastructure-tag">Infra VPS Dedicada</div>
+      </div>
+    </div>
+    
+    <!-- Módulo 3 -->
+    <div class="module-card">
+      <div>
+        <div class="module-name">CRM &amp; Marketing</div>
+        <p class="module-desc">Histórico completo de compras do cliente, rastreamento UTM avançado e réguas de relacionamento por e-mail.</p>
+      </div>
+      <div class="price-info">
+        <div class="price-block">
+          <div class="price-title">Setup de Implantação</div>
+          <div class="price-num">R$ 3.500</div>
+        </div>
+        <div class="price-block">
+          <div class="price-title">Licença &amp; VPS Inclusa</div>
+          <div class="price-num">R$ 290 <em>/mês</em></div>
+        </div>
+        <div class="infrastructure-tag">Infra VPS Dedicada</div>
+      </div>
+    </div>
+    
+    <!-- Módulo 4 -->
+    <div class="module-card">
+      <div>
+        <div class="module-name">Financeiro &amp; Fiscal</div>
+        <p class="module-desc">Emissão automática de notas fiscais, conciliação e geração rápida de orçamentos em PDF com um clique.</p>
+      </div>
+      <div class="price-info">
+        <div class="price-block">
+          <div class="price-title">Setup de Implantação</div>
+          <div class="price-num">R$ 3.000</div>
+        </div>
+        <div class="price-block">
+          <div class="price-title">Licença &amp; VPS Inclusa</div>
+          <div class="price-num">R$ 190 <em>/mês</em></div>
+        </div>
+        <div class="infrastructure-tag">Infra VPS Dedicada</div>
+      </div>
+    </div>
+    
+    <!-- Módulo 5 -->
+    <div class="module-card">
+      <div>
+        <div class="module-name">Automação &amp; APIs</div>
+        <p class="module-desc">Integração nativa sob medida via painel n8n para conectar dados, mídias sociais e sistemas parceiros.</p>
+      </div>
+      <div class="price-info">
+        <div class="price-block">
+          <div class="price-title">Setup de Implantação</div>
+          <div class="price-num">R$ 2.000</div>
+        </div>
+        <div class="price-block">
+          <div class="price-title">Licença &amp; VPS Inclusa</div>
+          <div class="price-num">R$ 150 <em>/mês</em></div>
+        </div>
+        <div class="infrastructure-tag">Infra VPS Dedicada</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide-footer">
+  <span>Ecossistema Com Amor · Proposta Comercial</span>
+  <span>09c / 11</span>
+</div>
+
+</body>
+</html>
