@@ -463,8 +463,8 @@ function BrandingPage() {
               </div>
             </div>
 
-            {/* Abas Horizontais Curtas e Simplificadas */}
-            <div className="flex flex-nowrap overflow-x-auto gap-2 border-b border-border pb-px scrollbar-none">
+            {/* Abas Horizontais Curtas e Simplificadas (Apenas Ícones) */}
+            <div className="flex flex-nowrap overflow-x-auto gap-1 sm:gap-2 border-b border-border pb-px scrollbar-none">
               {(Object.keys(tabSections) as Array<keyof typeof tabSections>).map((key) => {
                 const tab = tabSections[key];
                 const Icon = tab.icon;
@@ -472,15 +472,15 @@ function BrandingPage() {
                 return (
                   <button
                     key={key}
+                    title={tab.label}
                     onClick={() => setActiveTab(key)}
-                    className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${
+                    className={`flex flex-1 sm:flex-none justify-center items-center gap-2 border-b-2 px-4 sm:px-6 py-4 transition-all whitespace-nowrap ${
                       active
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                        ? "border-primary text-primary bg-primary/5"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border hover:bg-secondary/20"
                     }`}
                   >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {tab.label}
+                    <Icon className="h-5 w-5 shrink-0" />
                   </button>
                 );
               })}
