@@ -46,6 +46,12 @@ export type Branding = {
   redemption_days_default: number; // validade do resgate em dias
   rewards_label: string; // nome da página pública
   n8n_rewards_webhook: string; // webhook n8n para WhatsApp (mock se vazio)
+  rule_register_title: string;
+  rule_register_desc: string;
+  rule_points_title: string;
+  rule_points_desc: string;
+  rule_rewards_title: string;
+  rule_rewards_desc: string;
   custom_palettes?: {
     name: string;
     primary: string;
@@ -111,6 +117,12 @@ export const DEFAULT_BRANDING: Branding = {
   redemption_days_default: 30,
   rewards_label: "Clube Com Amor",
   n8n_rewards_webhook: "",
+  rule_register_title: "1. Cadastro Simples",
+  rule_register_desc: "Ao realizar sua primeira compra física ou online no atelier, seu cadastro no Clube Com Amor é criado automaticamente com seu WhatsApp.",
+  rule_points_title: "2. Acumule R$ 1 = 1 Ponto",
+  rule_points_desc: "Toda compra gera pontos imediatamente. Não importa a coleção, cada real gasto é revertido em pontos para você usar quando preferir.",
+  rule_rewards_title: "3. Resgate Prêmios Reais",
+  rule_rewards_desc: "Troque seus pontos acumulados por descontos em novos pedidos, frete grátis ou peças físicas exclusivas fabricadas no nosso atelier.",
   custom_palettes: [],
   gallery_items: [
     { src: "", caption: "Mariana · Blusa Linho", span: "md:row-span-2" },

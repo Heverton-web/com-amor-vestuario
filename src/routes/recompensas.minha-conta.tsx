@@ -10,6 +10,11 @@ import {
   Ticket,
   Calendar,
   ShoppingBag,
+  Gift,
+  Clock,
+  Sparkles,
+  ArrowUpRight,
+  ArrowDownLeft,
 } from "lucide-react";
 import { supabase } from "@/features/core/integrations/supabase/client";
 import { useAuth } from "@/features/core/integrations/auth";
@@ -29,6 +34,56 @@ export const Route = createFileRoute("/recompensas/minha-conta")({
 });
 
 type Tab = "resgates" | "extrato" | "vouchers";
+
+function getLedgerStyle(description: string, delta: number) {
+  const desc = (description || "").toLowerCase();
+  
+  if (desc.includes("boas-vindas") || desc.includes("cadastro") || desc.includes("inicial")) {
+    return {
+      Icon: Gift,
+      colorClass: "text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/30 dark:border-emerald-900/50",
+      badgeText: "Boas-vindas",
+    };
+  }
+  
+  if (desc.includes("resgate") || desc.includes("cupom") || desc.includes("vale")) {
+    return {
+      Icon: Ticket,
+      colorClass: "text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/30 dark:border-amber-900/50",
+      badgeText: "Resgate",
+    };
+  }
+  
+  if (desc.includes("compra") || desc.includes("pedido") || desc.includes("venda")) {
+    return {
+      Icon: ShoppingBag,
+      colorClass: "text-indigo-700 bg-indigo-50 border-indigo-200 dark:text-indigo-400 dark:bg-indigo-950/30 dark:border-indigo-900/50",
+      badgeText: "Compra",
+    };
+  }
+  
+  if (desc.includes("ajuste") || desc.includes("admin") || desc.includes("correc")) {
+    return {
+      Icon: Sparkles,
+      colorClass: "text-purple-700 bg-purple-50 border-purple-200 dark:text-purple-400 dark:bg-purple-950/30 dark:border-purple-900/50",
+      badgeText: "Ajuste",
+    };
+  }
+  
+  if (delta > 0) {
+    return {
+      Icon: ArrowUpRight,
+      colorClass: "text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/30 dark:border-emerald-900/50",
+      badgeText: "Crédito",
+    };
+  } else {
+    return {
+      Icon: ArrowDownLeft,
+      colorClass: "text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/30 dark:border-rose-900/50",
+      badgeText: "Débito",
+    };
+  }
+}
 
 function MyAccountPage() {
   const nav = useNavigate();
@@ -194,38 +249,56 @@ function MyAccountPage() {
           )}
 
           {tab === "extrato" && (
-            <ol className="relative space-y-3 border-l border-border pl-5">
-              {(ledger ?? []).map((l) => (
-                <li key={l.id} className="relative">
-                  <span
-                    className={`absolute -left-[27px] flex h-5 w-5 items-center justify-center rounded-full ${l.delta > 0 ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700"}`}
-                  >
-                    {l.delta > 0 ? (
-                      <TrendingUp className="h-3 w-3" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3" />
-                    )}
-                  </span>
-                  <div className="rounded-xl border border-border bg-card p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="text-sm font-medium">{l.description || l.reason}</div>
-                      <div
-                        className={`font-display text-lg ${l.delta > 0 ? "text-green-600" : "text-rose-600"}`}
-                      >
-                        {l.delta > 0 ? "+" : ""}
-                        {l.delta} pts
+            <div className="relative border-l border-border/80 ml-4 md:ml-6 pl-6 space-y-6">
+              {(ledger ?? []).map((l) => {
+                const { Icon, colorClass, badgeText } = getLedgerStyle(l.description || l.reason || "", l.delta);
+                return (
+                  <div key={l.id} className="relative group">
+                    {/* Círculo indicador na Timeline */}
+                    <span className={`absolute -left-[43px] top-1.5 flex h-8 w-8 items-center justify-center rounded-full border shadow-xs transition-all duration-300 group-hover:scale-110 ${colorClass}`}>
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    
+                    {/* Card da transação */}
+                    <div className="rounded-2xl border border-border bg-card p-4 transition-all duration-300 hover:shadow-md hover:border-primary/20 hover:bg-card/90">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="space-y-1">
+                          {/* Badge da categoria e data */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase border ${colorClass}`}>
+                              {badgeText}
+                            </span>
+                            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              <span>{dateTimeBR(l.created_at)}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Título/Descrição */}
+                          <h3 className="font-sans text-sm font-medium text-foreground mt-1">
+                            {l.description || l.reason}
+                          </h3>
+                        </div>
+                        
+                        {/* Pontuação */}
+                        <div className="text-right">
+                          <div className={`font-display text-xl font-bold tracking-tight ${l.delta > 0 ? "text-green-600" : "text-rose-600"}`}>
+                            {l.delta > 0 ? "+" : ""}
+                            {l.delta}
+                            <span className="text-xs font-normal text-muted-foreground ml-1">pts</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">{dateTimeBR(l.created_at)}</div>
                   </div>
-                </li>
-              ))}
+                );
+              })}
               {!ledger?.length && (
-                <li className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">
+                <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground -ml-6">
                   Sem movimentações ainda.
-                </li>
+                </div>
               )}
-            </ol>
+            </div>
           )}
 
           {tab === "vouchers" && (

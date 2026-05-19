@@ -26,6 +26,13 @@ import {
   Plus,
   X,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/features/core/components/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/branding")({
   component: BrandingPage,
@@ -204,6 +211,57 @@ const tabSections = {
       },
     ],
   },
+  fidelidade: {
+    label: "Fidelidade & Regras",
+    icon: Gift,
+    title: "Clube de Fidelidade",
+    description:
+      "Personalize as regras de acúmulo de pontos e os textos explicativos que aparecem no Clube de Recompensas.",
+    groups: [
+      {
+        title: "Configurações Gerais do Clube",
+        fields: [
+          { key: "rewards_label", label: "Nome do Clube" },
+          {
+            key: "points_per_real",
+            label: "Valor em R$ equivalente a 1 Ponto",
+            hint: "Ex: se for 10, cada R$ 10 gasto = 1 ponto acumulado.",
+          },
+          {
+            key: "redemption_days_default",
+            label: "Validade padrão do Voucher (dias)",
+            hint: "Dias até que o cupom de resgate expire.",
+          },
+          {
+            key: "n8n_rewards_webhook",
+            label: "Webhook de Recompensas (n8n)",
+            hint: "URL para envio de notificações e resgates.",
+          },
+        ] as Field[],
+      },
+      {
+        title: "Regra 1: Cadastro no Clube",
+        fields: [
+          { key: "rule_register_title", label: "Título da Regra 1" },
+          { key: "rule_register_desc", label: "Descrição da Regra 1", type: "textarea" },
+        ] as Field[],
+      },
+      {
+        title: "Regra 2: Acúmulo de Pontos",
+        fields: [
+          { key: "rule_points_title", label: "Título da Regra 2" },
+          { key: "rule_points_desc", label: "Descrição da Regra 2", type: "textarea" },
+        ] as Field[],
+      },
+      {
+        title: "Regra 3: Resgate de Prêmios",
+        fields: [
+          { key: "rule_rewards_title", label: "Título da Regra 3" },
+          { key: "rule_rewards_desc", label: "Descrição da Regra 3", type: "textarea" },
+        ] as Field[],
+      },
+    ],
+  },
 };
 
 // Paletas curadas divididas por sazonalidade
@@ -291,7 +349,7 @@ function BrandingPage() {
     setDraft(branding);
   }, [branding]);
 
-  const update = (k: keyof Branding, v: string | null) =>
+  const update = (k: keyof Branding, v: string | number | null) =>
     setDraft((d) => ({ ...d, [k]: v as never }));
 
   const handleSave = async () => {
@@ -669,14 +727,24 @@ function BrandingPage() {
                     {group.title}
                   </h3>
                   <div className="grid gap-5 md:grid-cols-2">
-                    {group.fields.map((f) => (
-                      <FieldEditor
-                        key={f.key as string}
-                        field={f}
-                        value={(draft?.[f.key] as string | null) ?? ""}
-                        onChange={(v) => update(f.key, v)}
-                      />
-                    ))}
+                    {group.fields.map((f) => {
+                      const isNum = f.key === "points_per_real" || f.key === "redemption_days_default";
+                      const val = isNum ? String(draft?.[f.key] ?? "") : ((draft?.[f.key] as string | null) ?? "");
+                      return (
+                        <FieldEditor
+                          key={f.key as string}
+                          field={f}
+                          value={val}
+                          onChange={(v) => {
+                            if (isNum) {
+                              update(f.key, v ? Number(v) : 0);
+                            } else {
+                              update(f.key, v);
+                            }
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -1262,7 +1330,7 @@ function LivePreviewContent({
             className="rounded-2xl p-4 text-center text-white space-y-2"
             style={{ backgroundColor: draft?.primary_color }}
           >
-            <h2 className="font-serif text-sm font-medium">Clube Com Amor</h2>
+            <h2 className="font-serif text-sm font-medium">{draft?.rewards_label || "Clube Com Amor"}</h2>
             <p className="text-[8px] opacity-90">
               Acumule pontos em todas as compras e troque por mimos e descontos no Atelier.
             </p>
@@ -1304,6 +1372,23 @@ function LivePreviewContent({
                 </button>
               </div>
             ))}
+          </div>
+
+          {/* Sessão Como Funciona simulada no Mockup */}
+          <div className="border-t border-foreground/5 pt-3 space-y-2 text-left">
+            <h3 className="font-serif text-[10px] font-medium">Como Funciona</h3>
+            <div className="space-y-2">
+              {[
+                { title: draft.rule_register_title || "1. Cadastro Simples", desc: draft.rule_register_desc || "" },
+                { title: draft.rule_points_title || "2. Acumule R$ 1 = 1 Ponto", desc: draft.rule_points_desc || "" },
+                { title: draft.rule_rewards_title || "3. Resgate Prêmios Reais", desc: draft.rule_rewards_desc || "" }
+              ].map((s, idx) => (
+                <div key={idx} className="rounded-xl border border-foreground/5 p-2 bg-foreground/[0.01]">
+                  <h4 className="font-bold text-[8px]">{s.title}</h4>
+                  <p className="text-[7px] text-muted-foreground mt-0.5 leading-normal">{s.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -1396,22 +1481,13 @@ function AddImageModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-3xl border border-border bg-background p-6 shadow-2xl space-y-4"
-      >
-        <div className="flex items-center justify-between border-b border-border pb-3">
-          <h3 className="font-display text-xl">Cadastrar Nova Imagem</h3>
-          <button onClick={onClose} className="rounded-full p-2 hover:bg-muted">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cadastrar Nova Imagem</DialogTitle>
+        </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="p-6 space-y-4">
           {/* Dropzone de upload */}
           <div className="flex flex-col">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
@@ -1477,7 +1553,7 @@ function AddImageModal({
           </div>
         </div>
 
-        <div className="flex gap-2.5 border-t border-border pt-4 mt-2">
+        <DialogFooter>
           <button
             type="button"
             onClick={onClose}
@@ -1492,9 +1568,9 @@ function AddImageModal({
           >
             Salvar Imagem
           </button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1523,22 +1599,13 @@ function AddTestimonialModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-3xl border border-border bg-background p-6 shadow-2xl space-y-4"
-      >
-        <div className="flex items-center justify-between border-b border-border pb-3">
-          <h3 className="font-display text-xl">Cadastrar Novo Depoimento</h3>
-          <button onClick={onClose} className="rounded-full p-2 hover:bg-muted">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cadastrar Novo Depoimento</DialogTitle>
+        </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="p-6 space-y-4">
           <div>
             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Depoimento (Citação do Cliente)
@@ -1579,7 +1646,7 @@ function AddTestimonialModal({
           </div>
         </div>
 
-        <div className="flex gap-2.5 border-t border-border pt-4 mt-2">
+        <DialogFooter>
           <button
             type="button"
             onClick={onClose}
@@ -1594,9 +1661,9 @@ function AddTestimonialModal({
           >
             Salvar Depoimento
           </button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

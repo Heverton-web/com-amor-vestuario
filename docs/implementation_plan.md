@@ -1,92 +1,43 @@
-# Plano de Implementação — Clube Com Amor
+# Plano de Implementação: Regras do Clube de Fidelidade Editáveis no Painel Administrativo
 
-Este documento descreve o plano detalhado para rebrandear a antiga "Loja de Recompensas" para o novo **Clube Com Amor**, criar uma página informativa detalhada, integrar botões inteligentes de lead com redirecionamento ao WhatsApp, introduzir um pipeline Kanban exclusivo de CRM e refinar o cabeçalho e formulário de contato da Landing Page.
+Permitir que o administrador edite dinamicamente as 3 regras explicativas de acúmulo de pontos e fidelidade através do painel de administração (Branding), atualizando de forma dinâmica tanto a página pública quanto a pré-visualização em tempo real no simulador.
 
----
+## Mudanças Propostas
 
-## Revisão Necessária do Usuário
+### 1. Definições de Branding e Defaults
+#### [MODIFY] [branding.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/features/core/services/branding.tsx)
+- Adicionar os seguintes campos de regras de negócio ao tipo `Branding`:
+  - `rule_register_title: string;` (Título da Regra 1)
+  - `rule_register_desc: string;` (Descrição da Regra 1)
+  - `rule_points_title: string;` (Título da Regra 2)
+  - `rule_points_desc: string;` (Descrição da Regra 2)
+  - `rule_rewards_title: string;` (Título da Regra 3)
+  - `rule_rewards_desc: string;` (Descrição da Regra 3)
+- Adicionar os textos padrão correspondentes no objeto `DEFAULT_BRANDING`.
 
-> [!IMPORTANT]
->
-> - **Automação de Captura de Leads**: O botão **"Quero Fazer Parte"** abrirá uma micro-janela suspensa elegante solicitando apenas **Nome** e **WhatsApp** antes do redirecionamento. Isso garante que a empresa capture o contato do lead de forma 100% automatizada e o insira diretamente no CRM Kanban administrativo.
-> - **Enum de Banco de Dados**: A inclusão da opção "Clube Com Amor" no formulário de contato requer uma atualização no tipo ENUM `lead_reason` do Postgres. Criaremos um script de migração DDL limpo para o banco de dados.
+### 2. Interface de Configuração e Simulador no Admin
+#### [MODIFY] [admin.branding.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/_authenticated/admin.branding.tsx)
+- Criar a nova aba `fidelidade` ("Fidelidade & Regras") no objeto `tabSections` contendo:
+  - **Configurações Gerais do Clube**: Campos como Nome do Clube (`rewards_label`), R$ equivalente a 1 ponto (`points_per_real`), Validade do resgate (`redemption_days_default`) e o link de Webhook (`n8n_rewards_webhook`).
+  - **Regra 1: Cadastro do Cliente**: Título e Descrição.
+  - **Regra 2: Acúmulo de Pontos**: Título e Descrição.
+  - **Regra 3: Resgate de Prêmios**: Título e Descrição.
+- Modificar o `update` no componente administrativo para aceitar `string | number | null` a fim de suportar a edição numérica dos campos `points_per_real` e `redemption_days_default`.
+- Ajustar a iteração de campos para converter números para string e vice-versa de forma segura durante a renderização no `FieldEditor`.
+- Adicionar a seção "Como Funciona" simulada no mockup do celular (na visualização `recompensas`) para renderizar dinamicamente os textos da regra em tempo real à medida que o administrador digita.
 
----
-
-## Proposta de Alterações
-
-### 1. Banco de Dados (Schema & Migrações)
-
-#### [NEW] [20260518011000_clube_com_amor.sql](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/supabase/migrations/20260518011000_clube_com_amor.sql)
-
-- Criação de script DDL contendo:
-  1. Alteração do tipo ENUM `public.lead_reason` para adicionar o valor `'clube'`.
-  2. Atualização da função de trigger `public.lead_to_kanban()` para direcionar os leads com razão `'clube'` automaticamente para o novo quadro `'clube'` do Kanban, no estágio inicial `'novo'`.
-
----
-
-### 2. Landing Page & Cabeçalho
-
-#### [MODIFY] [Header.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/features/marketing/components/Header.tsx)
-
-- Adicionar a opção `"Clube Com Amor"` na lista de links com destino à rota `/recompensas`.
-- Interceptador de clique: no loop de renderização do menu desktop e mobile, se o link for `#contato`, disparar a propriedade `onContact()` em vez do scroll de âncora padrão.
-
-#### [MODIFY] [Hero.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/features/marketing/components/Hero.tsx)
-
-- Inserir um terceiro botão de ação elegante com fundo semitransparente (`bg-primary/5`) e bordas personalizadas na cor da marca, exibindo um ícone de estrela brilhante (`Sparkles`) e a legenda `"Clube Com Amor"`, direcionando para `/recompensas`.
-
-#### [MODIFY] [ContactDialog.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/features/marketing/components/ContactDialog.tsx)
-
-- Adicionar a opção `{ id: "clube", label: "Clube Com Amor" }` na grade de motivos de contato.
-
----
-
-### 3. Programa de Fidelidade & Recompensas
-
-#### [MODIFY] [recompensas.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/recompensas.tsx)
-
-- Rebrandear a tag do cabeçalho da área logada de _"recompensas"_ para _"Clube Com Amor"_.
-
-#### [MODIFY] [recompensas.index.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/recompensas.index.tsx)
-
-- Rebrandear todos os títulos e descrições para destacar o **Clube Com Amor**.
-- Inserir um botão de destaque ao lado do saldo de pontos: _"Como funciona o Clube?"_ direcionando para a nova rota `/recompensas/como-funciona`.
-
-#### [NEW] [recompensas.como-funciona.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/recompensas.como-funciona.tsx)
-
-- Nova rota pública `/recompensas/como-funciona` com layout editorial premium descrevendo o passo a passo de acúmulo de pontos e vantagens.
-- **Fluxo "Quero Fazer Parte"**:
-  - Ao clicar no botão, abre um mini modal solicitando Nome e WhatsApp.
-  - Ao salvar, insere o registro na tabela `kanban_cards` (board: `'clube'`, stage: `'novo'`).
-  - Em seguida, abre a aba do WhatsApp (`https://wa.me/` oficial) com texto predefinido profissional.
-
----
-
-### 4. CRM Administrativo (Kanban)
-
-#### [MODIFY] [admin.kanban.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/_authenticated/admin.kanban.tsx)
-
-- Adicionar o quadro `'clube'` no dicionário `BOARDS`:
-  ```typescript
-  clube: {
-    label: "Clube Com Amor",
-    stages: [
-      { key: "novo", label: "Interessados" },
-      { key: "contatado", label: "Contatados" },
-      { key: "membro", label: "Membros" },
-      { key: "inativo", label: "Inativos" },
-    ],
-  }
-  ```
+### 3. Exibição Dinâmica das Regras Públicas
+#### [MODIFY] [recompensas.como-funciona.tsx](file:///c:/Users/trcnologia/Desktop/proj_comamor-vestuario/src/routes/recompensas.como-funciona.tsx)
+- Substituir o array estático `steps` por definições dinâmicas obtidas de `branding.rule_...` provenientes do hook `useBranding()`.
 
 ---
 
 ## Plano de Verificação
 
-### Testes de Fluxo Visual & Compilação
-
-- Executar `npx tsc --noEmit` para validação estrita.
-- Executar `npm run build` para garantir que o empacotamento SPA e SSR ocorra sem problemas.
-- Testar a responsividade do cabeçalho móvel clicando nos novos links e no gatilho de modal de contato.
-- Submeter o formulário com a opção "Clube Com Amor" e verificar se o card cai no pipeline correto no painel administrativo `/admin/kanban`.
+### Testes Manuais
+1. Entrar no painel de administração em `/admin/branding`.
+2. Acessar a nova aba "Fidelidade & Regras".
+3. Alterar os títulos e descrições das regras (Ex: alterar "R$ 1 = 1 Ponto" para "R$ 2 = 1 Ponto").
+4. Mudar para a aba de pré-visualização "Fidelidade" no simulador de celular e verificar se os textos mudaram instantaneamente.
+5. Clicar em "Salvar tudo" e confirmar a notificação de sucesso.
+6. Acessar a página pública explicativa `/recompensas/como-funciona` e certificar-se de que as novas regras de negócio personalizadas são exibidas corretamente.

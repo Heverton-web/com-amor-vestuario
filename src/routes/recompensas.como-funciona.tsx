@@ -74,20 +74,23 @@ function ComoFuncionaPage() {
   const steps = [
     {
       icon: <ShieldCheck className="h-6 w-6" />,
-      title: "1. Cadastro Simples",
+      title: branding.rule_register_title || "1. Cadastro Simples",
       description:
+        branding.rule_register_desc ||
         "Ao realizar sua primeira compra física ou online no atelier, seu cadastro no Clube Com Amor é criado automaticamente com seu WhatsApp.",
     },
     {
       icon: <Ticket className="h-6 w-6" />,
-      title: "2. Acumule R$ 1 = 1 Ponto",
+      title: branding.rule_points_title || "2. Acumule R$ 1 = 1 Ponto",
       description:
+        branding.rule_points_desc ||
         "Toda compra gera pontos imediatamente. Não importa a coleção, cada real gasto é revertido em pontos para você usar quando preferir.",
     },
     {
       icon: <Gift className="h-6 w-6" />,
-      title: "3. Resgate Prêmios Reais",
+      title: branding.rule_rewards_title || "3. Resgate Prêmios Reais",
       description:
+        branding.rule_rewards_desc ||
         "Troque seus pontos acumulados por descontos em novos pedidos, frete grátis ou peças físicas exclusivas fabricadas no nosso atelier.",
     },
   ];

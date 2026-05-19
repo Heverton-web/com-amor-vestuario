@@ -387,26 +387,28 @@ function RecompensasIndexPage() {
               )}
             </DialogDescription>
           </DialogHeader>
-          {confirming && user && customer && (
-            <div className="space-y-2 rounded-xl bg-secondary/40 p-4 text-sm">
-              <div className="flex justify-between">
-                <span>Saldo atual</span>
-                <strong>{balance ?? 0} pts</strong>
+          <div className="px-5 py-5 sm:px-8 sm:py-6">
+            {confirming && user && customer && (
+              <div className="space-y-2 rounded-xl bg-secondary/40 p-4 text-sm">
+                <div className="flex justify-between">
+                  <span>Saldo atual</span>
+                  <strong>{balance ?? 0} pts</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>Custo do resgate</span>
+                  <strong>− {confirming.points_cost} pts</strong>
+                </div>
+                <div className="flex justify-between border-t border-border pt-2">
+                  <span>Saldo após resgate</span>
+                  <strong>{(balance ?? 0) - confirming.points_cost} pts</strong>
+                </div>
+                <div className="pt-2 text-xs text-muted-foreground">
+                  Validade do {kindLabel(confirming.kind).toLowerCase()}:{" "}
+                  {branding.redemption_days_default} dias
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Custo do resgate</span>
-                <strong>− {confirming.points_cost} pts</strong>
-              </div>
-              <div className="flex justify-between border-t border-border pt-2">
-                <span>Saldo após resgate</span>
-                <strong>{(balance ?? 0) - confirming.points_cost} pts</strong>
-              </div>
-              <div className="pt-2 text-xs text-muted-foreground">
-                Validade do {kindLabel(confirming.kind).toLowerCase()}:{" "}
-                {branding.redemption_days_default} dias
-              </div>
-            </div>
-          )}
+            )}
+          </div>
           <DialogFooter>
             {!user ? (
               <Link
@@ -445,7 +447,7 @@ function RecompensasIndexPage() {
               para concluir os detalhes!
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleJoinSubmit} className="space-y-4 py-2">
+          <form onSubmit={handleJoinSubmit} className="space-y-4 px-5 py-5 sm:px-8 sm:py-6">
             <div>
               <label className="mb-1.5 block text-sm font-medium">Nome Completo</label>
               <input
@@ -469,7 +471,7 @@ function RecompensasIndexPage() {
                 style={{ fontSize: 16 }}
               />
             </div>
-            <DialogFooter className="pt-4 flex gap-2">
+            <div className="pt-4 flex gap-2">
               <button
                 type="button"
                 onClick={() => setShowJoinDialog(false)}
@@ -486,7 +488,7 @@ function RecompensasIndexPage() {
                 <MessageCircle className="h-4 w-4" />
                 {joinLoading ? "Direcionando..." : "Quero Fazer Parte"}
               </button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
