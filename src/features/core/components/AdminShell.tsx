@@ -29,6 +29,7 @@ import {
 import { useState, type ReactNode } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/features/core/components/sheet";
 import { BrandLogo } from "@/features/core/components/BrandLogo";
+import { cn } from "@/features/core/utils/utils";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   inicio: LayoutDashboard,
@@ -52,10 +53,12 @@ export function AdminShell({
   title,
   children,
   actions,
+  noScroll = false,
 }: {
   title: string;
   children: ReactNode;
   actions?: ReactNode;
+  noScroll?: boolean;
 }) {
   const loc = useLocation();
   const navigate = useNavigate();
@@ -135,8 +138,8 @@ export function AdminShell({
         {Footer}
       </aside>
 
-      <main className="flex-1 overflow-x-hidden">
-        <header className="sticky top-0 z-10 border-b border-border bg-background/85 px-4 py-3 backdrop-blur-md md:px-10 md:py-4">
+      <main className={cn("flex-1", noScroll ? "h-screen flex flex-col overflow-hidden" : "overflow-x-hidden")}>
+        <header className="sticky top-0 z-10 border-b border-border bg-background/85 px-4 py-3 backdrop-blur-md md:px-10 md:py-4 shrink-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -159,7 +162,7 @@ export function AdminShell({
             <div className="flex flex-wrap items-center gap-2">{actions}</div>
           </div>
         </header>
-        <div className="p-4 md:p-10">
+        <div className={cn("p-4 md:p-10", noScroll ? "flex-1 overflow-hidden flex flex-col p-4 md:p-8" : "")}>
           {allowed ? (
             children
           ) : (

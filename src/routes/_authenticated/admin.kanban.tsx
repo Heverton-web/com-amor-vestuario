@@ -81,8 +81,8 @@ function KanbanPage() {
   const board = BOARDS[tab];
 
   return (
-    <AdminShell title="CRM · Kanbans">
-      <div className="mb-6 inline-flex rounded-full border border-border bg-card p-1">
+    <AdminShell title="CRM · Kanbans" noScroll>
+      <div className="mb-6 inline-flex rounded-full border border-border bg-card p-1 shrink-0">
         {Object.entries(BOARDS).map(([k, v]) => (
           <button
             key={k}
@@ -94,9 +94,9 @@ function KanbanPage() {
         ))}
       </div>
 
-      <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
+      <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0 flex-1 overflow-y-hidden">
         <div
-          className="grid gap-3 md:gap-4"
+          className="grid gap-3 md:gap-4 h-full"
           style={{ gridTemplateColumns: `repeat(${board.stages.length}, minmax(240px, 1fr))` }}
         >
           {board.stages.map((s) => {
@@ -114,15 +114,15 @@ function KanbanPage() {
                   setDragId(null);
                   setOverStage(null);
                 }}
-                className={`rounded-2xl border bg-card p-3 transition-colors ${overStage === s.key ? "border-primary bg-primary/5" : "border-border"}`}
+                className={`rounded-2xl border bg-card p-3 transition-colors flex flex-col h-[400px] md:h-full ${overStage === s.key ? "border-primary bg-primary/5" : "border-border"}`}
               >
-                <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="mb-3 flex items-center justify-between gap-2 shrink-0">
                   <h3 className="font-display text-sm uppercase tracking-wider">{s.label}</h3>
                   <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium tabular-nums">
                     {stageCards.length}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
                   {stageCards.map((c: any) => (
                     <button
                       key={c.id}
@@ -167,7 +167,7 @@ function KanbanPage() {
                     </button>
                   ))}
                   {!stageCards.length && (
-                    <div className="rounded-xl border border-dashed border-border/60 px-2 py-4 text-center text-[11px] text-muted-foreground">
+                    <div className="rounded-xl border border-dashed border-border/60 px-2 py-4 text-center text-[11px] text-muted-foreground shrink-0">
                       Solte aqui
                     </div>
                   )}
@@ -177,7 +177,7 @@ function KanbanPage() {
           })}
         </div>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground md:hidden">
+      <p className="mt-3 text-xs text-muted-foreground md:hidden shrink-0">
         Arraste para o lado para ver todas as etapas →
       </p>
 
