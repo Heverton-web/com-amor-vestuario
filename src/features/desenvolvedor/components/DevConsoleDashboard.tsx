@@ -637,6 +637,24 @@ export function DevConsoleDashboard() {
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between gap-4 rounded-lg bg-secondary/20 p-3">
                       <div className="text-sm">
+                        <span className="font-mono text-xs block text-muted-foreground">Apresentação Single-File (Enviar para Cliente):</span>
+                        <span className="font-mono text-xs select-all">docs/apresentacao_ecossistema.html</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const basePath = "docs/apresentacao_ecossistema.html";
+                          copyToClipboard(basePath, "single-file-path");
+                        }}
+                        className="rounded-lg shrink-0 flex items-center gap-1.5"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copiar
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 rounded-lg bg-secondary/20 p-3">
+                      <div className="text-sm">
                         <span className="font-mono text-xs block text-muted-foreground">Caminho Local do Slide Deck:</span>
                         <span className="font-mono text-xs select-all">docs/apresentacao_ecossistema/index.html</span>
                       </div>

@@ -1,17 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&display=swap");
 
 :root {
-  /* Cores Kenya Hara - Minimalismo Elegante */
-  --paper-bg: #F7F5F0;
-  --ink-primary: #1C1B1A;
-  --ink-muted: #6B6864;
-  --brand-red: #B3263E;
-  --border-light: rgba(28, 27, 26, 0.08);
-  --card-bg: rgba(28, 27, 26, 0.015);
+  /* Cores da Marca Com Amor (Artisanal Warm Palette) */
+  --paper-bg: oklch(0.972 0.018 80);      /* cream */
+  --ink-primary: oklch(0.255 0.035 45);   /* walnut escuro */
+  --ink-muted: oklch(0.45 0.03 50);       /* walnut médio/muted */
+  --brand-red: oklch(0.55 0.16 38);       /* clay-deep (terracota) */
+  --border-light: oklch(0.88 0.025 70);   /* borda sutil */
+  --card-bg: oklch(0.99 0.01 80);         /* card leve */
   
-  /* Fontes */
-  --font-serif: 'Instrument Serif', serif;
-  --font-sans: 'Outfit', sans-serif;
+  /* Fontes da Marca */
+  --font-serif: 'Fraunces', ui-serif, Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 * {
