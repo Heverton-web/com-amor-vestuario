@@ -42,6 +42,12 @@
       "sourceType": "github",
       "skillPath": "skills/caveman-stats/SKILL.md",
       "computedHash": "331f720e2fa97b68cacdae44384878071e8cac6013479edea68f4c8eca308852"
+    },
+    "huashu-design": {
+      "source": "alchaincyf/huashu-design",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "964976e7e87d2beb25fbf74f06e694f5a27ca6c7a2f20307ada876d7b5047cdf"
     }
   }
 }
