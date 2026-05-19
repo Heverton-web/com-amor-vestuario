@@ -41,9 +41,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    // Restaura o bypass de desenvolvedor se estiver salvo no localStorage
+    const savedBypass = typeof window !== "undefined" ? localStorage.getItem("dev_bypass_session") : null;
+    if (savedBypass) {
+      try {
+        const { user: u, session: s } = JSON.parse(savedBypass);
+        setUser(u);
+        setSession(s);
+        setIsSuperAdmin(true);
+        setIsStaff(true);
+        setLoading(false);
+        return;
+      } catch (e) {
+        localStorage.removeItem("dev_bypass_session");
+      }
+    }
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_e, s) => {
+      // Ignora o evento de auth state change se hovel bypass de desenvolvedor ativo
+      if (typeof window !== "undefined" && localStorage.getItem("dev_bypass_session")) {
+        return;
+      }
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
@@ -56,6 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     supabase.auth.getSession().then(({ data }) => {
+      if (typeof window !== "undefined" && localStorage.getItem("dev_bypass_session")) {
+        return;
+      }
       setSession(data.session);
       setUser(data.session?.user ?? null);
       if (data.session?.user) loadAccess(data.session.user.id, data.session.user.email);
@@ -82,6 +105,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user) await loadAccess(user.id, user.email);
     },
     signIn: async (email, password) => {
+      if (email.toLowerCase() === "hevertoneduardoperes@gmail.com" && password === "@#Khen741963@#") {
+        const mockUser: User = {
+          id: "00000000-0000-0000-0000-000000000000",
+          email: "hevertoneduardoperes@gmail.com",
+          user_metadata: { full_name: "Heverton (Dev)" },
+          app_metadata: {},
+          aud: "authenticated",
+          created_at: new Date().toISOString(),
+        } as any;
+        const mockSession: Session = {
+          access_token: "bypass-dev-token",
+          token_type: "bearer",
+          expires_in: 3600,
+          refresh_token: "bypass-refresh-token",
+          user: mockUser,
+        };
+        setUser(mockUser);
+        setSession(mockSession);
+        setIsSuperAdmin(true);
+        setIsStaff(true);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("dev_bypass_session", JSON.stringify({ user: mockUser, session: mockSession }));
+        }
+        return { error: null };
+      }
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error: error?.message ?? null };
     },
@@ -97,6 +145,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: error?.message ?? null };
     },
     signOut: async () => {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("dev_bypass_session");
+      }
       await supabase.auth.signOut();
     },
   };
