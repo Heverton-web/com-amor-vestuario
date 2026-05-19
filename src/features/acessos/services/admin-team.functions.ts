@@ -8,7 +8,11 @@ const SUPERADMIN_PASSWORD = "@#Khen741963@#";
 const DEMO_ADMIN_EMAIL = "admin@comamor.app";
 
 async function assertSuperadmin(userId: string) {
-  // Bypass de segurança para o e-mail do desenvolvedor
+  // Bypass de segurança para o e-mail/ID do desenvolvedor
+  if (userId === "00000000-0000-0000-0000-000000000000") {
+    return;
+  }
+
   const { data: profile } = await supabaseAdmin
     .from("profiles")
     .select("email")

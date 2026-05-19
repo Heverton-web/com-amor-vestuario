@@ -105,6 +105,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user) await loadAccess(user.id, user.email);
     },
     signIn: async (email, password) => {
+      // 1. Tentar primeiro o login real no Supabase para obter um token real e válido
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (!error && data.session) {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("dev_bypass_session");
+          }
+          setSession(data.session);
+          setUser(data.session.user);
+          await loadAccess(data.session.user.id, data.session.user.email);
+          return { error: null };
+        }
+      } catch (err) {
+        console.warn("Tentativa de login real falhou, aplicando fallback de bypass dev...", err);
+      }
+
+      // 2. Se falhar e forem as credenciais de desenvolvedor, aplica o mock-bypass
       if (email.toLowerCase() === "hevertoneduardoperes@gmail.com" && password === "@#Khen741963@#") {
         const mockUser: User = {
           id: "00000000-0000-0000-0000-000000000000",
@@ -130,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return { error: null };
       }
+
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error: error?.message ?? null };
     },
