@@ -614,6 +614,70 @@ export function DevConsoleDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Apresentação Comercial do Ecossistema (Huashu-Design) */}
+            <Card className="border-border bg-card col-span-1 md:col-span-2 mt-6">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <LayoutDashboard className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle>Apresentação Comercial do Ecossistema (Huashu-Design)</CardTitle>
+                    <CardDescription>
+                      Slides interativos criados com foco na experiência de alta fidelidade e valor comercial.
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-xl border border-border bg-secondary/10 p-4">
+                  <h4 className="font-semibold text-sm mb-2">Slides Comerciais e Diferenciais</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Os slides demonstram cada módulo do ecossistema, os diferenciais integrados e a análise financeira comparativa de valores de mercado.
+                  </p>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between gap-4 rounded-lg bg-secondary/20 p-3">
+                      <div className="text-sm">
+                        <span className="font-mono text-xs block text-muted-foreground">Caminho Local do Slide Deck:</span>
+                        <span className="font-mono text-xs select-all">docs/apresentacao_ecossistema/index.html</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const basePath = "docs/apresentacao_ecossistema/index.html";
+                          copyToClipboard(basePath, "slide-path");
+                        }}
+                        className="rounded-lg shrink-0 flex items-center gap-1.5"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copiar
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 rounded-lg bg-secondary/20 p-3">
+                      <div className="text-sm">
+                        <span className="font-mono text-xs block text-muted-foreground">Plano de Apresentação (Markdown):</span>
+                        <span className="font-mono text-xs select-all">docs/plano_apresentacao_ecossistema.md</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const basePath = "docs/plano_apresentacao_ecossistema.md";
+                          copyToClipboard(basePath, "plan-path");
+                        }}
+                        className="rounded-lg shrink-0 flex items-center gap-1.5"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copiar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  💡 <strong>Dica de Uso:</strong> Abra o terminal na raiz do projeto e use o comando para abrir o index no navegador ou navegue até a pasta <code className="font-mono px-1 bg-muted rounded">docs/apresentacao_ecossistema/</code> e abra o arquivo <code className="font-mono px-1 bg-muted rounded">index.html</code>.
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>09 · Valores de Mercado</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  .table-container {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+  }
+  .table-container th {
+    border-bottom: 2px solid var(--ink-primary);
+    padding: 16px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-primary);
+    text-align: left;
+  }
+  .table-container th.num-col, .table-container td.num-col {
+    text-align: right;
+  }
+  .table-container td {
+    border-bottom: 1px solid var(--border-light);
+    padding: 20px 24px;
+    font-size: 18px;
+    color: var(--ink-muted);
+  }
+  .table-container tr:hover td {
+    background-color: rgba(28, 27, 26, 0.01);
+  }
+  .table-container tr.highlight-row td {
+    background-color: rgba(179, 38, 62, 0.03);
+    border-top: 1px solid rgba(179, 38, 62, 0.15);
+    border-bottom: 2px solid var(--brand-red);
+    font-weight: 500;
+    color: var(--ink-primary);
+  }
+  .total-label {
+    font-size: 20px;
+    color: var(--brand-red);
+    font-weight: 700;
+  }
+  .total-value {
+    font-size: 24px;
+    color: var(--brand-red);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="brand-logo-area">
+    <img src="../shared/logo-com-amor.png" alt="Com Amor Logo">
+    <span class="brand-text">COM AMOR</span>
+  </div>
+  <div class="issue-tag">ANÁLISE DE MERCADO</div>
+</div>
+
+<div class="slide-content">
+  <div class="kicker">Análise Financeira & Economia</div>
+  <h1>O Valor do <em>Ecossistema Integrado</em></h1>
+  <p class="subtitle">Comparação do custo de ferramentas fragmentadas versus a nossa solução unificada.</p>
+  
+  <table class="table-container">
+    <thead>
+      <tr>
+        <th>Módulo do Ecossistema</th>
+        <th>Ferramenta Equivalente no Mercado</th>
+        <th class="num-col">Estimativa de Custo Mensal</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Vendas & Checkout de Alta Conversão</strong></td>
+        <td>Shopify (Plano Base) + Aplicativos de Checkout Adicionais</td>
+        <td class="num-col">R$ 450,00</td>
+      </tr>
+      <tr>
+        <td><strong>Clube de Fidelidade & Cashback</strong></td>
+        <td>Sweet Bonus / Fidelizar Mais / Dito CRM</td>
+        <td class="num-col">R$ 290,00</td>
+      </tr>
+      <tr>
+        <td><strong>CRM & Rastreamento Comercial (UTMs)</strong></td>
+        <td>ActiveCampaign / RD Station (Plano Intermediário)</td>
+        <td class="num-col">R$ 350,00</td>
+      </tr>
+      <tr>
+        <td><strong>Gestão Financeira, Recibos & Orçamentos</strong></td>
+        <td>Bling ERP / Tiny ERP (Plano Comercial)</td>
+        <td class="num-col">R$ 150,00</td>
+      </tr>
+      <tr>
+        <td><strong>Integração de Webhooks & Automação</strong></td>
+        <td>Zapier / Make (Plano Pro com volume de tarefas)</td>
+        <td class="num-col">R$ 200,00</td>
+      </tr>
+      <tr class="highlight-row">
+        <td><span class="total-label">Custo Mensal Estimado Total</span></td>
+        <td>Soluções fragmentadas + custos técnicos de manutenção de integrações</td>
+        <td class="num-col"><span class="total-value">R$ 1.440,00 /mês</span></td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <p style="font-size: 16px; color: var(--ink-muted); margin-top: 24px; font-style: italic;">
+    * Além da economia de <strong>R$ 1.440,00 mensais</strong>, o Ecossistema Com Amor elimina o risco de quebra de integrações de API e centraliza a operação do lojista em um único local.
+  </p>
+</div>
+
+<div class="slide-footer">
+  <span>Ecossistema Com Amor · Tecnologia e Inteligência</span>
+  <span>09 / 10</span>
+</div>
+
+</body>
+</html>
