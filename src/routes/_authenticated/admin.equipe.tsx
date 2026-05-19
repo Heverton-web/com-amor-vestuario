@@ -38,7 +38,7 @@ function TeamPage() {
     email: "",
     password: "",
     full_name: "",
-    pages: new Set<string>(ADMIN_PAGES.map((p) => p.key)),
+    pages: new Set<string>(ADMIN_PAGES.filter((p) => p.key !== "dev").map((p) => p.key)),
   });
 
   const createMut = useMutation({
@@ -58,7 +58,7 @@ function TeamPage() {
         email: "",
         password: "",
         full_name: "",
-        pages: new Set(ADMIN_PAGES.map((p) => p.key)),
+        pages: new Set(ADMIN_PAGES.filter((p) => p.key !== "dev").map((p) => p.key)),
       });
       qc.invalidateQueries({ queryKey: ["admin-team"] });
     },
@@ -229,7 +229,7 @@ function PagesPicker({
     <div>
       <p className="mb-2 text-sm font-medium text-foreground font-display">Páginas liberadas</p>
       <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto pr-1">
-        {ADMIN_PAGES.map((p) => {
+        {ADMIN_PAGES.filter((p) => p.key !== "dev").map((p) => {
           const on = value.has(p.key);
           return (
             <label
