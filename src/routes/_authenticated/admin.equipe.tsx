@@ -92,7 +92,7 @@ function TeamPage() {
         <>
           {isLoading && <p className="text-muted-foreground">Carregando...</p>}
           <div className="space-y-3">
-            {data?.users.map((u) => (
+            {data?.users?.map((u) => (
               <UserCard
                 key={u.user_id}
                 u={u}
