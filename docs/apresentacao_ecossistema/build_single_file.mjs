@@ -65,6 +65,10 @@ slidesManifest.forEach((slide, index) => {
   const totalNumStr = String(slidesManifest.length).padStart(2, '0');
   htmlContent = htmlContent.replace(/<span>\d{2}[a-z]?\s*\/\s*\d{2}<\/span>/g, `<span>${pageNumStr} / ${totalNumStr}</span>`);
 
+  // Garantir a remoção completa de emojis do HTML final do slide
+  const emojiRegex = /[\uD800-\uDBFF][\uDC00-\uDFFF]|\u2705|\u274C|\u274E|[\u2600-\u27BF]/g;
+  htmlContent = htmlContent.replace(emojiRegex, '');
+
   // Converter o HTML completo do slide para Base64
   const slideBase64 = Buffer.from(htmlContent, 'utf-8').toString('base64');
   const slideDataUri = `data:text/html;charset=utf-8;base64,${slideBase64}`;
