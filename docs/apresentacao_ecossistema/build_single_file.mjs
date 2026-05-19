@@ -7,7 +7,7 @@ const TOKENS_PATH = path.join(DOCS_DIR, 'shared', 'tokens.css');
 const LOGO_PATH = path.join(DOCS_DIR, 'shared', 'logo-com-amor.png');
 const OUTPUT_PATH = path.join('docs', 'apresentacao_ecossistema.html');
 
-console.log('Iniciando compilação do Single-File da Apresentação...');
+console.log('Iniciando compilação robusta do Single-File da Apresentação...');
 
 // 1. Obter e converter imagem do logotipo para Base64
 if (!fs.existsSync(LOGO_PATH)) {
@@ -39,8 +39,7 @@ const slidesManifest = [
   { file: '10-fechamento.html', label: 'Conclusão' }
 ];
 
-let slidesHtml = '';
-let accumulatedStyles = '';
+let slidesSectionHtml = '';
 
 // 4. Processar cada slide individual
 slidesManifest.forEach((slide, index) => {
@@ -52,49 +51,26 @@ slidesManifest.forEach((slide, index) => {
 
   let htmlContent = fs.readFileSync(slidePath, 'utf-8');
 
-  // Extrair o conteúdo do <style> se existir
-  const styleRegex = /<style>([\s\S]*?)<\/style>/;
-  const styleMatch = htmlContent.match(styleRegex);
-  if (styleMatch && styleMatch[1]) {
-    // Adiciona namespace de escopo para evitar conflito de CSS entre slides
-    const scopedStyle = styleMatch[1]
-      .split('\n')
-      .map(line => {
-        // Envolve seletores comuns para escopo da section correspondente
-        if (line.trim().startsWith('.') || line.trim().startsWith('#') || line.trim().match(/^[a-zA-Z]/)) {
-          return `#slide-${index + 1} ${line.trim()}`;
-        }
-        return line;
-      })
-      .join('\n');
-    accumulatedStyles += `\n/* Estilos do Slide ${index + 1} (${slide.file}) */\n${scopedStyle}\n`;
-  }
+  // Injetar os tokens CSS diretamente dentro de cada slide
+  const tokensStyleBlock = `<style>\n${tokensCss}\n</style>`;
+  htmlContent = htmlContent.replace(/<link rel="stylesheet" href="\.\.\/shared\/tokens\.css">/g, tokensStyleBlock);
 
-  // Extrair o conteúdo do <body>
-  const bodyRegex = /<body>([\s\S]*?)<\/body>/;
-  const bodyMatch = htmlContent.match(bodyRegex);
-  if (!bodyMatch || !bodyMatch[1]) {
-    console.error(`Erro ao parsear <body> do slide ${slide.file}`);
-    process.exit(1);
-  }
+  // Substituir a imagem local do logo pela versão embutida em Base64
+  htmlContent = htmlContent.replace(/src="\.\.\/shared\/logo-com-amor\.png"/g, `src="${logoDataUri}"`);
 
-  let bodyContent = bodyMatch[1];
+  // Converter o HTML completo do slide para Base64
+  const slideBase64 = Buffer.from(htmlContent, 'utf-8').toString('base64');
+  const slideDataUri = `data:text/html;charset=utf-8;base64,${slideBase64}`;
 
-  // Substituir o link da imagem local do logo pelo base64 embutido
-  bodyContent = bodyContent.replace(/src="\.\.\/shared\/logo-com-amor\.png"/g, `src="${logoDataUri}"`);
-
-  // Montar a seção do slide
-  slidesHtml += `
+  // Montar a seção agregadora que contém o iframe isolado
+  slidesSectionHtml += `
   <section class="slide-section ${index === 0 ? 'active' : ''}" id="slide-${index + 1}" data-label="${slide.label}">
-    <div class="slide-wrapper">
-      ${bodyContent}
-    </div>
+    <iframe src="${slideDataUri}" class="slide-iframe"></iframe>
   </section>\n`;
 });
 
-// 5. CSS Geral de Navegação e Host
+// 5. CSS do Agregador
 const hostCss = `
-/* CSS do Agregador de Slides */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   height: 100%;
@@ -107,7 +83,7 @@ html, body {
   top: 50%; left: 50%;
   transform-origin: top left;
   will-change: transform;
-  background: #F7F5F0;
+  background: oklch(0.972 0.018 80);
   box-shadow: 0 20px 80px rgba(0,0,0,0.6);
   overflow: hidden;
 }
@@ -120,9 +96,12 @@ html, body {
 .slide-section.active {
   display: block;
 }
-.slide-wrapper {
-  width: 100%; height: 100%;
-  position: relative;
+.slide-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  display: block;
 }
 .counter {
   position: fixed;
@@ -214,15 +193,13 @@ const finalHtml = `<!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Ecossistema Com Amor · Apresentação Comercial</title>
 <style>
-${tokensCss}
 ${hostCss}
-${accumulatedStyles}
 </style>
 </head>
 <body>
 
 <div id="stage">
-  ${slidesHtml}
+  ${slidesSectionHtml}
 </div>
 
 <div class="nav-zone left"  id="navL"><div class="nav-hint">‹</div></div>
@@ -318,4 +295,4 @@ ${accumulatedStyles}
 
 // 7. Salvar arquivo unificado
 fs.writeFileSync(OUTPUT_PATH, finalHtml, 'utf-8');
-console.log(`Sucesso! Apresentação Single-File gerada em: ${OUTPUT_PATH}`);
+console.log(`Sucesso! Apresentação Single-File robusta gerada em: ${OUTPUT_PATH}`);
