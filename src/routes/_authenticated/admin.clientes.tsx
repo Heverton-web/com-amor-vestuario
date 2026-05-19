@@ -238,59 +238,44 @@ function CustomersPage() {
   return (
     <AdminShell
       title="Clientes"
+      noScroll={true}
       actions={
-        <button
-          onClick={() => setEditing({})}
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" /> Novo cliente
-        </button>
-      }
-    >
-      {/* Barra de Filtros */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:min-w-[280px] md:min-w-[320px]">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="relative hidden sm:block w-48 lg:w-64">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar cliente por nome, código, e-mail..."
-              className="w-full rounded-xl border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Buscar cliente..."
+              className="w-full rounded-full border border-input bg-background/50 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm transition-colors hover:bg-background"
             />
           </div>
-
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="w-full sm:w-auto rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-          >
-            <option value="todos">Todos os Status</option>
-            <option value="ativo">Ativos</option>
-            <option value="inativo">Inativos</option>
-          </select>
-
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as any)}
-            className="w-full sm:w-auto rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-          >
-            <option value="todos">Todos os Tipos</option>
-            <option value="pf">Pessoa Física (PF)</option>
-            <option value="pj">Pessoa Jurídica (PJ)</option>
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          <span className="text-xs font-medium text-muted-foreground">Ordenar:</span>
           <button
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-sm font-medium hover:bg-secondary/40 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 px-3.5 py-2 text-sm font-medium hover:bg-secondary/40 transition-colors shadow-sm"
           >
             {sortOrder === "asc" ? "Nome (A-Z)" : "Nome (Z-A)"}
           </button>
+          <button
+            onClick={() => setEditing({})}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 sm:px-5 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:opacity-90 shadow-sm"
+          >
+            <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Novo cliente</span>
+          </button>
         </div>
+      }
+    >
+      {/* Barra de Busca Exclusiva (Mobile) - Exibida apenas quando o input de cima for ocultado */}
+      <div className="mb-4 sm:hidden relative w-full">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar cliente..."
+          className="w-full rounded-2xl border border-input bg-card pl-9 pr-3 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+        />
       </div>
 
       {isLoading ? (
@@ -303,7 +288,7 @@ function CustomersPage() {
         </div>
       ) : (
         /* Grid das Colunas com Altura Fixa em Mobile e Altura Total com Scroll em Desktop */
-        <div className="flex flex-col md:flex-row gap-6 md:h-[calc(100vh-230px)] overflow-hidden min-h-0">
+        <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-210px)] md:h-full overflow-hidden min-h-0 pt-2">
           {/* Coluna Varejo */}
           <div className="flex-1 flex flex-col h-[420px] md:h-full min-h-0 bg-secondary/5 dark:bg-secondary/2 rounded-2xl border border-border">
             <div className="p-4 border-b border-border bg-muted/20 flex justify-between items-center shrink-0">

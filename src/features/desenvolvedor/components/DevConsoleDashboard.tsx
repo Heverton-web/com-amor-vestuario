@@ -26,6 +26,7 @@ import {
 } from "@/features/core/components/table";
 import { Badge } from "@/features/core/components/badge";
 import { AdminShell } from "@/features/core/components/AdminShell";
+import { ADMIN_PAGES } from "@/features/core/utils/admin-pages";
 import { Textarea } from "@/features/core/components/textarea";
 import { toast } from "sonner";
 import {
@@ -36,6 +37,7 @@ import {
   Play,
   Terminal,
   Database,
+  LayoutDashboard,
   ShieldAlert,
   CheckCircle,
   XCircle,
@@ -520,7 +522,7 @@ export function DevConsoleDashboard() {
 
       {/* Tabs Layout */}
       <Tabs defaultValue="diagnostics" className="w-full">
-        <TabsList className="mb-6 grid w-full grid-cols-4 rounded-xl bg-muted p-1">
+        <TabsList className="mb-6 grid w-full grid-cols-5 rounded-xl bg-muted p-1">
           <TabsTrigger value="diagnostics" className="rounded-lg flex items-center gap-1.5">
             <Key className="h-4 w-4" /> APIs & Chaves
           </TabsTrigger>
@@ -533,7 +535,85 @@ export function DevConsoleDashboard() {
           <TabsTrigger value="database" className="rounded-lg flex items-center gap-1.5">
             <Database className="h-4 w-4" /> Supabase
           </TabsTrigger>
+          <TabsTrigger value="modules" className="rounded-lg flex items-center gap-1.5">
+            <LayoutDashboard className="h-4 w-4" /> Módulos
+          </TabsTrigger>
         </TabsList>
+
+        {/* Tab 5: Modules System */}
+        <TabsContent value="modules">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="border-border bg-card col-span-1 md:col-span-2">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <LayoutDashboard className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle>Módulos do Sistema</CardTitle>
+                    <CardDescription>
+                      Ative ou desative módulos administrativos. Módulos desativados exibirão um cadeado no menu lateral e não poderão ser acessados.
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Módulos Públicos */}
+                <div>
+                  <h3 className="mb-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Módulos Públicos</h3>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {[
+                      { key: "public_site", label: "Site (Landing Page)" },
+                      { key: "public_loja", label: "Loja Virtual" },
+                      { key: "public_clube", label: "Clube (Área Pública)" },
+                    ].map((mod) => {
+                      const isActive = branding?.modules?.[mod.key] !== false;
+                      return (
+                        <div key={mod.key} className="flex items-center justify-between rounded-xl border border-border bg-secondary/20 p-4">
+                          <Label className="font-medium cursor-pointer" htmlFor={`switch-${mod.key}`}>{mod.label}</Label>
+                          <Switch
+                            id={`switch-${mod.key}`}
+                            checked={isActive}
+                            onCheckedChange={async (val) => {
+                              const newModules = { ...(branding?.modules || {}), [mod.key]: val };
+                              const { error } = await saveBranding({ modules: newModules });
+                              if (error) toast.error("Erro ao salvar módulo");
+                              else toast.success(`Módulo ${mod.label} ${val ? "ativado" : "desativado"}`);
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Módulos Administrativos */}
+                <div>
+                  <h3 className="mb-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mt-4">Módulos Administrativos</h3>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {ADMIN_PAGES.filter(p => p.key !== "inicio" && p.key !== "dev").map((mod) => {
+                      const activeKey = `admin_${mod.key}`;
+                      const isActive = branding?.modules?.[activeKey] !== false;
+                      return (
+                        <div key={mod.key} className="flex items-center justify-between rounded-xl border border-border bg-secondary/20 p-4">
+                          <Label className="font-medium cursor-pointer" htmlFor={`switch-${mod.key}`}>{mod.label}</Label>
+                          <Switch
+                            id={`switch-${mod.key}`}
+                            checked={isActive}
+                            onCheckedChange={async (val) => {
+                              const newModules = { ...(branding?.modules || {}), [activeKey]: val };
+                              const { error } = await saveBranding({ modules: newModules });
+                              if (error) toast.error("Erro ao salvar módulo");
+                              else toast.success(`Módulo ${mod.label} ${val ? "ativado" : "desativado"}`);
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
         {/* Tab 1: Diagnostics and keys */}
         <TabsContent value="diagnostics">

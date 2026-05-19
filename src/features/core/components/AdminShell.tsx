@@ -18,8 +18,10 @@ import {
   ReceiptText,
   Gift,
   Terminal,
+  Lock,
 } from "lucide-react";
 import { useAuth } from "@/features/core/integrations/auth";
+import { useBranding } from "@/features/core/services/branding";
 import {
   ADMIN_PAGES,
   ADMIN_CATEGORIES,
@@ -63,6 +65,7 @@ export function AdminShell({
   const loc = useLocation();
   const navigate = useNavigate();
   const { signOut, user, canAccess, isSuperAdmin } = useAuth();
+  const { branding } = useBranding();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const visiblePages = ADMIN_PAGES.filter((p) => canAccess(p.key));
@@ -87,19 +90,41 @@ export function AdminShell({
                   ? loc.pathname === n.path
                   : loc.pathname === n.path || loc.pathname.startsWith(n.path + "/");
               const Icon = ICONS[n.key] ?? LayoutDashboard;
+
+              const isModifiable = n.key !== "inicio" && n.key !== "dev" && n.key !== "equipe";
+              const isEnabled = isModifiable ? branding?.modules?.[`admin_${n.key}`] !== false : true;
+
+              if (!isEnabled) {
+                return (
+                  <div
+                    key={n.key}
+                    className="flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm opacity-50 grayscale cursor-not-allowed text-muted-foreground/70"
+                    title="Módulo desativado"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="h-4 w-4" />
+                      {n.label}
+                    </div>
+                    <Lock className="h-3.5 w-3.5" />
+                  </div>
+                );
+              }
+
               return (
                 <Link
                   key={n.key}
                   to={n.path as never}
                   onClick={onNavigate}
-                  className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+                  className={`flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm transition-colors ${
                     active
                       ? "bg-primary text-primary-foreground"
                       : "text-foreground/70 hover:bg-muted"
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  {n.label}
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-4 w-4" />
+                    {n.label}
+                  </div>
                 </Link>
               );
             })}

@@ -70,6 +70,7 @@ export type Branding = {
     role: string;
   }[];
   base_url: string;
+  modules?: Record<string, boolean>;
 };
 
 export const DEFAULT_BRANDING: Branding = {
