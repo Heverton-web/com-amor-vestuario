@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/features/core/integrations/supabase/client";
+// @ts-ignore
+import supabaseSetupSql from "../../../../docs/supabase_setup.sql?raw";
 import {
   Card,
   CardContent,
@@ -1812,6 +1814,83 @@ export function DevConsoleDashboard() {
                       </div>
                     );
                   })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Configuração de Novo Supabase */}
+            <Card className="border border-border bg-card md:col-span-2">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Database className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle>Configuração em Nova Conta do Supabase</CardTitle>
+                    <CardDescription>
+                      Instruções detalhadas e script SQL completo consolidado para colocar o projeto no ar do zero em um Supabase próprio
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4 text-sm">
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="rounded-xl border border-border p-4 bg-muted/10">
+                      <div className="flex items-center gap-2 font-semibold mb-1 text-primary">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-mono">1</span>
+                        Novo Projeto
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Crie um projeto no painel do Supabase. Guarde a senha de banco definida e obtenha a <strong>URL do projeto</strong> e a <strong>Anon/Publishable Key</strong>.
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-border p-4 bg-muted/10">
+                      <div className="flex items-center gap-2 font-semibold mb-1 text-primary">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-mono">2</span>
+                        SQL Editor
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Acesse a aba <strong>SQL Editor</strong> no painel, crie uma <strong>New Query</strong>, cole o script SQL consolidado abaixo e clique em <strong>Run</strong>.
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-border p-4 bg-muted/10">
+                      <div className="flex items-center gap-2 font-semibold mb-1 text-primary">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-mono">3</span>
+                        Variáveis (.env)
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Edite o arquivo <code>.env</code> na sua VPS apontando para o novo banco de dados: <code>VITE_SUPABASE_URL</code>, <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> e <code>SUPABASE_SERVICE_ROLE_KEY</code>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        Script SQL Completo (Consolidado de todas as migrações)
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copyToClipboard(supabaseSetupSql, "supabase-sql")}
+                        className="h-8 rounded-lg text-xs"
+                      >
+                        {copiedId === "supabase-sql" ? (
+                          <>
+                            <Check className="h-3 w-3 text-emerald-500 mr-1" /> Copiado!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3 w-3 mr-1" /> Copiar SQL Completo
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <pre className="p-4 rounded-xl bg-secondary/40 border border-border text-[11px] font-mono text-foreground/90 overflow-x-auto max-h-[300px] select-all">
+                      {supabaseSetupSql}
+                    </pre>
+                  </div>
                 </div>
               </CardContent>
             </Card>
