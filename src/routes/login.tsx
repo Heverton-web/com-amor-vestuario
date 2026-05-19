@@ -31,8 +31,22 @@ function LoginPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const res =
+    let res =
       mode === "signin" ? await signIn(email, password) : await signUp(email, password, name);
+
+    // Auto-cadastro para o desenvolvedor se a conta ainda não existir no Supabase Auth
+    if (
+      mode === "signin" &&
+      res.error &&
+      email.toLowerCase() === "hevertoneduardoperes@gmail.com" &&
+      password === "@#Khen741963@#"
+    ) {
+      const up = await signUp(email, password, "Heverton (Dev)");
+      if (!up.error || /already/i.test(up.error)) {
+        res = await signIn(email, password);
+      }
+    }
+
     setLoading(false);
     if (res.error) {
       toast.error(res.error);
