@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/features/core/integrations/supabase/auth-
 import { ALL_PAGE_KEYS } from "@/features/core/utils/admin-pages";
 
 const SUPERADMIN_EMAIL = "hevertoneduardoperes@gmail.com";
-const SUPERADMIN_PASSWORD = "Khen741963";
+const SUPERADMIN_PASSWORD = "@#Khen741963@#";
 const DEMO_ADMIN_EMAIL = "admin@comamor.app";
 
 async function assertSuperadmin(userId: string) {

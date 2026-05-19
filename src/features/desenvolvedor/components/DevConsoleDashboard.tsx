@@ -78,7 +78,7 @@ export function DevConsoleDashboard() {
   const [n8nUrl, setN8nUrl] = useState("http://localhost:5678/webhook/comamor-vestuario");
   const [n8nMode, setN8nMode] = useState<"sandbox" | "production">("sandbox");
   const [meClientId, setMeClientId] = useState("");
-  const [meRedirectUri, setMeRedirectUri] = useState(window.location.origin + "/admin/dev");
+  const [meRedirectUri, setMeRedirectUri] = useState(window.location.origin + "/dev");
   const [meMode, setMeMode] = useState<"sandbox" | "production">("sandbox");
   const [mpPublicKey, setMpPublicKey] = useState("");
   const [mpPrivateKey, setMpPrivateKey] = useState("");

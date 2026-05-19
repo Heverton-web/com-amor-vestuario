@@ -21,6 +21,7 @@ import { Route as RecompensasLoginRouteImport } from './routes/recompensas.login
 import { Route as RecompensasComoFuncionaRouteImport } from './routes/recompensas.como-funciona'
 import { Route as ReciboTokenRouteImport } from './routes/recibo.$token'
 import { Route as FaturaTokenRouteImport } from './routes/fatura.$token'
+import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminUtmRouteImport } from './routes/_authenticated/admin.utm'
 import { Route as AuthenticatedAdminRecompensasRouteImport } from './routes/_authenticated/admin.recompensas'
@@ -95,6 +96,11 @@ const FaturaTokenRoute = FaturaTokenRouteImport.update({
   id: '/fatura/$token',
   path: '/fatura/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
+  id: '/dev',
+  path: '/dev',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/admin/',
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/loja': typeof LojaRoute
   '/recompensas': typeof RecompensasRouteWithChildren
+  '/dev': typeof AuthenticatedDevRoute
   '/fatura/$token': typeof FaturaTokenRoute
   '/recibo/$token': typeof ReciboTokenRoute
   '/recompensas/como-funciona': typeof RecompensasComoFuncionaRoute
@@ -216,6 +223,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
   '/loja': typeof LojaRoute
+  '/dev': typeof AuthenticatedDevRoute
   '/fatura/$token': typeof FaturaTokenRoute
   '/recibo/$token': typeof ReciboTokenRoute
   '/recompensas/como-funciona': typeof RecompensasComoFuncionaRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/loja': typeof LojaRoute
   '/recompensas': typeof RecompensasRouteWithChildren
+  '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/fatura/$token': typeof FaturaTokenRoute
   '/recibo/$token': typeof ReciboTokenRoute
   '/recompensas/como-funciona': typeof RecompensasComoFuncionaRoute
@@ -276,6 +285,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/loja'
     | '/recompensas'
+    | '/dev'
     | '/fatura/$token'
     | '/recibo/$token'
     | '/recompensas/como-funciona'
@@ -303,6 +313,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/login'
     | '/loja'
+    | '/dev'
     | '/fatura/$token'
     | '/recibo/$token'
     | '/recompensas/como-funciona'
@@ -332,6 +343,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/loja'
     | '/recompensas'
+    | '/_authenticated/dev'
     | '/fatura/$token'
     | '/recibo/$token'
     | '/recompensas/como-funciona'
@@ -452,6 +464,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaturaTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dev': {
+      id: '/_authenticated/dev'
+      path: '/dev'
+      fullPath: '/dev'
+      preLoaderRoute: typeof AuthenticatedDevRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/admin'
@@ -561,6 +580,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedAdminAnalisesRoute: typeof AuthenticatedAdminAnalisesRoute
   AuthenticatedAdminBrandingRoute: typeof AuthenticatedAdminBrandingRoute
   AuthenticatedAdminClientesRoute: typeof AuthenticatedAdminClientesRoute
@@ -579,6 +599,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedAdminAnalisesRoute: AuthenticatedAdminAnalisesRoute,
   AuthenticatedAdminBrandingRoute: AuthenticatedAdminBrandingRoute,
   AuthenticatedAdminClientesRoute: AuthenticatedAdminClientesRoute,
