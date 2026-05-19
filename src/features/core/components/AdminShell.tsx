@@ -129,7 +129,7 @@ export function AdminShell({
 
   return (
     <div className="flex min-h-screen bg-secondary/30">
-      <aside className="hidden w-64 shrink-0 border-r border-border bg-background md:flex md:flex-col">
+      <aside className="hidden w-64 shrink-0 border-r border-border bg-background md:flex md:flex-col h-screen sticky top-0">
         {Brand}
         <NavList />
         {Footer}
