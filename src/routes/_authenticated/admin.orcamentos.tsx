@@ -19,6 +19,9 @@ import {
   UserPlus,
   Search,
   FileDown,
+  MessageCircle,
+  Mail,
+  Link as LinkIcon,
 } from "lucide-react";
 import { NumInput } from "@/features/core/components/num-input";
 import { downloadDocPDF } from "@/features/core/services/pdf";
@@ -40,13 +43,14 @@ interface QuoteItem {
 function QuotesPage() {
   const qc = useQueryClient();
   const [creating, setCreating] = useState(false);
+  const [detailQuote, setDetailQuote] = useState<any | null>(null);
 
   const { data: quotes } = useQuery({
     queryKey: ["quotes"],
     queryFn: async () => {
       const { data } = await supabase
         .from("quotes")
-        .select("*, customers(name, code)")
+        .select("*, customers(*)")
         .order("created_at", { ascending: false });
       return data ?? [];
     },
@@ -80,7 +84,11 @@ function QuotesPage() {
             </thead>
             <tbody>
               {quotes?.map((q: any) => (
-                <tr key={q.id} className="border-t border-border">
+                <tr
+                  key={q.id}
+                  onClick={() => setDetailQuote(q)}
+                  className="cursor-pointer border-t border-border hover:bg-muted/30"
+                >
                   <td className="px-4 py-3 font-mono text-xs">{q.code}</td>
                   <td className="px-4 py-3 font-medium whitespace-nowrap">
                     {q.requester_name ?? "—"}
@@ -93,7 +101,7 @@ function QuotesPage() {
                     <span className="rounded-full bg-secondary px-2 py-1 text-xs">{q.status}</span>
                   </td>
                   <td className="px-4 py-3 font-medium whitespace-nowrap">{brl(q.total)}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={async () => {
                         const { data: items } = await supabase
@@ -150,6 +158,10 @@ function QuotesPage() {
             qc.invalidateQueries({ queryKey: ["quotes"] });
           }}
         />
+      )}
+
+      {detailQuote && (
+        <QuoteDetailDialog quote={detailQuote} onClose={() => setDetailQuote(null)} />
       )}
     </AdminShell>
   );
@@ -611,5 +623,216 @@ function Lbl({ t, c = "", children }: { t: string; c?: string; children: React.R
       <span className="mb-1.5 block text-sm font-medium">{t}</span>
       {children}
     </label>
+  );
+}
+
+function QuoteDetailDialog({ quote, onClose }: { quote: any; onClose: () => void }) {
+  const { data: items, isLoading } = useQuery({
+    queryKey: ["quote-items", quote.id],
+    queryFn: async () =>
+      (await supabase.from("quote_items").select("*").eq("quote_id", quote.id)).data ?? [],
+  });
+
+  const totalQty = items?.reduce((a: number, b: any) => a + b.quantity, 0) ?? 0;
+  const tier = priceTier(totalQty);
+
+  function shareText() {
+    const subtotal = Number(quote.subtotal);
+    const shipping = Number(quote.shipping);
+    const total = Number(quote.total);
+    const lines = [
+      `*Orçamento ${quote.code}* — Com Amor Vestuário`,
+      `Solicitante: ${quote.requester_name ?? "—"}`,
+      `Data: ${new Date(quote.quote_date).toLocaleDateString("pt-BR")}`,
+      quote.valid_until ? `Validade: ${new Date(quote.valid_until).toLocaleDateString("pt-BR")}` : "",
+      "",
+      "*Itens:*",
+      ...(items ?? []).map(
+        (i: any) =>
+          `• ${i.quantity}x ${i.product_name}${i.color ? ` (${i.color})` : ""}${i.size ? ` ${i.size}` : ""} — ${brl(Number(i.unit_price))} = ${brl(Number(i.total))}`,
+      ),
+      "",
+      `Subtotal: ${brl(subtotal)}`,
+      `Frete: ${brl(shipping)}`,
+      `*Total: ${brl(total)}*`,
+      "",
+      `Tabela aplicada: ${tier === "atacado" ? "ATACADO (6+ peças)" : "Varejo"}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    return lines;
+  }
+
+  function copyLink() {
+    const url = `${window.location.origin}/orcamento/${quote.id}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Link copiado!");
+  }
+
+  function shareWhatsApp() {
+    const phone = (quote.customers?.phone ?? "").replace(/\D/g, "");
+    const text = encodeURIComponent(shareText());
+    window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
+  }
+
+  function shareEmail() {
+    const subject = encodeURIComponent(`Orçamento ${quote.code} - Com Amor Vestuário`);
+    const body = encodeURIComponent(shareText());
+    window.open(`mailto:${quote.customers?.email ?? ""}?subject=${subject}&body=${body}`);
+  }
+
+  function downloadPDF() {
+    downloadDocPDF({
+      kind: "Orçamento",
+      code: quote.code,
+      date: quote.quote_date,
+      validUntil: quote.valid_until,
+      customer: quote.customers,
+      requester: quote.requester_name,
+      consultant: quote.consultant_name,
+      items: (items ?? []).map((i: any) => ({
+        product_name: i.product_name,
+        color: i.color,
+        size: i.size,
+        quantity: i.quantity,
+        unit_price: Number(i.unit_price),
+        total: Number(i.total),
+      })),
+      subtotal: Number(quote.subtotal),
+      shipping: Number(quote.shipping),
+      total: Number(quote.total),
+      notes: quote.notes,
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/60 p-0 backdrop-blur-sm md:items-center md:p-6"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-border bg-background md:rounded-3xl shadow-2xl"
+      >
+        <div className="flex shrink-0 items-start justify-between border-b border-border px-5 py-4 sm:px-7">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Orçamento</p>
+            <h3 className="font-display text-xl sm:text-2xl">{quote.code}</h3>
+            <span className="mt-1 inline-block rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-medium text-secondary-foreground">
+              {quote.status}
+            </span>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" className="rounded-full p-2 hover:bg-muted">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 space-y-5">
+          <div className="grid gap-3 text-sm sm:grid-cols-2 bg-secondary/10 p-4 rounded-2xl border border-border/40">
+            <Row label="Cliente" value={quote.customers?.name ?? "—"} />
+            <Row label="Solicitante" value={quote.requester_name ?? "—"} />
+            <Row label="Consultor" value={quote.consultant_name ?? "—"} />
+            <Row label="Data" value={new Date(quote.quote_date).toLocaleDateString("pt-BR")} />
+            <Row
+              label="Validade"
+              value={quote.valid_until ? new Date(quote.valid_until).toLocaleDateString("pt-BR") : "—"}
+            />
+            {quote.customers?.phone && <Row label="WhatsApp" value={quote.customers.phone} />}
+            {quote.customers?.email && <Row label="E-mail" value={quote.customers.email} />}
+          </div>
+
+          <div>
+            <h4 className="font-display text-base mb-2">Itens do Orçamento</h4>
+            {isLoading ? (
+              <p className="text-xs text-muted-foreground">Carregando itens...</p>
+            ) : (
+              <div className="divide-y divide-border border border-border rounded-xl overflow-hidden bg-card text-xs">
+                {items?.map((it: any, idx: number) => (
+                  <div key={idx} className="flex justify-between items-center p-3 hover:bg-muted/10">
+                    <div className="space-y-0.5">
+                      <p className="font-medium text-foreground">{it.product_name}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {it.color && `Cor: ${it.color}`} {it.size && ` · Tam: ${it.size}`}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium tabular-nums">
+                        {it.quantity}x {brl(Number(it.unit_price))}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-mono">
+                        {brl(Number(it.total))}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {!items?.length && (
+                  <p className="p-4 text-center text-muted-foreground">Nenhum item adicionado.</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-border bg-secondary/30 p-5 space-y-1.5">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Subtotal ({totalQty} peças)</span>
+              <span>{brl(Number(quote.subtotal))}</span>
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Frete</span>
+              <span>{brl(Number(quote.shipping))}</span>
+            </div>
+            <div className="flex justify-between border-t border-border/60 pt-3 font-display text-lg">
+              <span>Total</span>
+              <span className="text-primary">{brl(Number(quote.total))}</span>
+            </div>
+          </div>
+
+          {quote.notes && (
+            <div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Observações</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm border border-border p-3 rounded-xl bg-card">
+                {quote.notes}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border px-5 py-3 sm:px-7 bg-muted/20">
+          <button
+            onClick={copyLink}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-4 text-xs font-medium bg-background hover:bg-muted"
+          >
+            <LinkIcon className="h-3.5 w-3.5" /> Link
+          </button>
+          <button
+            onClick={shareWhatsApp}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-4 text-xs font-medium bg-background hover:bg-muted"
+          >
+            <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+          </button>
+          <button
+            onClick={shareEmail}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-4 text-xs font-medium bg-background hover:bg-muted"
+          >
+            <Mail className="h-3.5 w-3.5" /> Email
+          </button>
+          <button
+            onClick={downloadPDF}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-4 text-xs font-medium bg-background hover:bg-muted"
+          >
+            <FileDown className="h-3.5 w-3.5" /> PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="font-medium text-foreground">{value}</p>
+    </div>
   );
 }
