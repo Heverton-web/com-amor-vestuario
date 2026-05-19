@@ -49,10 +49,6 @@ function LoginPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
-        <Link to="/" className="mb-10 block w-fit">
-          <BrandLogo environment="admin" />
-        </Link>
-
         <div className="rounded-3xl border border-border bg-card p-8 shadow-sm">
           <h1 className="font-display text-3xl font-medium">
             {mode === "signin" ? "Entrar" : "Criar conta"}

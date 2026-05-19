@@ -94,9 +94,9 @@ function KanbanPage() {
         ))}
       </div>
 
-      <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0 flex-1 overflow-y-hidden">
+      <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0 flex-1 overflow-y-hidden flex flex-col min-h-0">
         <div
-          className="grid gap-3 md:gap-4 h-full"
+          className="grid gap-3 md:gap-4 h-full min-h-0"
           style={{ gridTemplateColumns: `repeat(${board.stages.length}, minmax(240px, 1fr))` }}
         >
           {board.stages.map((s) => {
@@ -114,7 +114,7 @@ function KanbanPage() {
                   setDragId(null);
                   setOverStage(null);
                 }}
-                className={`rounded-2xl border bg-card p-3 transition-colors flex flex-col h-[400px] md:h-full ${overStage === s.key ? "border-primary bg-primary/5" : "border-border"}`}
+                className={`rounded-2xl border bg-card p-3 transition-colors flex flex-col h-[400px] md:h-full min-h-0 ${overStage === s.key ? "border-primary bg-primary/5" : "border-border"}`}
               >
                 <div className="mb-3 flex items-center justify-between gap-2 shrink-0">
                   <h3 className="font-display text-sm uppercase tracking-wider">{s.label}</h3>
