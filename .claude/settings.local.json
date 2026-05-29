@@ -1,0 +1,9 @@
+{
+    "env": {
+        "ANTHROPIC_AUTH_TOKEN": "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",
+        "ANTHROPIC_BASE_URL": "https://integrate.api.nvidia.com/v1",
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": "nvidia/usdcode-llama-3.1-70b-instruct",
+        "ANTHROPIC_DEFAULT_OPUS_MODEL": "nvidia/usdcode-llama-3.1-70b-instruct",
+        "ANTHROPIC_DEFAULT_SONNET_MODEL": "nvidia/usdcode-llama-3.1-70b-instruct"
+    }
+}
